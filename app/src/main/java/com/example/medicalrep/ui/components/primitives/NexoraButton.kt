@@ -56,7 +56,7 @@ fun NexoraButton(
     leadingIcon: (@Composable () -> Unit)? = null,
 ) {
 
-    val shape = RoundedCornerShape(radii.extraLarge)
+    val shape = RoundedCornerShape(radii.medium)
     val widthModifier = if (fillMaxWidth) modifier.fillMaxWidth() else modifier
     val minHeight = if (compact) CompactButtonHeight else dim.primaryButtonHeight
     val minSize = Modifier.defaultMinSize(minHeight = minHeight)

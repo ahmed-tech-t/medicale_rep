@@ -83,6 +83,7 @@
 
     <!-- Home / attendance -->
     <string name="home_today_visits">زيارات اليوم</string>
+    <string name="no_visits_today">لا توجد زيارات اليوم</string>
     <string name="home_more">المزيد</string>
     <string name="attendance_recorded">تم تسجيل الحضور</string>
     <string name="attendance_start_shift">بدء الدوام</string>
@@ -192,4 +193,16 @@
     <string name="unplanned_summary_gifts_format">هدايا: %1$d قطعة</string>
     <string name="unplanned_summary_products_format">منتجات: %1$d علب</string>
     <string name="unplanned_class_format">Class %1$s</string>
+    <string name="drawer_add_visit">اضافة زيارة</string>
+    <string name="drawer_my_visits">زياراتى</string>
+    <string name="products">المنتجات</string>
+    <string name="drawer_add_account">اضافة اكونت (طبيب , عيادة , الخ..)</string>
+    <string name="track_rep">متابعة زيارات المناديب</string>
+    <string name="terms_and_conditions">الشروط والاحكام</string>
+    <string name="language">اللغة</string>
+    <string name="drawer_id_format">ID: %1$s</string>
+    <string name="home_section_visit_stats">إحصائيات الزيارات</string>
+    <string name="statics_metric_clinics">عدد العيادات</string>
+    <string name="statics_metric_doctors">عدد الدكاترة</string>
+    <string name="home_add_visit">اضافة زيارة</string>
 </resources>

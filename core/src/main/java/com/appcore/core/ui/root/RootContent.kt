@@ -16,13 +16,12 @@ import com.appcore.core.ui.components.LanguageWrapper
 @Composable
 fun RootContent(
     state: RootState,
-    languageCode: String,
     fallback: AppBootstrap,
     content: @Composable (AppBootstrap) -> Unit,
 ) {
     when (val resource = state.bootstrap) {
         is Resource.Loading -> Unit
-        else -> LanguageWrapper(languageCode = languageCode) {
+        else -> LanguageWrapper {
             content(resource.data ?: fallback)
         }
     }
@@ -40,7 +39,6 @@ private fun RootContentLoadingPreview() {
     MaterialTheme {
         RootContent(
             state = RootState(),
-            languageCode = "en",
             fallback = previewBootstrap,
             content = { Text(it.authStatus.toString()) },
         )
@@ -53,7 +51,6 @@ private fun RootContentSuccessPreview() {
     MaterialTheme {
         RootContent(
             state = RootState(bootstrap = Resource.Success(previewBootstrap)),
-            languageCode = "ar",
             fallback = previewBootstrap,
             content = { Text("Signed in: ${it.authStatus is UserAuthStatus.Authenticated}") },
         )

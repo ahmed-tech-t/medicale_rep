@@ -135,7 +135,7 @@ class LoginViewModelTest {
         viewModel.onEvent(LoginEvents.LanguageClicked)
         assertEquals("en", viewModel.state.value.language)
         assertEquals("AR", viewModel.state.value.otherLanguageCode)
-        assertEquals("en", settingsManager.language.value)
+        assertEquals("en", settingsManager.getLanguageSync())
     }
 
     @Test

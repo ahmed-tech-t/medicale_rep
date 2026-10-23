@@ -12,6 +12,6 @@ class MedicalRepApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        localeHelper.applySavedLocale()
+        localeHelper.syncSavedLocale(this)
     }
 }

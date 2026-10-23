@@ -83,6 +83,7 @@
 
     <!-- Home / attendance -->
     <string name="home_today_visits">Today\'s visits</string>
+    <string name="no_visits_today">No visits today</string>
     <string name="home_more">More</string>
     <string name="attendance_recorded">Attendance recorded</string>
     <string name="attendance_start_shift">Start shift</string>
@@ -192,4 +193,16 @@
     <string name="unplanned_summary_gifts_format">Gifts: %1$d pcs</string>
     <string name="unplanned_summary_products_format">Products: %1$d boxes</string>
     <string name="unplanned_class_format">Class %1$s</string>
+    <string name="drawer_add_visit">Add visit</string>
+    <string name="drawer_my_visits">My visits</string>
+    <string name="products">Products</string>
+    <string name="drawer_add_account">Add account (doctor, clinic, etc.)</string>
+    <string name="track_rep">Track reps\' visits</string>
+    <string name="terms_and_conditions">Terms and conditions</string>
+    <string name="language">Language</string>
+    <string name="drawer_id_format">ID: %1$s</string>
+    <string name="home_section_visit_stats">Visit statistics</string>
+    <string name="statics_metric_clinics">Clinics</string>
+    <string name="statics_metric_doctors">Doctors</string>
+    <string name="home_add_visit">Add visit</string>
 </resources>

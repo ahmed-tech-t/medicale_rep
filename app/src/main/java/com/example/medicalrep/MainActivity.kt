@@ -18,7 +18,6 @@ import androidx.navigation.compose.rememberNavController
 import com.appcore.core.domain.models.UserAuthStatus
 import com.appcore.core.domain.utils.Resource
 import com.appcore.core.domain.utils.UiEvent
-import com.appcore.core.ui.components.LanguageWrapper
 import com.appcore.core.ui.root.RootContent
 import com.appcore.core.ui.utils.HandleUiEvents
 import com.example.medicalrep.ui.navigation.AppNavHost
@@ -42,17 +41,13 @@ class MainActivity : AppCompatActivity() {
                 val state by rootViewModel.state.collectAsStateWithLifecycle()
                 RootContent(
                     state = state,
-                    languageCode = rootViewModel.languageState,
                     fallback = rootViewModel.fallbackBootstrap(),
                     content = { bootstrap ->
                         val startDestination = when (bootstrap.authStatus) {
                             UserAuthStatus.Authenticated -> MainGraph.Root
                             UserAuthStatus.NotAuthenticated -> AuthGraph.Root
                         }
-                        LanguageWrapper(languageCode = rootViewModel.languageState) {
-                            AppRoot(rootViewModel = rootViewModel, startDestination = startDestination)
-
-                        }
+                        AppRoot(rootViewModel = rootViewModel, startDestination =  MainGraph.Root)
                     },
                 )
             }

@@ -65,4 +65,9 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
 
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.paging)
+    testImplementation(libs.androidx.room.testing)
+    implementation(libs.androidx.room.ktx)
 }

@@ -6,6 +6,7 @@ import com.appcore.core.data.local.settings.LocaleHelper
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
 import com.appcore.core.ui.utils.BaseViewModel
+import com.example.medicalrep.ui.navigation.model.MainGraph
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +29,7 @@ class LoginViewModel @Inject constructor(
             LoginEvents.SignInClicked -> {
                 _state.update { it.copy(showErrors = true) }
                 sendEvent(UiEvent.HideKeyboard)
+                sendEvent(UiEvent.Navigate(MainGraph.Root))
             }
 
             LoginEvents.LanguageClicked -> switchLanguage()

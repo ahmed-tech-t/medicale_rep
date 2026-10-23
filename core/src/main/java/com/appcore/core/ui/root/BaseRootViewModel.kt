@@ -35,9 +35,6 @@ abstract class BaseRootViewModel(
     private val appSettingsManager: AppSettingsManager,
 ) : ViewModel() {
 
-    val languageState: String
-        get() = appSettingsManager.getLanguageSync()
-
     private var bootstrapStarted = false
     private val _state = MutableStateFlow(RootState())
 
