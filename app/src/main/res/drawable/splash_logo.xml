@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 108dp icon canvas; logo must stay inside the 72dp safe circle. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp">
+    <item
+        android:width="48dp"
+        android:height="42dp"
+        android:drawable="@drawable/medicalrep_logo"
+        android:gravity="center" />
+</layer-list>

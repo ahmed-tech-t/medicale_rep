@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CRM_Nexora</string>
+
+    <!-- Common -->
+    <string name="em_dash">—</string>
+    <string name="action_close">إغلاق</string>
+    <string name="action_cancel">إلغاء</string>
+    <string name="action_sync">مزامنة</string>
+    <string name="cd_back">رجوع</string>
+    <string name="cd_menu">القائمة</string>
+    <string name="cd_increment">زيادة</string>
+    <string name="cd_decrement">نقصان</string>
+    <string name="cd_clock">المدة</string>
+    <string name="cd_sync">مزامنة</string>
+
+    <!-- Visit status -->
+    <string name="visit_status_scheduled">مجدولة</string>
+    <string name="visit_status_in_progress">زيارة جارية الآن (معلقة)</string>
+    <string name="visit_status_pending_approval">بانتظار الاعتماد</string>
+    <string name="visit_status_completed">مكتملة</string>
+    <string name="visit_status_approved_unplanned">معتمدة (غير مخططة)</string>
+
+    <!-- Visit actions -->
+    <string name="visit_action_start">بدء زيارة</string>
+    <string name="visit_action_continue">استكمال الزيارة</string>
+
+    <!-- Visit kind (Planning / Planned / Unplanned) -->
+    <string name="planning">تخطيط</string>
+    <string name="planned">مخططة</string>
+    <string name="unplanned">غير مخططة</string>
+
+    <!-- Visit mode (Single / Double) -->
+    <string name="visit_type_label">نوع الزيارة</string>
+    <string name="visit_type_single">Single</string>
+    <string name="visit_type_double">Double</string>
+    <string name="visit_companion_label">المشرف المرافق:</string>
+    <string name="class_chip_format">Class %1$s</string>
+
+    <!-- Connection / offline strip -->
+    <string name="connection_online">متصل</string>
+    <string name="connection_offline">غير متصل</string>
+    <string name="offline_sync_title">مزامنة العمل (Offline)</string>
+    <string name="offline_sync_subtitle">يتم حفظ الزيارات محلياً ورفعها عند توفر الإنترنت</string>
+    <string name="pending_sync_format">%1$d بالانتظار</string>
+
+    <!-- Formats -->
+    <string name="specialty_with_class_format">%1$s • فئة (%2$s)</string>
+    <string name="doctor_specialty_format">%1$s • %2$s</string>
+    <string name="location_separator"> • </string>
+    <string name="class_only_format">فئة (%1$s)</string>
+
+    <!-- Attachment -->
+    <string name="attachment_fallback">مرفق</string>
+    <string name="attachment_required">إجباري</string>
+
+    <!-- Bottom nav -->
+    <string name="nav_home">الرئيسية</string>
+    <string name="nav_statics">الإحصائيات</string>
+    <string name="nav_visits">الزيارات</string>
+    <string name="nav_plan">تخطيط لزيارة</string>
+    <string name="nav_custody">العهدة</string>
+
+    <!-- Progress steps -->
+    <string name="step_entity_data">بيانات الجهة</string>
+    <string name="step_gifts_products">الهدايا والمنتجات</string>
+    <string name="step_result_finish">النتيجة والإنهاء</string>
+
+    <!-- Home / attendance -->
+    <string name="home_today_visits">زيارات اليوم</string>
+    <string name="home_more">المزيد</string>
+    <string name="attendance_recorded">تم تسجيل الحضور</string>
+    <string name="attendance_start_shift">بدء الدوام</string>
+    <string name="attendance_end_shift">إنهاء الدوام</string>
+    <string name="attendance_not_started">لم يبدأ الدوام</string>
+    <string name="placeholder_coming_soon">قريبًا</string>
+
+    <!-- Nav drawer -->
+    <string name="drawer_planning">التخطيط (Planning)</string>
+    <string name="drawer_planned">الزيارات المخططة (Planned)</string>
+    <string name="drawer_unplanned">زيارات غير مخططة (Unplanned)</string>
+    <string name="drawer_leaves">الإجازات والأعذار (مرضي/عارضة)</string>
+    <string name="drawer_add_doctor">اضافة طبيب</string>
+    <string name="drawer_info_center">مركز المعلومات</string>
+    <string name="drawer_specialty_code_format">%1$s • كود #%2$s</string>
+    <string name="drawer_device_id_format">Device ID: #%1$s ✓</string>
+    <string name="drawer_copyright">© 2026 جميع حقوق الملكية محفوظة لدى شركة نيكسورا للحلول البرمجية</string>
+    <string name="drawer_app_version_format">App version : %1$s</string>
+    <string name="drawer_app_version_default">1.1.0</string>
+
+    <!-- Data center -->
+    <string name="data_center_title">مركز البيانات والمزامنة</string>
+    <string name="data_center_intro_title">تحديث قواعد البيانات (Offline Sync)</string>
+    <string name="data_center_intro_body">قم بمزامنة بيانات الأطباء والخطط لضمان عمل التطبيق بكفاءة وبدون انقطاع أثناء عدم توفر الإنترنت.</string>
+    <string name="data_center_section_server">بيانات السيرفر الرئيسية</string>
+    <string name="data_center_card_full_title">تحديث شامل للبيانات</string>
+    <string name="data_center_card_full_subtitle">تحميل وتحديث كافة السجلات والخطط دفعة واحدة</string>
+    <string name="data_center_card_doctors_title">قوائم الأطباء والتسجيل</string>
+    <string name="data_center_card_doctors_subtitle">تحديث تصنيفات الأطباء، التخصصات، والمناطق</string>
+    <string name="data_center_card_clinics_title">العيادات والمستشفيات</string>
+    <string name="data_center_card_clinics_subtitle">سجلات المراكز الطبية، الصيدليات وبيانات التواصل</string>
+    <string name="data_center_card_planned_title">الزيارات المخطط لها</string>
+    <string name="data_center_card_planned_subtitle">جداول الزيارات المجدولة للدورة الحالية والملاحظات</string>
+
+    <!-- Statics -->
+    <string name="statics_title">لوحة الإحصائيات والتقارير</string>
+    <string name="statics_section_visits">إحصائيات الزيارات والخطط</string>
+    <string name="statics_metric_today">زيارات اليوم</string>
+    <string name="statics_metric_completed">الزيارات المنتهية</string>
+    <string name="statics_metric_unplanned">الزيارات الغير مخطط لها</string>
+    <string name="statics_section_custody">ملخص عهدة المندوب (الأدوية والهدايا)</string>
+    <string name="statics_custody_samples_title">عينات الأدوية والمنتجات</string>
+    <string name="statics_custody_gifts_title">الهدايا الدعائية</string>
+    <string name="statics_custody_samples_received_format">المستلم: %1$d عبوة (%2$d أصناف)</string>
+    <string name="statics_custody_gifts_received_format">المستلم: %1$d قطعة (%2$d أصناف)</string>
+    <string name="statics_custody_remaining_format">متبقي: %1$d</string>
+    <string name="statics_custody_dispatched_format">منصرف: %1$d</string>
+    <string name="statics_section_accounts">توزيع الاكونتات الموجوده حسب الفئة</string>
+    <string name="statics_account_clinic">عيادة</string>
+    <string name="statics_account_pharmacy">صيدلية</string>
+    <string name="statics_account_hospital">مستشفى</string>
+    <string name="statics_account_health_unit">وحدات صحيه</string>
+
+    <!-- Sample and gifts -->
+    <string name="sample_and_gifts_title">عهدة المندوب</string>
+    <string name="sample_and_gifts_tab_samples_format">العينات</string>
+    <string name="sample_and_gifts_tab_gifts_format">الهدايا</string>
+    <string name="sample_and_gifts_received_dispatched_format">المستلم: %1$d  المنصرف: %2$d</string>
+    <string name="sample_and_gifts_received_label">المستلم:\u00A0</string>
+    <string name="sample_and_gifts_dispatched_label">\u00A0 المنصرف:\u00A0</string>
+    <string name="sample_and_gifts_pieces_format">%1$d قطعة</string>
+    <string name="sample_and_gifts_low_stock">رصيد منخفض</string>
+
+    <!-- Unplanned visit flow -->
+    <string name="unplanned_visit_title">بدء حجز وتسجيل زيارة</string>
+    <string name="unplanned_visit_data_title">بيانات الزيارة</string>
+    <string name="action_next">التالي</string>
+    <string name="action_previous">السابق</string>
+    <string name="unplanned_visit_end">إنهاء الزيارة</string>
+    <string name="unplanned_visit_ended">تم إنهاء الزيارة</string>
+    <string name="unplanned_datetime_label">التاريخ والوقت</string>
+    <string name="unplanned_datetime_hint">يسجل تلقائياً من السيرفر (Default)</string>
+    <string name="unplanned_section_location">تحديد المكان والمنطقة الجغرافية</string>
+    <string name="unplanned_section_place_specialty">اسم المكان والتخصص</string>
+    <string name="unplanned_place_list_hint">تظهر القائمة بناءً على المنطقة والنوع المختارين</string>
+    <string name="unplanned_place_select_hint">اختر اسم المكان / الطبيب من القائمة</string>
+    <string name="unplanned_specialty_select_hint">اختر التخصص</string>
+    <string name="unplanned_summary_name_format">%1$s (%2$s)</string>
+    <string name="unplanned_label_city">المدينة</string>
+    <string name="unplanned_label_district">الحي</string>
+    <string name="unplanned_label_entity_type">اختر نوع الجهة</string>
+    <string name="unplanned_label_place">اسم المكان</string>
+    <string name="unplanned_label_specialty">التخصص</string>
+    <string name="unplanned_label_shift">فترة العمل</string>
+    <string name="unplanned_label_supervisor">المشرف المرافق</string>
+    <string name="shift_am">صباحا</string>
+    <string name="shift_pm">مسائي</string>
+    <string name="unplanned_section_gifts">الهدايا</string>
+    <string name="unplanned_section_products">المنتجات</string>
+    <string name="unplanned_add_gift">اختيار هدية</string>
+    <string name="unplanned_add_product">اختيار المنتج</string>
+    <string name="unplanned_view_location">عرض الموقع</string>
+    <string name="unplanned_summary_title">ملخص بيانات الزيارة المسجلة:</string>
+    <string name="unplanned_summary_shift_label">فترة العمل:</string>
+    <string name="unplanned_summary_visit_type_label">نوع الزيارة الحالية:</string>
+    <string name="unplanned_notes_label">ملاحظات إضافية على نتيجة الزيارة:</string>
+    <string name="unplanned_voice_note">تسجيل صوتي</string>
+    <string name="unplanned_voice_prompt">سجل النتيجة بالصوت (Voice Note)</string>
+    <string name="unplanned_attach_title">إرفاق ملف أو صورة</string>
+    <string name="unplanned_attach_hint">اضغط لاختيار صورة أو مستند (PDF, JPG)</string>
+    <string name="unplanned_sheet_title_gifts">إضافة هدايا</string>
+    <string name="unplanned_sheet_title_products">إضافة منتجات</string>
+    <string name="unplanned_sheet_search_label">البحث عن صنف أو عينة</string>
+    <string name="unplanned_sheet_search_hint_gift">اختر هدية</string>
+    <string name="unplanned_sheet_search_hint_product">اختر منتج</string>
+    <string name="unplanned_sheet_save">حفظ وإضافة للزيارة</string>
+    <string name="unplanned_summary_gifts_format">هدايا: %1$d قطعة</string>
+    <string name="unplanned_summary_products_format">منتجات: %1$d علب</string>
+    <string name="unplanned_class_format">Class %1$s</string>
+</resources>

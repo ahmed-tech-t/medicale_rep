@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CRM_Nexora</string>
+
+    <!-- Common -->
+    <string name="em_dash">—</string>
+    <string name="action_close">Close</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_sync">Sync</string>
+    <string name="cd_back">Back</string>
+    <string name="cd_menu">Menu</string>
+    <string name="cd_increment">Increase</string>
+    <string name="cd_decrement">Decrease</string>
+    <string name="cd_clock">Duration</string>
+    <string name="cd_sync">Sync</string>
+
+    <!-- Visit status -->
+    <string name="visit_status_scheduled">Scheduled</string>
+    <string name="visit_status_in_progress">Visit in progress (pending)</string>
+    <string name="visit_status_pending_approval">Pending approval</string>
+    <string name="visit_status_completed">Completed</string>
+    <string name="visit_status_approved_unplanned">Approved (unplanned)</string>
+
+    <!-- Visit actions -->
+    <string name="visit_action_start">Start visit</string>
+    <string name="visit_action_continue">Continue visit</string>
+
+    <!-- Visit kind (Planning / Planned / Unplanned) -->
+    <string name="planning">Planning</string>
+    <string name="planned">Planned</string>
+    <string name="unplanned">Unplanned</string>
+
+    <!-- Visit mode (Single / Double) -->
+    <string name="visit_type_label">Visit type</string>
+    <string name="visit_type_single">Single</string>
+    <string name="visit_type_double">Double</string>
+    <string name="visit_companion_label">Accompanying supervisor:</string>
+    <string name="class_chip_format">Class %1$s</string>
+
+    <!-- Connection / offline strip -->
+    <string name="connection_online">Online</string>
+    <string name="connection_offline">Offline</string>
+    <string name="offline_sync_title">Work sync (Offline)</string>
+    <string name="offline_sync_subtitle">Visits are saved locally and uploaded when internet is available</string>
+    <string name="pending_sync_format">%1$d pending</string>
+
+    <!-- Formats -->
+    <string name="specialty_with_class_format">%1$s • Class (%2$s)</string>
+    <string name="doctor_specialty_format">%1$s • %2$s</string>
+    <string name="location_separator"> • </string>
+    <string name="class_only_format">Class (%1$s)</string>
+
+    <!-- Attachment -->
+    <string name="attachment_fallback">Attachment</string>
+    <string name="attachment_required">Required</string>
+
+    <!-- Bottom nav -->
+    <string name="nav_home">Home</string>
+    <string name="nav_statics">Statistics</string>
+    <string name="nav_visits">Visits</string>
+    <string name="nav_plan">Plan visit</string>
+    <string name="nav_custody">Custody</string>
+
+    <!-- Progress steps -->
+    <string name="step_entity_data">Entity details</string>
+    <string name="step_gifts_products">Gifts and products</string>
+    <string name="step_result_finish">Result and finish</string>
+
+    <!-- Home / attendance -->
+    <string name="home_today_visits">Today\'s visits</string>
+    <string name="home_more">More</string>
+    <string name="attendance_recorded">Attendance recorded</string>
+    <string name="attendance_start_shift">Start shift</string>
+    <string name="attendance_end_shift">End shift</string>
+    <string name="attendance_not_started">Shift not started</string>
+    <string name="placeholder_coming_soon">Coming soon</string>
+
+    <!-- Nav drawer -->
+    <string name="drawer_planning">Planning</string>
+    <string name="drawer_planned">Planned visits</string>
+    <string name="drawer_unplanned">Unplanned visits</string>
+    <string name="drawer_leaves">Leaves and excuses (sick/casual)</string>
+    <string name="drawer_add_doctor">Add doctor</string>
+    <string name="drawer_info_center">Information center</string>
+    <string name="drawer_specialty_code_format">%1$s • Code #%2$s</string>
+    <string name="drawer_device_id_format">Device ID: #%1$s ✓</string>
+    <string name="drawer_copyright">© 2026 All rights reserved to Nexora Software Solutions</string>
+    <string name="drawer_app_version_format">App version : %1$s</string>
+    <string name="drawer_app_version_default">1.1.0</string>
+
+    <!-- Data center -->
+    <string name="data_center_title">Data center &amp; sync</string>
+    <string name="data_center_intro_title">Database update (Offline Sync)</string>
+    <string name="data_center_intro_body">Sync doctor data and plans so the app works smoothly while offline.</string>
+    <string name="data_center_section_server">Main server data</string>
+    <string name="data_center_card_full_title">Full data update</string>
+    <string name="data_center_card_full_subtitle">Download and update all records and plans at once</string>
+    <string name="data_center_card_doctors_title">Doctor lists &amp; registration</string>
+    <string name="data_center_card_doctors_subtitle">Update doctor classes, specialties, and regions</string>
+    <string name="data_center_card_clinics_title">Clinics &amp; hospitals</string>
+    <string name="data_center_card_clinics_subtitle">Medical centers, pharmacies, and contact data</string>
+    <string name="data_center_card_planned_title">Planned visits</string>
+    <string name="data_center_card_planned_subtitle">Scheduled visit tables for the current cycle and notes</string>
+
+    <!-- Statics -->
+    <string name="statics_title">Statistics and reports</string>
+    <string name="statics_section_visits">Visit and plan statistics</string>
+    <string name="statics_metric_today">Today\'s visits</string>
+    <string name="statics_metric_completed">Completed visits</string>
+    <string name="statics_metric_unplanned">Unplanned visits</string>
+    <string name="statics_section_custody">Rep custody summary (meds and gifts)</string>
+    <string name="statics_custody_samples_title">Medicine and product samples</string>
+    <string name="statics_custody_gifts_title">Promotional gifts</string>
+    <string name="statics_custody_samples_received_format">Received: %1$d packs (%2$d SKUs)</string>
+    <string name="statics_custody_gifts_received_format">Received: %1$d pieces (%2$d SKUs)</string>
+    <string name="statics_custody_remaining_format">Remaining: %1$d</string>
+    <string name="statics_custody_dispatched_format">Dispatched: %1$d</string>
+    <string name="statics_section_accounts">Account distribution by category</string>
+    <string name="statics_account_clinic">Clinic</string>
+    <string name="statics_account_pharmacy">Pharmacy</string>
+    <string name="statics_account_hospital">Hospital</string>
+    <string name="statics_account_health_unit">Health units</string>
+
+    <!-- Sample and gifts -->
+    <string name="sample_and_gifts_title">Rep custody</string>
+    <string name="sample_and_gifts_tab_samples_format">Samples</string>
+    <string name="sample_and_gifts_tab_gifts_format">Gifts</string>
+    <string name="sample_and_gifts_received_dispatched_format">Received: %1$d  Dispatched: %2$d</string>
+    <string name="sample_and_gifts_received_label">Received:\u00A0</string>
+    <string name="sample_and_gifts_dispatched_label">\u00A0 Dispatched:\u00A0</string>
+    <string name="sample_and_gifts_pieces_format">%1$d pcs</string>
+    <string name="sample_and_gifts_low_stock">Low stock</string>
+
+    <!-- Unplanned visit flow -->
+    <string name="unplanned_visit_title">Start booking and recording a visit</string>
+    <string name="unplanned_visit_data_title">Visit data</string>
+    <string name="action_next">Next</string>
+    <string name="action_previous">Previous</string>
+    <string name="unplanned_visit_end">End visit</string>
+    <string name="unplanned_visit_ended">Visit ended</string>
+    <string name="unplanned_datetime_label">Date and time</string>
+    <string name="unplanned_datetime_hint">Recorded automatically from the server (Default)</string>
+    <string name="unplanned_section_location">Location and region</string>
+    <string name="unplanned_section_place_specialty">Place name and specialty</string>
+    <string name="unplanned_place_list_hint">List appears based on the selected region and type</string>
+    <string name="unplanned_place_select_hint">Select place / doctor from the list</string>
+    <string name="unplanned_specialty_select_hint">Select specialty</string>
+    <string name="unplanned_summary_name_format">%1$s (%2$s)</string>
+    <string name="unplanned_label_city">City</string>
+    <string name="unplanned_label_district">District</string>
+    <string name="unplanned_label_entity_type">Entity type</string>
+    <string name="unplanned_label_place">Place name</string>
+    <string name="unplanned_label_specialty">Specialty</string>
+    <string name="unplanned_label_shift">Work shift</string>
+    <string name="unplanned_label_supervisor">Accompanying supervisor</string>
+    <string name="shift_am">Morning</string>
+    <string name="shift_pm">Evening</string>
+    <string name="unplanned_section_gifts">Gifts</string>
+    <string name="unplanned_section_products">Products</string>
+    <string name="unplanned_add_gift">Choose gift</string>
+    <string name="unplanned_add_product">Choose product</string>
+    <string name="unplanned_view_location">View location</string>
+    <string name="unplanned_summary_title">Registered visit summary:</string>
+    <string name="unplanned_summary_shift_label">Work period:</string>
+    <string name="unplanned_summary_visit_type_label">Current visit type:</string>
+    <string name="unplanned_notes_label">Additional notes on visit result:</string>
+    <string name="unplanned_voice_note">Voice recording</string>
+    <string name="unplanned_voice_prompt">Record the result with voice (Voice Note)</string>
+    <string name="unplanned_attach_title">Attach a file or photo</string>
+    <string name="unplanned_attach_hint">Tap to choose an image or document (PDF, JPG)</string>
+    <string name="unplanned_sheet_title_gifts">Add gifts</string>
+    <string name="unplanned_sheet_title_products">Add products</string>
+    <string name="unplanned_sheet_search_label">Search for an item or sample</string>
+    <string name="unplanned_sheet_search_hint_gift">Select gift</string>
+    <string name="unplanned_sheet_search_hint_product">Select product</string>
+    <string name="unplanned_sheet_save">Save and add to visit</string>
+    <string name="unplanned_summary_gifts_format">Gifts: %1$d pcs</string>
+    <string name="unplanned_summary_products_format">Products: %1$d boxes</string>
+    <string name="unplanned_class_format">Class %1$s</string>
+</resources>
