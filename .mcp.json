@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "figma-bridge": {
+      "command": "node",
+      "args": ["G:\\figma plugin\\figma_MCP\\server\\server.mjs"]
+    }
+  }
+}

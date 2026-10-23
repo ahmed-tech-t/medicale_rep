@@ -14,7 +14,9 @@
         android:theme="@style/Theme.MedicalRep">
         <activity
             android:name=".MainActivity"
+            android:configChanges="locale|layoutDirection"
             android:exported="true"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.MedicalRep.Starting"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>

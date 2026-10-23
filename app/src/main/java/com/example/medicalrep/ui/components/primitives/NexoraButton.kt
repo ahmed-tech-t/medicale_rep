@@ -22,10 +22,13 @@ import androidx.compose.ui.graphics.Color
 
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import com.appcore.core.ui.theme.dim
+import com.appcore.core.ui.theme.spacing
+import com.appcore.core.ui.theme.radii
 import com.example.medicalrep.ui.ui.theme.Ink
-import com.example.medicalrep.ui.ui.theme.NexoraDimens
 import com.example.medicalrep.ui.ui.theme.Slate600
 
+private val CompactButtonHeight = 36.dp
 
 enum class NexoraButtonVariant {
     Primary,
@@ -52,14 +55,15 @@ fun NexoraButton(
     textStyle: TextStyle? = null,
     leadingIcon: (@Composable () -> Unit)? = null,
 ) {
-    val shape = RoundedCornerShape(NexoraDimens.radiusLg)
+
+    val shape = RoundedCornerShape(radii.extraLarge)
     val widthModifier = if (fillMaxWidth) modifier.fillMaxWidth() else modifier
-    val minHeight = if (compact) NexoraDimens.buttonCompactHeight else NexoraDimens.buttonMinHeight
+    val minHeight = if (compact) CompactButtonHeight else dim.primaryButtonHeight
     val minSize = Modifier.defaultMinSize(minHeight = minHeight)
     val contentPadding = if (compact) {
-        PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+        PaddingValues(horizontal = spacing.spaceSmallPlus, vertical = spacing.spaceSmall)
     } else {
-        PaddingValues(horizontal = 16.dp, vertical = 14.dp)
+        PaddingValues(horizontal = spacing.spaceMedium, vertical = spacing.spaceSmallPlus)
     }
     val labelStyle = textStyle ?: if (compact) {
         MaterialTheme.typography.labelMedium
@@ -148,7 +152,7 @@ private fun NexoraButtonLabel(
     }
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(spacing.spaceExtraSmall, Alignment.CenterHorizontally),
     ) {
         leadingIcon()
         NexoraText(text = text, style = style, color = color)
@@ -160,8 +164,8 @@ private fun NexoraButtonLabel(
 private fun NexoraButtonPreview() {
     com.example.medicalrep.ui.ui.theme.MedicalRepTheme {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(spacing.spaceMedium),
+            verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall)
         ) {
             NexoraButton(
                 text = "Primary Button",

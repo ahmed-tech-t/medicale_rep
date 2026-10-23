@@ -7,23 +7,26 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import com.appcore.core.ui.theme.spacing
+import com.example.medicalrep.ui.ui.theme.Ink
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
-import com.example.medicalrep.ui.ui.theme.NexoraDimens
 import com.example.medicalrep.ui.ui.theme.Slate600
 
 @Composable
 fun NexoraLabel(
     text: String,
     modifier: Modifier = Modifier,
+    style: TextStyle = MaterialTheme.typography.labelMedium,
     alignEnd: Boolean = false,
 ) {
     NexoraText(
         text = text,
         modifier = modifier.fillMaxWidth(),
-        style = MaterialTheme.typography.labelMedium,
-        color = Slate600,
+        style = style,
+        color = Ink,
         textAlign = if (alignEnd) TextAlign.End else TextAlign.Start,
     )
 }
@@ -38,12 +41,12 @@ fun NexoraSectionTitle(
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = if (alignEnd) Alignment.End else Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(NexoraDimens.spaceXxs),
+        verticalArrangement = Arrangement.spacedBy(spacing.spaceExtraSmall),
     ) {
         NexoraText(
             text = title,
             style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onSurface,
+            color =Ink  ,
             textAlign = if (alignEnd) TextAlign.End else TextAlign.Start,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -63,7 +66,7 @@ fun NexoraSectionTitle(
 @Composable
 private fun NexoraLabelPreview() {
     MedicalRepTheme {
-        Column(verticalArrangement = Arrangement.spacedBy(NexoraDimens.spaceMd)) {
+        Column(verticalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus)) {
             NexoraLabel(text = "كود الشركة")
             NexoraSectionTitle(
                 title = "اسم المكان والتخصص",

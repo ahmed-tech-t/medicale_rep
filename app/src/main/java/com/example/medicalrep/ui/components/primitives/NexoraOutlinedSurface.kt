@@ -7,14 +7,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
-import com.example.medicalrep.ui.ui.theme.NexoraDimens
+import com.example.medicalrep.ui.ui.theme.Slate25
 
 @Composable
 fun NexoraOutlinedSurface(
     modifier: Modifier = Modifier,
     @Suppress("UNUSED_PARAMETER") elevated: Boolean = false,
-    containerColor: Color = MaterialTheme.colorScheme.surface,
+    containerColor: Color = Slate25,
     borderColor: Color = MaterialTheme.colorScheme.outline,
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -22,7 +23,7 @@ fun NexoraOutlinedSurface(
         modifier = modifier,
         borderColor = borderColor,
         containerColor = containerColor,
-        contentPadding = PaddingValues(NexoraDimens.spaceMd),
+        contentPadding = PaddingValues(spacing.spaceSmallPlus),
         content = content,
     )
 }

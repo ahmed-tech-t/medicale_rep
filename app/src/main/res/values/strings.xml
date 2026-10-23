@@ -2,6 +2,19 @@
 <resources>
     <string name="app_name">CRM_Nexora</string>
 
+    <!-- Login -->
+    <string name="login_logo_initials">MR</string>
+    <string name="login_title">Medical Rep</string>
+    <string name="login_subtitle">Field medical visit management and monitoring system</string>
+    <string name="login_company_code">Company code</string>
+    <string name="login_username">Username</string>
+    <string name="login_password">Password</string>
+    <string name="enter_company_code">Enter company code</string>
+    <string name="enter_username">Enter username</string>
+    <string name="enter_password">Enter password</string>
+    <string name="login_device_notice">Your account is linked to your personal phone ID (Device ID) to prevent sign-in from any other device.</string>
+    <string name="login_sign_in">Sign in</string>
+
     <!-- Common -->
     <string name="em_dash">—</string>
     <string name="action_close">Close</string>
@@ -13,6 +26,8 @@
     <string name="cd_decrement">Decrease</string>
     <string name="cd_clock">Duration</string>
     <string name="cd_sync">Sync</string>
+    <string name="cd_show_password">Show password</string>
+    <string name="cd_hide_password">Hide password</string>
 
     <!-- Visit status -->
     <string name="visit_status_scheduled">Scheduled</string>

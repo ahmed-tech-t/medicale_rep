@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
 }
@@ -37,18 +38,26 @@ android {
         compose = true
         buildConfig = true
     }
+    testOptions {
+        // Core classes call android.util.Log; return defaults so JVM unit tests can run them.
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
     implementation(project(":core"))
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.material3.adaptive)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.compose)
+    implementation(libs.androidx.navigation.compose)
     ksp(libs.hilt.compiler)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)

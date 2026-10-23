@@ -4,12 +4,27 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.compose.rememberNavController
 import com.appcore.core.domain.models.UserAuthStatus
 import com.appcore.core.domain.utils.Resource
+import com.appcore.core.domain.utils.UiEvent
+import com.appcore.core.ui.components.LanguageWrapper
 import com.appcore.core.ui.root.RootContent
+import com.appcore.core.ui.utils.HandleUiEvents
+import com.example.medicalrep.ui.navigation.AppNavHost
+import com.example.medicalrep.ui.navigation.model.AuthGraph
+import com.example.medicalrep.ui.navigation.model.MainGraph
+import com.example.medicalrep.ui.screens.root.AppRoot
 import com.example.medicalrep.ui.screens.root.RootViewModel
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -30,10 +45,13 @@ class MainActivity : AppCompatActivity() {
                     languageCode = rootViewModel.languageState,
                     fallback = rootViewModel.fallbackBootstrap(),
                     content = { bootstrap ->
-                        // Choose the NavHost start route
-                        when (bootstrap.authStatus) {
-                            UserAuthStatus.Authenticated -> { /* home */ }
-                            UserAuthStatus.NotAuthenticated -> { /* login */ }
+                        val startDestination = when (bootstrap.authStatus) {
+                            UserAuthStatus.Authenticated -> MainGraph.Root
+                            UserAuthStatus.NotAuthenticated -> AuthGraph.Root
+                        }
+                        LanguageWrapper(languageCode = rootViewModel.languageState) {
+                            AppRoot(rootViewModel = rootViewModel, startDestination = startDestination)
+
                         }
                     },
                 )
@@ -41,3 +59,4 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
+

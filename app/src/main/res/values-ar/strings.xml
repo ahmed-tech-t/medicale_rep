@@ -2,6 +2,19 @@
 <resources>
     <string name="app_name">CRM_Nexora</string>
 
+    <!-- Login -->
+    <string name="login_logo_initials">MR</string>
+    <string name="login_title">Medical Rep</string>
+    <string name="login_subtitle">نظام إدارة ومراقبة الزيارات الطبية الميدانية</string>
+    <string name="login_company_code">كود الشركة</string>
+    <string name="login_username">اسم المستخدم</string>
+    <string name="login_password">كلمة المرور</string>
+    <string name="enter_company_code">أدخل كود الشركة</string>
+    <string name="enter_username">أدخل اسم المستخدم</string>
+    <string name="enter_password">أدخل كلمة المرور</string>
+    <string name="login_device_notice">يتم ربط الحساب بمعرف هاتفك الشخصي (Device ID) لمنع الدخول من أي جهاز آخر.</string>
+    <string name="login_sign_in">تسجيل الدخول</string>
+
     <!-- Common -->
     <string name="em_dash">—</string>
     <string name="action_close">إغلاق</string>
@@ -13,6 +26,8 @@
     <string name="cd_decrement">نقصان</string>
     <string name="cd_clock">المدة</string>
     <string name="cd_sync">مزامنة</string>
+    <string name="cd_show_password">إظهار كلمة المرور</string>
+    <string name="cd_hide_password">إخفاء كلمة المرور</string>
 
     <!-- Visit status -->
     <string name="visit_status_scheduled">مجدولة</string>

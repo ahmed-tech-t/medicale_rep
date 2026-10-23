@@ -9,13 +9,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import com.appcore.core.ui.theme.spacing
+import com.appcore.core.ui.theme.radii
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
-import com.example.medicalrep.ui.ui.theme.NexoraDimens
 
 /**
  * Shared card chrome — body slot + optional click; border/container colors customizable.
@@ -26,12 +28,12 @@ fun NexoraCard(
     onClick: (() -> Unit)? = null,
     borderColor: Color = MaterialTheme.colorScheme.outline,
     containerColor: Color = MaterialTheme.colorScheme.surface,
-    contentPadding: PaddingValues = PaddingValues(NexoraDimens.spaceMd),
+    contentPadding: PaddingValues = PaddingValues(spacing.spaceSmallPlus),
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val shape = RoundedCornerShape(NexoraDimens.radiusLg)
+    val shape = RoundedCornerShape(radii.extraLarge)
     val colors = CardDefaults.cardColors(containerColor = containerColor)
-    val border = BorderStroke(NexoraDimens.borderThin, borderColor)
+    val border = BorderStroke(DividerDefaults.Thickness, borderColor)
     val body: @Composable () -> Unit = {
         Column(
             modifier = Modifier.padding(contentPadding),
