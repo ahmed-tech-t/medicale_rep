@@ -1,3 +1,5 @@
+import kotlin.collections.plusAssign
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -29,6 +31,13 @@ android {
                 packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
             }
         }
+        create("benchmark") {
+            initWith(buildTypes.getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            // :core has no benchmark build type; consume its release variant.
+            matchingFallbacks += listOf("release")
+        }
+
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21

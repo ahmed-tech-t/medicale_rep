@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import com.appcore.core.ui.components.modifier_ext.notchesPadding
@@ -69,7 +70,10 @@ fun LoginContent(
                 label = stringResource(R.string.login_company_code),
                 placeholder = stringResource(R.string.enter_company_code),
                 isError = state.showErrors && state.companyCodeBlank,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next,
+                ),
             )
         }
         item {
@@ -79,6 +83,7 @@ fun LoginContent(
                 placeholder = stringResource(R.string.enter_username),
 
                 isError = state.showErrors && state.usernameBlank,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
             )
         }
         item {
@@ -89,7 +94,10 @@ fun LoginContent(
                 placeholder = stringResource(R.string.enter_password),
 
                 isError = state.showErrors && state.passwordBlank,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done,
+                ),
             )
         }
         item {

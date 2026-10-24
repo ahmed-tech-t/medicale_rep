@@ -1,16 +1,23 @@
 package com.example.medicalrep.ui.screens.root
 
-import androidx.compose.foundation.layout.padding
+import android.app.Activity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.appcore.core.domain.utils.UiEvent
 import com.appcore.core.ui.components.ScaffoldComponent
 import com.appcore.core.ui.utils.HandleUiEvents
 import com.example.medicalrep.ui.navigation.AppNavHost
+import com.example.medicalrep.ui.navigation.model.AuthGraph
 
 @Composable
 fun AppRoot(
@@ -19,6 +26,15 @@ fun AppRoot(
 ) {
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // Login has a light background (dark icons); the main graph has a brand header (light icons).
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val isAuth = backStackEntry?.destination?.hierarchy?.any { it.hasRoute<AuthGraph.Root>() } ?: false
+    val view = LocalView.current
+    LaunchedEffect(isAuth) {
+        val window = (view.context as Activity).window
+        WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = isAuth
+    }
 
     rootViewModel.uiEvent.HandleUiEvents(
         snackbarHostState = snackbarHostState,

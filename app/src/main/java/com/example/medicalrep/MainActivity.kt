@@ -2,6 +2,7 @@ package com.example.medicalrep
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.padding
@@ -36,6 +37,7 @@ class MainActivity : AppCompatActivity() {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         splashScreen.setKeepOnScreenCondition { rootViewModel.state.value.bootstrap is Resource.Loading }
+        enableEdgeToEdge()
         setContent {
             MedicalRepTheme {
                 val state by rootViewModel.state.collectAsStateWithLifecycle()
@@ -47,7 +49,7 @@ class MainActivity : AppCompatActivity() {
                             UserAuthStatus.Authenticated -> MainGraph.Root
                             UserAuthStatus.NotAuthenticated -> AuthGraph.Root
                         }
-                        AppRoot(rootViewModel = rootViewModel, startDestination =  MainGraph.Root)
+                        AppRoot(rootViewModel = rootViewModel, startDestination =  startDestination)
                     },
                 )
             }

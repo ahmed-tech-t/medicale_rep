@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import com.example.medicalrep.ui.navigation.model.AuthGraph
 import com.example.medicalrep.ui.navigation.nav_graph.authNavGraph
 import com.example.medicalrep.ui.navigation.nav_graph.main.mainNavGraph
 
@@ -21,7 +22,13 @@ fun AppNavHost(
         modifier = modifier,
     ) {
         authNavGraph(
-            onNavigate = { navController.navigate(it.route) },
+            // Leaving the auth graph (login success) must not leave Login on the back stack.
+            onNavigate = {
+                navController.navigate(it.route) {
+                    popUpTo<AuthGraph.Root> { inclusive = true }
+                    launchSingleTop = true
+                }
+            },
             navigationUp = { navController.navigateUp() },
             snackbarHostState = snackbarHostState,
         )
