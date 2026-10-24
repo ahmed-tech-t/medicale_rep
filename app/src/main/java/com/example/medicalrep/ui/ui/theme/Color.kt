@@ -48,3 +48,6 @@ val InfoBorder = Color(0xFFBFDBFE)
 val CardBorderSoft = Color(0xFFEDF2F7)
 
 val TabIndicator = Color(0xFF3B82F6)
+
+val SuccessSoft = Color(0xFFDCFCE7)
+val SuccessBright = Color(0xFF34D399)

@@ -232,4 +232,12 @@
     <string name="home_add_visit">Add visit</string>
 
 
+    <!-- Visit log -->
+    <string name="visit_log_title">Visit log</string>
+    <string name="visit_log_tab_required">Required</string>
+    <string name="visit_log_tab_done">Done</string>
+    <string name="visit_log_results_format">%1$d results</string>
+    <string name="visit_log_id_format">ID:%1$s</string>
+    <string name="visit_log_items_format">%1$d products + %2$d gifts</string>
+    <string name="cd_filter">Filter</string>
 </resources>

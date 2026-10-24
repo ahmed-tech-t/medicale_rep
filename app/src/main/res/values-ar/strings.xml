@@ -231,4 +231,12 @@
     <string name="statics_metric_doctors">عدد الدكاترة</string>
     <string name="home_add_visit">اضافة زيارة</string>
 
+    <!-- Visit log -->
+    <string name="visit_log_title">سجل الزيارات</string>
+    <string name="visit_log_tab_required">المطلوبة</string>
+    <string name="visit_log_tab_done">تم عملها</string>
+    <string name="visit_log_results_format">%1$d نتيجة</string>
+    <string name="visit_log_id_format">ID:%1$s</string>
+    <string name="visit_log_items_format">%1$d منتج + %2$d هدية</string>
+    <string name="cd_filter">تصفية</string>
 </resources>

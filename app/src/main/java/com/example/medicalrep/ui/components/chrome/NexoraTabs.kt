@@ -1,7 +1,6 @@
-package com.example.medicalrep.ui.screens.sampleandgifts.components
+package com.example.medicalrep.ui.components.chrome
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,16 +12,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.appcore.core.ui.theme.spacing
-import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.primitives.NexoraText
-import com.example.medicalrep.ui.screens.sampleandgifts.main.SampleAndGiftsTab
 import com.example.medicalrep.ui.ui.theme.Brand
 import com.example.medicalrep.ui.ui.theme.BrandSoft
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
@@ -32,11 +28,12 @@ import com.example.medicalrep.ui.ui.theme.TabIndicator
 
 private val IndicatorThickness = 2.dp
 
-/** Figma tab row on the Brand header: selected tab is white with a blue underline. */
+/** Tab row for the Brand header: selected tab is white with a blue underline. */
 @Composable
-fun SampleAndGiftsTabs(
-    selectedTab: SampleAndGiftsTab,
-    onSelectTab: (SampleAndGiftsTab) -> Unit,
+fun NexoraTabs(
+    labels: List<String>,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -54,16 +51,11 @@ fun SampleAndGiftsTabs(
             }
             .padding(horizontal = spacing.spaceSmall),
     ) {
-        SampleAndGiftsTab.entries.forEach { tab ->
-            SampleAndGiftsTabItem(
-                label = stringResource(
-                    when (tab) {
-                        SampleAndGiftsTab.Samples -> R.string.sample_and_gifts_tab_samples_format
-                        SampleAndGiftsTab.Gifts -> R.string.sample_and_gifts_tab_gifts_format
-                    },
-                ),
-                selected = tab == selectedTab,
-                onClick = { onSelectTab(tab) },
+        labels.forEachIndexed { index, label ->
+            NexoraTab(
+                label = label,
+                selected = index == selectedIndex,
+                onClick = { onSelect(index) },
                 modifier = Modifier.weight(1f),
             )
         }
@@ -71,7 +63,7 @@ fun SampleAndGiftsTabs(
 }
 
 @Composable
-private fun SampleAndGiftsTabItem(
+private fun NexoraTab(
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
@@ -106,12 +98,12 @@ private fun SampleAndGiftsTabItem(
 
 @Preview(showBackground = true, locale = "ar")
 @Composable
-private fun SampleAndGiftsTabsSamplesPreview() {
-    MedicalRepTheme { SampleAndGiftsTabs(selectedTab = SampleAndGiftsTab.Samples, onSelectTab = {}) }
+private fun NexoraTabsFirstSelectedPreview() {
+    MedicalRepTheme { NexoraTabs(labels = listOf("العينات", "الهدايا"), selectedIndex = 0, onSelect = {}) }
 }
 
 @Preview(showBackground = true)
 @Composable
-private fun SampleAndGiftsTabsGiftsPreview() {
-    MedicalRepTheme { SampleAndGiftsTabs(selectedTab = SampleAndGiftsTab.Gifts, onSelectTab = {}) }
+private fun NexoraTabsSecondSelectedPreview() {
+    MedicalRepTheme { NexoraTabs(labels = listOf("Samples", "Gifts"), selectedIndex = 1, onSelect = {}) }
 }

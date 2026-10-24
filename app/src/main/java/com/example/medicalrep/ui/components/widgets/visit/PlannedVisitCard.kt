@@ -18,11 +18,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.primitives.NexoraButton
 import com.example.medicalrep.ui.components.primitives.NexoraIcon
 import com.example.medicalrep.ui.components.primitives.NexoraText
-import com.example.medicalrep.ui.mapper.resolvedAccountOrSpecialtyTag
 import com.example.medicalrep.ui.mapper.resolvedDisplayName
 import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.VisitUi
@@ -32,7 +32,7 @@ import com.example.medicalrep.ui.ui.theme.Slate500
 import com.example.medicalrep.ui.ui.theme.Ink
 
 @Composable
-fun UnplannedVisitCard(
+fun PlannedVisitCard(
     model: VisitUi,
     onAction: () -> Unit,
     modifier: Modifier = Modifier,
@@ -65,7 +65,9 @@ fun UnplannedVisitCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                VisitTagChip(text = model.resolvedAccountOrSpecialtyTag())
+                if (model.specialty.isNotBlank()) {
+                    VisitTagChip(text = model.specialty)
+                }
             }
             if (model.address.isNotBlank()) {
                 NexoraText(
@@ -77,6 +79,10 @@ fun UnplannedVisitCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+            }
+            val dateTime = "${model.time} ${model.date}".trim()
+            if (dateTime.isNotBlank()) {
+                VisitInfoChip(text = dateTime, modifier = Modifier.padding(top = spacing.spaceExtraSmall))
             }
         }
         NexoraButton(
@@ -98,9 +104,9 @@ fun UnplannedVisitCard(
 
 @Preview(showBackground = true, locale = "ar")
 @Composable
-private fun UnplannedVisitCardPreview() {
+private fun PlannedVisitCardPreview() {
     MedicalRepTheme {
-        UnplannedVisitCard(
+        PlannedVisitCard(
             model = VisitSamples.unplanned().toUi(),
             onAction = {},
             modifier = Modifier.padding(16.dp),

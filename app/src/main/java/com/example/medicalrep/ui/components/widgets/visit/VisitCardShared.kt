@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.primitives.NexoraIcon
 import com.example.medicalrep.ui.components.primitives.NexoraText
+import com.example.medicalrep.ui.components.widgets.NexoraChip
 import com.example.medicalrep.ui.models.StatusTone
 import com.example.medicalrep.ui.ui.theme.Slate200
 import com.example.medicalrep.ui.ui.theme.Slate300
@@ -187,4 +188,16 @@ internal fun visitStatusDotColor(tone: StatusTone): Color = when (tone) {
     StatusTone.Warning -> OnWarningContainer
     StatusTone.Danger -> Color(0xFFDC2626)
     StatusTone.Neutral -> Slate400
+}
+
+/** Pill chip for visit facts (double visit, date/time, item counts). */
+@Composable
+internal fun VisitInfoChip(text: String, modifier: Modifier = Modifier) {
+    NexoraChip(
+        text = text,
+        container = Slate100,
+        content = Slate600,
+        shape = RoundedCornerShape(radii.pill),
+        modifier = modifier,
+    )
 }

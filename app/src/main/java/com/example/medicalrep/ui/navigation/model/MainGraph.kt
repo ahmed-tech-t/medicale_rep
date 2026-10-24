@@ -17,4 +17,7 @@ open class MainGraph {
 
     @Serializable
     data object SampleAndGifts : MainGraph()
+
+    @Serializable
+    data object VisitLog : MainGraph()
 }

@@ -39,7 +39,7 @@ import com.example.medicalrep.R
 import com.example.medicalrep.domain.models.ConnectionState
 import com.example.medicalrep.ui.components.primitives.NexoraIcon
 import com.example.medicalrep.ui.components.primitives.NexoraText
-import com.example.medicalrep.ui.components.widgets.visit.UnplannedVisitCard
+import com.example.medicalrep.ui.components.widgets.visit.PlannedVisitCard
 import com.example.medicalrep.ui.models.StaticsMetricUi
 import com.example.medicalrep.ui.preview.HomeSamples
 import com.example.medicalrep.ui.screens.home.components.HomeHeader
@@ -185,7 +185,7 @@ private fun HomeList(
             items(
                 items = state.todayVisits.take(min(TodayVisitsLimit, state.todayVisits.size)),
                 key = { "today-${it.id}" }) { visit ->
-                UnplannedVisitCard(
+                PlannedVisitCard(
                     model = visit,
                     onAction = { onEvent(HomeEvents.OnStartVisit(visit.id)) },
                     modifier = Modifier.testTag(HomeTestTags.TodayVisit),

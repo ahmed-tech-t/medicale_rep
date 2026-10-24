@@ -14,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.chrome.AppHeader
+import com.example.medicalrep.ui.components.chrome.NexoraTabs
 import com.example.medicalrep.ui.screens.sampleandgifts.main.SampleAndGiftsEvents
 import com.example.medicalrep.ui.screens.sampleandgifts.main.SampleAndGiftsState
 import com.example.medicalrep.ui.screens.sampleandgifts.main.SampleAndGiftsTab
@@ -35,9 +36,17 @@ fun SampleAndGiftsUi(
             .background(Slate50),
     ) {
         AppHeader(title = stringResource(R.string.sample_and_gifts_title), onBack = onBack)
-        SampleAndGiftsTabs(
-            selectedTab = state.selectedTab,
-            onSelectTab = { onEvent(SampleAndGiftsEvents.SelectTab(it)) },
+        NexoraTabs(
+            labels = SampleAndGiftsTab.entries.map { tab ->
+                stringResource(
+                    when (tab) {
+                        SampleAndGiftsTab.Samples -> R.string.sample_and_gifts_tab_samples_format
+                        SampleAndGiftsTab.Gifts -> R.string.sample_and_gifts_tab_gifts_format
+                    },
+                )
+            },
+            selectedIndex = state.selectedTab.ordinal,
+            onSelect = { onEvent(SampleAndGiftsEvents.SelectTab(SampleAndGiftsTab.entries[it])) },
         )
         LazyColumn(
             modifier = Modifier.fillMaxSize(),

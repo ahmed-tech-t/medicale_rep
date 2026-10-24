@@ -145,6 +145,15 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun `my visits drawer row opens the visit log`() = runTest(dispatcher) {
+        val events = collectEvents()
+        viewModel.onEvent(HomeEvents.OnMenuClick)
+        viewModel.onEvent(HomeEvents.OnDrawerItem(NavDrawerItem.MyVisits))
+        assertFalse(state.isDrawerOpen)
+        assertEquals(listOf<UiEvent>(UiEvent.Navigate(MainGraph.VisitLog)), events)
+    }
+
+    @Test
     fun `custody drawer row opens samples and gifts`() = runTest(dispatcher) {
         val events = collectEvents()
         viewModel.onEvent(HomeEvents.OnMenuClick)

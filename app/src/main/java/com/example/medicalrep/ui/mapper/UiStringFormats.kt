@@ -32,13 +32,6 @@ fun VisitUi.resolvedLocationLine(): String {
 }
 
 @Composable
-fun VisitUi.resolvedAccountOrSpecialtyTag(): String {
-    val tag = account.takeIf { it.isNotBlank() && it != placeName }
-        ?: specialty
-    return if (tag.isBlank()) stringResource(R.string.em_dash) else tag
-}
-
-@Composable
 fun VisitUi.resolvedDisplayName(): String =
     when {
         placeName.isNotBlank() -> placeName

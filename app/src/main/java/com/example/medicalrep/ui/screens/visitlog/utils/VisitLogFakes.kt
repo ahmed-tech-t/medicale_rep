@@ -1,0 +1,39 @@
+package com.example.medicalrep.ui.screens.visitlog.utils
+
+import com.example.medicalrep.domain.models.SyncStatus
+import com.example.medicalrep.ui.mapper.toUi
+import com.example.medicalrep.ui.models.VisitUi
+import com.example.medicalrep.ui.preview.VisitSamples
+import com.example.medicalrep.ui.screens.visitlog.main.VisitLogState
+
+/** Sample data shown until visits are loaded from Room. */
+object VisitLogFakes {
+
+    fun requiredVisits(): List<VisitUi> = List(4) { index ->
+        VisitSamples.planned(
+            id = "required-$index",
+            placeName = "د. طارق عز الدين",
+            specialty = "باطنة",
+        ).toUi().copy(address = "شارع الجلاء - برج الأطباء")
+    }
+
+    fun doneVisits(): List<VisitUi> = listOf(
+        VisitSamples.planned(id = "done-1", placeName = "د. محمد عبد الرحمن الشافعي", account = "عيادة")
+            .toUi()
+            .copy(isDoubleVisit = true, supervisorName = "احمد حسن"),
+        VisitSamples.unplanned(id = "done-2", placeName = "د. منى الشاذلي (أطفال)")
+            .toUi()
+            .copy(
+                backendId = "432423",
+                syncStatus = SyncStatus.Synced,
+                isDoubleVisit = true,
+                supervisorName = "احمد حسن",
+                address = "زيارة إضافية في نفس المربع الجغرافي",
+            ),
+    )
+
+    fun state(): VisitLogState = VisitLogState(
+        requiredVisits = requiredVisits(),
+        doneVisits = doneVisits(),
+    )
+}
