@@ -9,6 +9,7 @@ import com.example.medicalrep.ui.navigation.model.MainGraph
 import com.example.medicalrep.ui.screens.datacenter.main.DataCenterScreen
 import com.example.medicalrep.ui.screens.home.main.HomeScreen
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitScreen
+import com.example.medicalrep.ui.screens.sampleandgifts.main.SampleAndGiftsScreen
 
 fun NavGraphBuilder.mainNavGraph(
     onNavigate: (UiEvent.Navigate) -> Unit,
@@ -25,6 +26,13 @@ fun NavGraphBuilder.mainNavGraph(
         }
         composable<MainGraph.PlanVisit> {
             PlanVisitScreen(
+                onNavigate = onNavigate,
+                navigationUp = navigationUp,
+                snackbarHostState = snackbarHostState,
+            )
+        }
+        composable<MainGraph.SampleAndGifts> {
+            SampleAndGiftsScreen(
                 onNavigate = onNavigate,
                 navigationUp = navigationUp,
                 snackbarHostState = snackbarHostState,

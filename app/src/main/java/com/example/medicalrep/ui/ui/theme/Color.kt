@@ -46,3 +46,5 @@ val OnInfoContainer = Color(0xFF1E40AF)
 val InfoBorder = Color(0xFFBFDBFE)
 
 val CardBorderSoft = Color(0xFFEDF2F7)
+
+val TabIndicator = Color(0xFF3B82F6)

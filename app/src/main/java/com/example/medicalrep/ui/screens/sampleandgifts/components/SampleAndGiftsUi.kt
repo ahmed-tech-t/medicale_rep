@@ -1,0 +1,72 @@
+package com.example.medicalrep.ui.screens.sampleandgifts.components
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import com.appcore.core.ui.theme.spacing
+import com.example.medicalrep.R
+import com.example.medicalrep.ui.components.chrome.AppHeader
+import com.example.medicalrep.ui.screens.sampleandgifts.main.SampleAndGiftsEvents
+import com.example.medicalrep.ui.screens.sampleandgifts.main.SampleAndGiftsState
+import com.example.medicalrep.ui.screens.sampleandgifts.main.SampleAndGiftsTab
+import com.example.medicalrep.ui.screens.sampleandgifts.utils.SampleAndGiftsFakes
+import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
+import com.example.medicalrep.ui.ui.theme.Slate50
+
+/** Figma 57:12182: rep custody with Samples / Gifts tabs. */
+@Composable
+fun SampleAndGiftsUi(
+    state: SampleAndGiftsState,
+    onEvent: (SampleAndGiftsEvents) -> Unit,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Slate50),
+    ) {
+        AppHeader(title = stringResource(R.string.sample_and_gifts_title), onBack = onBack)
+        SampleAndGiftsTabs(
+            selectedTab = state.selectedTab,
+            onSelectTab = { onEvent(SampleAndGiftsEvents.SelectTab(it)) },
+        )
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(spacing.spaceSmallPlus),
+            verticalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
+        ) {
+            items(items = state.visibleItems, key = { it.id }) { item ->
+                SampleAndGiftsItemCard(item = item)
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, locale = "ar", heightDp = 800)
+@Composable
+private fun SampleAndGiftsUiSamplesPreview() {
+    MedicalRepTheme {
+        SampleAndGiftsUi(state = SampleAndGiftsFakes.state(), onEvent = {}, onBack = {})
+    }
+}
+
+@Preview(showBackground = true, locale = "ar", heightDp = 800)
+@Composable
+private fun SampleAndGiftsUiGiftsPreview() {
+    MedicalRepTheme {
+        SampleAndGiftsUi(
+            state = SampleAndGiftsFakes.state().copy(selectedTab = SampleAndGiftsTab.Gifts),
+            onEvent = {},
+            onBack = {},
+        )
+    }
+}

@@ -14,4 +14,7 @@ open class MainGraph {
 
     @Serializable
     data object DataCenter : MainGraph()
+
+    @Serializable
+    data object SampleAndGifts : MainGraph()
 }
