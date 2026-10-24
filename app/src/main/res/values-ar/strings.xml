@@ -187,6 +187,10 @@
     <string name="unplanned_summary_visit_type_label">نوع الزيارة الحالية:</string>
     <string name="unplanned_notes_label">ملاحظات إضافية على نتيجة الزيارة:</string>
     <string name="unplanned_voice_note">تسجيل صوتي</string>
+    <string name="unplanned_voice_recording">جارٍ التسجيل...</string>
+    <string name="unplanned_voice_recorded">تم تسجيل الملاحظة الصوتية</string>
+    <string name="cd_delete_voice_note">حذف الملاحظة الصوتية</string>
+    <string name="unplanned_voice_permission_denied">يلزم السماح باستخدام الميكروفون لتسجيل ملاحظة صوتية</string>
     <string name="unplanned_voice_prompt">سجل النتيجة بالصوت (Voice Note)</string>
     <string name="unplanned_attach_title">إرفاق صورة</string>
     <string name="unplanned_attach_hint">برجاء ارفاق صوره من امام باب العياده</string>
@@ -224,4 +228,5 @@
     <string name="statics_metric_clinics">عدد العيادات</string>
     <string name="statics_metric_doctors">عدد الدكاترة</string>
     <string name="home_add_visit">اضافة زيارة</string>
+
 </resources>

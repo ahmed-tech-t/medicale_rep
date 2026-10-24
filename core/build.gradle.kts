@@ -51,6 +51,7 @@ dependencies {
     api(libs.retrofit.kotlinx.serialization)
     api(libs.okhttp.logging)
     api(libs.androidx.window.core)
+    implementation(libs.androidx.activity.compose)
     debugApi(libs.chucker)
     releaseApi(libs.chucker.no.op)
 

@@ -37,11 +37,11 @@ class HomeViewModel @Inject constructor(
                 _state.update { it.copy(isDrawerOpen = false) }
                 when (event.item) {
                     NavDrawerItem.Language -> switchLanguage()
-                    NavDrawerItem.AddVisit -> openUnplannedVisit()
+                    NavDrawerItem.AddVisit -> openPlanVisit()
                     else -> showComingSoon()
                 }
             }
-            HomeEvents.OnAddVisitClick -> openUnplannedVisit()
+            HomeEvents.OnAddVisitClick -> openPlanVisit()
             HomeEvents.OnSyncClick,
             HomeEvents.OnActiveContinue,
             HomeEvents.OnActiveCancel,
@@ -50,8 +50,8 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun openUnplannedVisit() {
-        sendEvent(UiEvent.Navigate(MainGraph.UnplannedVisit))
+    private fun openPlanVisit() {
+        sendEvent(UiEvent.Navigate(MainGraph.PlanVisit()))
     }
 
     private fun showComingSoon() {

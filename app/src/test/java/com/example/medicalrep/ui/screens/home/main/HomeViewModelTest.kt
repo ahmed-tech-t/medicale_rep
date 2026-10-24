@@ -139,7 +139,7 @@ class HomeViewModelTest {
         viewModel.onEvent(HomeEvents.OnDrawerItem(NavDrawerItem.AddVisit))
         assertFalse(state.isDrawerOpen)
         assertEquals(
-            List(2) { UiEvent.Navigate(MainGraph.UnplannedVisit) },
+            List(2) { UiEvent.Navigate(MainGraph.PlanVisit()) },
             events,
         )
     }

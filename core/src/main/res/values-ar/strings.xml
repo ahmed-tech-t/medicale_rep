@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="close">إغلاق</string>
+    <string name="document_too_large">حجم الملف يتجاوز الحد الأقصى 5 ميجابايت.</string>
+
 </resources>

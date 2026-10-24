@@ -29,6 +29,11 @@ data class AdaptiveDimensions(
     val developerCardLogoSize: Dp,
     val categoryItemBackgroundSize: Dp,
     val illustrationSize: Dp,
+    val stepDotSize: Dp,
+    val stepCheckSize: Dp,
+    val stepSeparatorWidth: Dp,
+    val compactActionWidth: Dp,
+    val compactActionHeight: Dp,
 ) {
     companion object {
         fun from(device: DeviceConfiguration): AdaptiveDimensions {
@@ -59,6 +64,11 @@ data class AdaptiveDimensions(
                     developerCardLogoSize = 56.dp,
                     categoryItemBackgroundSize = 68.dp,
                     illustrationSize = 160.dp,
+                    stepDotSize = 6.dp,
+                    stepCheckSize = 12.dp,
+                    stepSeparatorWidth = 19.dp,
+                    compactActionWidth = 40.dp,
+                    compactActionHeight = 29.dp,
                 )
 
                 DeviceConfiguration.Tablet_Portrait -> AdaptiveDimensions(
@@ -85,6 +95,11 @@ data class AdaptiveDimensions(
                     developerCardLogoSize = 64.dp,
                     categoryItemBackgroundSize = 80.dp,
                     illustrationSize = 180.dp,
+                    stepDotSize = 7.dp,
+                    stepCheckSize = 14.dp,
+                    stepSeparatorWidth = 22.dp,
+                    compactActionWidth = 46.dp,
+                    compactActionHeight = 34.dp,
                 )
 
                 DeviceConfiguration.Tablet_Landscape -> AdaptiveDimensions(
@@ -111,6 +126,11 @@ data class AdaptiveDimensions(
                     developerCardLogoSize = 72.dp,
                     categoryItemBackgroundSize = 88.dp,
                     illustrationSize = 200.dp,
+                    stepDotSize = 8.dp,
+                    stepCheckSize = 16.dp,
+                    stepSeparatorWidth = 24.dp,
+                    compactActionWidth = 48.dp,
+                    compactActionHeight = 36.dp,
                 )
 
                 DeviceConfiguration.Desktop -> AdaptiveDimensions(
@@ -137,6 +157,11 @@ data class AdaptiveDimensions(
                     developerCardLogoSize = 80.dp,
                     categoryItemBackgroundSize = 96.dp,
                     illustrationSize = 220.dp,
+                    stepDotSize = 8.dp,
+                    stepCheckSize = 16.dp,
+                    stepSeparatorWidth = 26.dp,
+                    compactActionWidth = 52.dp,
+                    compactActionHeight = 38.dp,
                 )
             }
         }

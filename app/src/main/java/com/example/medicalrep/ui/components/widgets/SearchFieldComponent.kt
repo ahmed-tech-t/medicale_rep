@@ -37,7 +37,8 @@ import com.appcore.core.ui.theme.radii
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.components.primitives.NexoraTextField
-import com.example.medicalrep.ui.screens.unplannedvisit.components.ClassBadge
+import com.example.medicalrep.ui.ui.theme.Info
+import com.example.medicalrep.ui.ui.theme.InfoContainer
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 
 /**
@@ -162,14 +163,14 @@ private fun SearchFieldComponentPreview() {
                 value = "عيادة د. محمود عبد الرحمن عبد الله الطويل جدا",
                 options = emptyList(),
                 onSelect = {},
-                badge = { ClassBadge(text = "Class A") },
+                badge = { NexoraChip(text = "Class A", container = InfoContainer, content = Info) },
             )
             SearchFieldComponent(
                 value = "عيادة د. محمود عبد الرحمن عبد الله الطويل جدا",
                 options = emptyList(),
                 onSelect = {},
                 enabled = false,
-                badge = { ClassBadge(text = "Class A") },
+                badge = { NexoraChip(text = "Class A", container = InfoContainer, content = Info) },
             )
         }
     }

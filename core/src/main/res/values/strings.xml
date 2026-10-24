@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="close">Close</string>
+    <string name="document_too_large">File exceeds the 5 MB limit.</string>
+
 </resources>

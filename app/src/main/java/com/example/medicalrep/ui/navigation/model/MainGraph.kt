@@ -10,5 +10,5 @@ open class MainGraph {
     data object Home : MainGraph()
 
     @Serializable
-    data object UnplannedVisit : MainGraph()
+    data class PlanVisit(val visitId: String? = null,val isNew: Boolean = true) : MainGraph()
 }

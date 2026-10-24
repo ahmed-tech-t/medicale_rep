@@ -19,7 +19,7 @@ data class Visit(
     val classCategory: String? = null,
     val gifts: List<Product>? = null,
     val products: List<Product>? = null,
-    val voiceNote: String? = null,
+    val voiceNote: ByteArray? = null,
     val syncStatus: SyncStatus? = null,
     val durationLabel: String? = null,
 )

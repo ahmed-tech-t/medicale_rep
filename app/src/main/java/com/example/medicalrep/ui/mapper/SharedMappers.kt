@@ -38,7 +38,7 @@ fun Visit.toUi(): VisitUi {
         classCategory = classCategory.orEmpty(),
         gifts = gifts?.map { it.toProductUi() }.orEmpty(),
         products = products?.map { it.toProductUi() }.orEmpty(),
-        voiceNote = voiceNote.orEmpty(),
+        voiceNote = voiceNote,
         syncStatus = syncStatus ?: SyncStatus.NotSynced,
         durationLabel = durationLabel.orEmpty(),
     )

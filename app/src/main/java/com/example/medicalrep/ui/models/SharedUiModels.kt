@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.models
 
+import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
 import com.example.medicalrep.R
@@ -25,12 +26,14 @@ data class VisitUi(
     val specialty: String = "",
     val shift: Shift = Shift.Am,
     val isDoubleVisit: Boolean = false,
-    val type: VisitType = VisitType.Planned,
+    val type: VisitType = VisitType.Unplanned,
     val supervisorName: String = "",
     val classCategory: String = "",
     val gifts: List<ProductUi> = emptyList(),
     val products: List<ProductUi> = emptyList(),
-    val voiceNote: String = "",
+    val voiceNote: ByteArray? = null,
+    val imageNote: Uri? = null,
+    val noIssueFound: Boolean = true,
     val syncStatus: SyncStatus = SyncStatus.NotSynced,
     val durationLabel: String = "",
 )
@@ -43,7 +46,8 @@ data class ProductUi(
     val quantity: Int,
     val kind: ProductType,
     val remaining: Int,
-    val description: String, )
+    val description: String,
+)
 
 @Immutable
 data class StatMetricUiModel(
@@ -82,8 +86,8 @@ enum class StatusTone {
 @Immutable
 data class UserUi(
     val id: String? = null,
-    val displayName: String="",
-    val roleTitle: String="",
+    val displayName: String = "",
+    val roleTitle: String = "",
     val specialty: String = "",
     val employeeCode: String = "",
     val deviceId: String = "",

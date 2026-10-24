@@ -20,9 +20,9 @@ class LocaleHelper @Inject constructor(
     /**
      * Call once from `Application.onCreate`.
      *
-     * Android 13+: the system's stored app language is the source of truth (it is applied before the first
-     * Activity, so no late locale change); DataStore mirrors it. AppCompat can't be used here: before an
-     * Activity exists its get/set are silent no-ops on 13+, so [LocaleManager] is called directly.
+     * Android 13+: the saved language (DataStore) is the source of truth and is pushed to the system before the
+     * first Activity, so there is no late locale change. AppCompat can't be used here: before an Activity exists
+     * its get/set are silent no-ops on 13+, so [LocaleManager] is called directly.
      *
      * Android 12 and older: AppCompat applies the saved language in memory before the first Activity.
      */
@@ -35,11 +35,8 @@ class LocaleHelper @Inject constructor(
         }
         val localeManager = context.getSystemService(LocaleManager::class.java)
         val systemLanguage = localeManager.applicationLocales[0]?.language
-        when {
-            systemLanguage == null -> localeManager.applicationLocales = LocaleList.forLanguageTags(savedLanguage)
-            systemLanguage != savedLanguage -> runBlocking {
-                runCatching { appSettingsManager.updateLanguage(systemLanguage) }
-            }
+        if (systemLanguage != savedLanguage) {
+            localeManager.applicationLocales = LocaleList.forLanguageTags(savedLanguage)
         }
     }
 }
