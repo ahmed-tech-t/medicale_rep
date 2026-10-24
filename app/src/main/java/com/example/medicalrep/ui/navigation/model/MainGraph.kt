@@ -20,4 +20,7 @@ open class MainGraph {
 
     @Serializable
     data object VisitLog : MainGraph()
+
+    @Serializable
+    data object Products : MainGraph()
 }

@@ -240,4 +240,10 @@
     <string name="visit_log_id_format">ID:%1$s</string>
     <string name="visit_log_items_format">%1$d products + %2$d gifts</string>
     <string name="cd_filter">Filter</string>
+    <!-- Products -->
+    <string name="products_search_hint">Search here...</string>
+    <string name="product_price_format">Price: %1$d</string>
+    <string name="product_discount_format">Discount: %1$d%%</string>
+    <string name="products_action_add">Add</string>
+    <string name="products_action_order">Order</string>
 </resources>

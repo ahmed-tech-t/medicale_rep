@@ -38,6 +38,7 @@ class HomeViewModel @Inject constructor(
                 when (event.item) {
                     NavDrawerItem.Language -> switchLanguage()
                     NavDrawerItem.AddVisit -> openPlanVisit()
+                    NavDrawerItem.Products -> sendEvent(UiEvent.Navigate(MainGraph.Products))
                     NavDrawerItem.MyVisits -> sendEvent(UiEvent.Navigate(MainGraph.VisitLog))
                     NavDrawerItem.Custody -> sendEvent(UiEvent.Navigate(MainGraph.SampleAndGifts))
                     NavDrawerItem.InfoCenter -> sendEvent(UiEvent.Navigate(MainGraph.DataCenter))

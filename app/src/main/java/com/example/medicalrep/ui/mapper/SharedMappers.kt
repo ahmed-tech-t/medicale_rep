@@ -81,7 +81,9 @@ private fun Product.toProductUi(): ProductUi {
         quantity = quantity,
         kind = kind?:ProductType.Gift,
         description = description.orEmpty(),
-        remaining = remaining
+        remaining = remaining,
+        price = price,
+        discountPercent = discountPercent,
     )
 }
 

@@ -7,6 +7,8 @@ data class Product(
     val kind: ProductType? = null,
     val description: String? = null,
     val remaining: Int = 0,
+    val price: Int = 0,
+    val discountPercent: Int = 0,
 )
 
 enum class ProductType {

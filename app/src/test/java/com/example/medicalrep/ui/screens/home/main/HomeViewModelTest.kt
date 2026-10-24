@@ -95,7 +95,7 @@ class HomeViewModelTest {
     fun `drawer menu row closes the drawer and shows coming soon`() = runTest(dispatcher) {
         val events = collectEvents()
         viewModel.onEvent(HomeEvents.OnMenuClick)
-        viewModel.onEvent(HomeEvents.OnDrawerItem(NavDrawerItem.Products))
+        viewModel.onEvent(HomeEvents.OnDrawerItem(NavDrawerItem.AddAccount))
         assertFalse(state.isDrawerOpen)
         assertEquals(1, events.size)
         assertTrue(events.single() is UiEvent.ShowSnackBar)
@@ -142,6 +142,15 @@ class HomeViewModelTest {
             List(2) { UiEvent.Navigate(MainGraph.PlanVisit()) },
             events,
         )
+    }
+
+    @Test
+    fun `products drawer row opens the products screen`() = runTest(dispatcher) {
+        val events = collectEvents()
+        viewModel.onEvent(HomeEvents.OnMenuClick)
+        viewModel.onEvent(HomeEvents.OnDrawerItem(NavDrawerItem.Products))
+        assertFalse(state.isDrawerOpen)
+        assertEquals(listOf<UiEvent>(UiEvent.Navigate(MainGraph.Products)), events)
     }
 
     @Test

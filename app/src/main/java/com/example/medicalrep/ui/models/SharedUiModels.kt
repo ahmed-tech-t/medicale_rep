@@ -49,6 +49,8 @@ data class ProductUi(
     val kind: ProductType,
     val remaining: Int,
     val description: String,
+    val price: Int = 0,
+    val discountPercent: Int = 0,
 )
 
 @Immutable
