@@ -7,6 +7,7 @@ import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
 import com.example.medicalrep.ui.models.StaticsMetricUi
+import com.example.medicalrep.ui.navigation.model.MainGraph
 import com.example.medicalrep.ui.screens.home.components.nav_drawer.NavDrawerItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -36,8 +37,10 @@ import org.junit.Test
  *    and a "coming soon" snackbar is sent.
  * 5. Given Arabic, When the language row is tapped, Then language becomes "en", the drawer closes
  *    and the settings manager publishes "en". Tapping again returns to "ar".
- * 6. Given Home, When sync / continue / cancel / start visit / more / add visit is tapped,
+ * 6. Given Home, When sync / continue / cancel / start visit / more is tapped,
  *    Then each sends exactly one "coming soon" snackbar.
+ * 7. Given Home, When the add-visit FAB or the drawer "Add visit" row is tapped,
+ *    Then it navigates to the unplanned visit screen (drawer closes).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
@@ -122,11 +125,23 @@ class HomeViewModelTest {
             HomeEvents.OnActiveCancel,
             HomeEvents.OnStartVisit("today-1"),
             HomeEvents.OnTodayMoreClick,
-            HomeEvents.OnAddVisitClick,
         )
         actions.forEach(viewModel::onEvent)
         assertEquals(actions.size, events.size)
         assertTrue(events.all { it is UiEvent.ShowSnackBar })
+    }
+
+    @Test
+    fun `add visit FAB and drawer row open the unplanned visit screen`() = runTest(dispatcher) {
+        val events = collectEvents()
+        viewModel.onEvent(HomeEvents.OnAddVisitClick)
+        viewModel.onEvent(HomeEvents.OnMenuClick)
+        viewModel.onEvent(HomeEvents.OnDrawerItem(NavDrawerItem.AddVisit))
+        assertFalse(state.isDrawerOpen)
+        assertEquals(
+            List(2) { UiEvent.Navigate(MainGraph.UnplannedVisit) },
+            events,
+        )
     }
 
     private fun kotlinx.coroutines.test.TestScope.collectEvents(): MutableList<UiEvent> {

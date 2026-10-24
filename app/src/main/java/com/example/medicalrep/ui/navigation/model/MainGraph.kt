@@ -8,4 +8,7 @@ open class MainGraph {
 
     @Serializable
     data object Home : MainGraph()
+
+    @Serializable
+    data object UnplannedVisit : MainGraph()
 }

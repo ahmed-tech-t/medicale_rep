@@ -12,6 +12,12 @@
     <string name="enter_company_code">Enter company code</string>
     <string name="enter_username">Enter username</string>
     <string name="enter_password">Enter password</string>
+    <string name="enter_city">Enter city</string>
+    <string name="select_account">Select entity type</string>
+    <string name="enter_place_name">Enter place / doctor name</string>
+    <string name="enter_district">Enter district</string>
+    <string name="enter_specialty">Enter specialty</string>
+    <string name="select_supervisor">Select supervisor</string>
     <string name="login_device_notice">Your account is linked to your personal phone ID (Device ID) to prevent sign-in from any other device.</string>
     <string name="login_sign_in">Sign in</string>
 
@@ -182,8 +188,8 @@
     <string name="unplanned_notes_label">Additional notes on visit result:</string>
     <string name="unplanned_voice_note">Voice recording</string>
     <string name="unplanned_voice_prompt">Record the result with voice (Voice Note)</string>
-    <string name="unplanned_attach_title">Attach a file or photo</string>
-    <string name="unplanned_attach_hint">Tap to choose an image or document (PDF, JPG)</string>
+    <string name="unplanned_attach_title">Attach a photo</string>
+    <string name="unplanned_attach_hint">Please attach a photo of the clinic door</string>
     <string name="unplanned_sheet_title_gifts">Add gifts</string>
     <string name="unplanned_sheet_title_products">Add products</string>
     <string name="unplanned_sheet_search_label">Search for an item or sample</string>
@@ -193,6 +199,19 @@
     <string name="unplanned_summary_gifts_format">Gifts: %1$d pcs</string>
     <string name="unplanned_summary_products_format">Products: %1$d boxes</string>
     <string name="unplanned_class_format">Class %1$s</string>
+    <string name="unplanned_datetime_format">%1$s - %2$s</string>
+    <string name="unplanned_add_format">+ %1$s</string>
+    <string name="unplanned_no_items">No items added yet</string>
+    <string name="unplanned_summary_place_format">%1$s - %2$s • %3$s</string>
+    <string name="unplanned_double_with_format">Double (%1$s)</string>
+    <string name="unplanned_clinic_open">The clinic is open with no obstacles</string>
+    <string name="unplanned_remaining_after_gift_format">Left in your custody after handing out: %1$d pcs</string>
+    <string name="unplanned_remaining_after_product_format">Left in your custody after handing out: %1$d boxes</string>
+    <string name="unplanned_available_gift_format">Available in your custody now: %1$d pcs</string>
+    <string name="unplanned_available_product_format">Available in your custody now: %1$d boxes</string>
+    <string name="cd_increase_quantity">Increase quantity</string>
+    <string name="cd_decrease_quantity">Decrease quantity</string>
+    <string name="cd_close">Close</string>
     <string name="drawer_add_visit">Add visit</string>
     <string name="drawer_my_visits">My visits</string>
     <string name="products">Products</string>

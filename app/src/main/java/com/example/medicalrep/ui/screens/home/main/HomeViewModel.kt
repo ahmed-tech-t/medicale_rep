@@ -8,6 +8,7 @@ import com.appcore.core.domain.utils.UiEvent
 import com.appcore.core.domain.utils.UiText
 import com.appcore.core.ui.utils.BaseViewModel
 import com.example.medicalrep.R
+import com.example.medicalrep.ui.navigation.model.MainGraph
 import com.example.medicalrep.ui.preview.HomeSamples
 import com.example.medicalrep.ui.screens.home.components.nav_drawer.NavDrawerItem
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,15 +35,23 @@ class HomeViewModel @Inject constructor(
             HomeEvents.OnDrawerDismiss -> _state.update { it.copy(isDrawerOpen = false) }
             is HomeEvents.OnDrawerItem -> {
                 _state.update { it.copy(isDrawerOpen = false) }
-                if (event.item == NavDrawerItem.Language) switchLanguage() else showComingSoon()
+                when (event.item) {
+                    NavDrawerItem.Language -> switchLanguage()
+                    NavDrawerItem.AddVisit -> openUnplannedVisit()
+                    else -> showComingSoon()
+                }
             }
+            HomeEvents.OnAddVisitClick -> openUnplannedVisit()
             HomeEvents.OnSyncClick,
             HomeEvents.OnActiveContinue,
             HomeEvents.OnActiveCancel,
             is HomeEvents.OnStartVisit,
-            HomeEvents.OnTodayMoreClick,
-            HomeEvents.OnAddVisitClick -> showComingSoon()
+            HomeEvents.OnTodayMoreClick -> showComingSoon()
         }
+    }
+
+    private fun openUnplannedVisit() {
+        sendEvent(UiEvent.Navigate(MainGraph.UnplannedVisit))
     }
 
     private fun showComingSoon() {

@@ -7,6 +7,7 @@ import com.appcore.core.data.local.settings.LocaleHelper
 import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
+import com.example.medicalrep.ui.navigation.model.MainGraph
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -117,11 +118,11 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun `sign in hides the keyboard`() = runTest(dispatcher) {
+    fun `sign in hides the keyboard and opens main graph`() = runTest(dispatcher) {
         val events = mutableListOf<UiEvent>()
         backgroundScope.launch(dispatcher) { viewModel.uiEvent.toList(events) }
         viewModel.onEvent(LoginEvents.SignInClicked)
-        assertEquals(listOf<UiEvent>(UiEvent.HideKeyboard), events)
+        assertEquals(listOf(UiEvent.HideKeyboard, UiEvent.Navigate(MainGraph.Root)), events)
     }
 
     @Test

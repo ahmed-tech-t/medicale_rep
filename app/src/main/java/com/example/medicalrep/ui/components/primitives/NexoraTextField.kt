@@ -4,8 +4,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -35,8 +37,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import com.appcore.core.ui.theme.spacing
+import com.appcore.core.ui.theme.dim
 import com.appcore.core.ui.theme.radii
+import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
 import com.example.medicalrep.ui.ui.theme.BrandFocus
 import com.example.medicalrep.ui.ui.theme.Ink
@@ -73,6 +76,7 @@ fun NexoraTextField(
     val fieldModifier = Modifier
         .fillMaxWidth()
         .border(borderWidth, borderColor, shape)
+        .heightIn(min = dim.primaryButtonHeight)
     val textStyle = MaterialTheme.typography.bodyLarge.copy(
         fontWeight = FontWeight.Bold,
         color = MaterialTheme.colorScheme.primary,
@@ -84,7 +88,7 @@ fun NexoraTextField(
                 text = it,
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Normal),
                 textAlign = TextAlign.Start,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier,
             )
         }
     }
@@ -101,7 +105,7 @@ fun NexoraTextField(
         )
 
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
     ) {
         if (!label.isNullOrBlank()) {
@@ -140,6 +144,10 @@ fun NexoraTextField(
                 state = state,
                 modifier = fieldModifier,
                 enabled = enabled,
+                contentPadding = TextFieldDefaults.contentPaddingWithoutLabel(
+                    top = spacing.spaceSmall,
+                    bottom = spacing.spaceSmall,
+                ),
                 textStyle = textStyle,
                 placeholder = placeholderContent,
                 trailingIcon = trailing,

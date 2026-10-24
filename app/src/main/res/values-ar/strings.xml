@@ -12,6 +12,12 @@
     <string name="enter_company_code">أدخل كود الشركة</string>
     <string name="enter_username">أدخل اسم المستخدم</string>
     <string name="enter_password">أدخل كلمة المرور</string>
+    <string name="enter_city">أدخل المدينة</string>
+    <string name="select_account">اختر نوع الجهة</string>
+    <string name="enter_place_name">أدخل اسم المكان / الطبيب</string>
+    <string name="enter_district">أدخل الحي</string>
+    <string name="enter_specialty">أدخل التخصص</string>
+    <string name="select_supervisor">اختر المشرف</string>
     <string name="login_device_notice">يتم ربط الحساب بمعرف هاتفك الشخصي (Device ID) لمنع الدخول من أي جهاز آخر.</string>
     <string name="login_sign_in">تسجيل الدخول</string>
 
@@ -182,8 +188,8 @@
     <string name="unplanned_notes_label">ملاحظات إضافية على نتيجة الزيارة:</string>
     <string name="unplanned_voice_note">تسجيل صوتي</string>
     <string name="unplanned_voice_prompt">سجل النتيجة بالصوت (Voice Note)</string>
-    <string name="unplanned_attach_title">إرفاق ملف أو صورة</string>
-    <string name="unplanned_attach_hint">اضغط لاختيار صورة أو مستند (PDF, JPG)</string>
+    <string name="unplanned_attach_title">إرفاق صورة</string>
+    <string name="unplanned_attach_hint">برجاء ارفاق صوره من امام باب العياده</string>
     <string name="unplanned_sheet_title_gifts">إضافة هدايا</string>
     <string name="unplanned_sheet_title_products">إضافة منتجات</string>
     <string name="unplanned_sheet_search_label">البحث عن صنف أو عينة</string>
@@ -193,6 +199,19 @@
     <string name="unplanned_summary_gifts_format">هدايا: %1$d قطعة</string>
     <string name="unplanned_summary_products_format">منتجات: %1$d علب</string>
     <string name="unplanned_class_format">Class %1$s</string>
+    <string name="unplanned_datetime_format">%1$s - %2$s</string>
+    <string name="unplanned_add_format">+ %1$s</string>
+    <string name="unplanned_no_items">لم تتم إضافة أصناف بعد</string>
+    <string name="unplanned_summary_place_format">%1$s - %2$s • %3$s</string>
+    <string name="unplanned_double_with_format">Double (%1$s)</string>
+    <string name="unplanned_clinic_open">العيادة مفتوحة ولا توجد عوائق</string>
+    <string name="unplanned_remaining_after_gift_format">المتبقي بعهدتك بعد الصرف: %1$d قطعة</string>
+    <string name="unplanned_remaining_after_product_format">المتبقي بعهدتك بعد الصرف: %1$d علبة</string>
+    <string name="unplanned_available_gift_format">الرصيد المتاح في عهدتك الآن: %1$d قطعة</string>
+    <string name="unplanned_available_product_format">الرصيد المتاح في عهدتك الآن: %1$d علبة</string>
+    <string name="cd_increase_quantity">زيادة الكمية</string>
+    <string name="cd_decrease_quantity">تقليل الكمية</string>
+    <string name="cd_close">إغلاق</string>
     <string name="drawer_add_visit">اضافة زيارة</string>
     <string name="drawer_my_visits">زياراتى</string>
     <string name="products">المنتجات</string>
