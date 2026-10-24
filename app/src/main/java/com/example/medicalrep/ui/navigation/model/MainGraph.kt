@@ -26,4 +26,7 @@ open class MainGraph {
 
     @Serializable
     data object VisitPlanning : MainGraph()
+
+    @Serializable
+    data class VisitDetails(val visitId: String) : MainGraph()
 }

@@ -28,6 +28,7 @@ class VisitLogViewModel @Inject constructor(
             VisitLogEvents.Back -> sendEvent(UiEvent.NavigationUp)
             is VisitLogEvents.SelectTab -> _state.update { it.copy(selectedTab = event.tab) }
             is VisitLogEvents.StartVisit -> sendEvent(UiEvent.Navigate(MainGraph.PlanVisit(visitId = event.visitId)))
+            is VisitLogEvents.OpenVisit -> sendEvent(UiEvent.Navigate(MainGraph.VisitDetails(visitId = event.visitId)))
             VisitLogEvents.FilterClick ->
                 sendEvent(UiEvent.ShowSnackBar(UiText.StringResource(R.string.placeholder_coming_soon)))
         }

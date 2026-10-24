@@ -257,4 +257,20 @@
     <string name="schedule_sheet_request">طلب زيارة</string>
     <string name="cd_calendar">التقويم</string>
     <string name="cd_select_visit">تحديد الزيارة</string>
+    <!-- Visit details -->
+    <string name="visit_details_title">تفاصيل الزيارة</string>
+    <string name="visit_details_section_info">معلومات الزيارة</string>
+    <string name="visit_details_section_location">إحداثيات الموقع</string>
+    <string name="visit_details_doctor_format">الطبيب: %1$s</string>
+    <string name="visit_details_account_type">نوع الحساب</string>
+    <string name="visit_details_region">المنطقة</string>
+    <string name="visit_details_area">النطاق</string>
+    <string name="visit_details_visit_time">وقت الزيارة</string>
+    <string name="visit_details_visit_date">تاريخ الزيارة</string>
+    <string name="visit_details_visit_type">نوع الزيارة</string>
+    <string name="visit_details_visit_location">موقع الزيارة</string>
+    <string name="visit_details_account_location">موقع الحساب</string>
+    <string name="visit_details_latitude">خط العرض:</string>
+    <string name="visit_details_longitude">خط الطول:</string>
+    <string name="visit_details_view_on_map">عرض موقع الزيارة على الخريطة</string>
 </resources>

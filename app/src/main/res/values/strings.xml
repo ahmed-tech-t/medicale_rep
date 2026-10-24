@@ -258,4 +258,20 @@
     <string name="schedule_sheet_request">Request visit</string>
     <string name="cd_calendar">Calendar</string>
     <string name="cd_select_visit">Select visit</string>
+    <!-- Visit details -->
+    <string name="visit_details_title">Visit details</string>
+    <string name="visit_details_section_info">Visit information</string>
+    <string name="visit_details_section_location">Location coordinates</string>
+    <string name="visit_details_doctor_format">Doctor: %1$s</string>
+    <string name="visit_details_account_type">Account type</string>
+    <string name="visit_details_region">Region</string>
+    <string name="visit_details_area">Area</string>
+    <string name="visit_details_visit_time">Visit time</string>
+    <string name="visit_details_visit_date">Visit date</string>
+    <string name="visit_details_visit_type">Visit type</string>
+    <string name="visit_details_visit_location">Visit location</string>
+    <string name="visit_details_account_location">Account location</string>
+    <string name="visit_details_latitude">Latitude:</string>
+    <string name="visit_details_longitude">Longitude:</string>
+    <string name="visit_details_view_on_map">View visit location on map</string>
 </resources>

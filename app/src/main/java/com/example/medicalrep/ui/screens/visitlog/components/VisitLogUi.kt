@@ -80,7 +80,10 @@ private fun VisitLogItem(tab: VisitLogTab, visit: VisitUi, onEvent: (VisitLogEve
             onAction = { onEvent(VisitLogEvents.StartVisit(visit.id)) },
         )
 
-        VisitLogTab.Done -> CompletedVisitCard(model = visit)
+        VisitLogTab.Done -> CompletedVisitCard(
+            model = visit,
+            onClick = { onEvent(VisitLogEvents.OpenVisit(visit.id)) },
+        )
     }
 }
 

@@ -76,6 +76,13 @@ class VisitLogViewModelTest {
     }
 
     @Test
+    fun `open visit navigates to the visit details`() = runTest(dispatcher) {
+        val events = collectEvents()
+        viewModel.onEvent(VisitLogEvents.OpenVisit("done-1"))
+        assertEquals(listOf<UiEvent>(UiEvent.Navigate(MainGraph.VisitDetails(visitId = "done-1"))), events)
+    }
+
+    @Test
     fun `filter shows one snackbar and back navigates up`() = runTest(dispatcher) {
         val events = collectEvents()
         viewModel.onEvent(VisitLogEvents.FilterClick)

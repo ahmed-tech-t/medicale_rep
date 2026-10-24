@@ -51,3 +51,6 @@ val TabIndicator = Color(0xFF3B82F6)
 
 val SuccessSoft = Color(0xFFDCFCE7)
 val SuccessBright = Color(0xFF34D399)
+
+val DetailsBorder = Color(0xFFEAECEF)
+val DetailsLabel = Color(0xFF8E9AA8)

@@ -1,6 +1,7 @@
 package com.example.medicalrep.ui.components.widgets.visit
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -57,9 +58,13 @@ import com.example.medicalrep.ui.ui.theme.SuccessSoft
 fun CompletedVisitCard(
     model: VisitUi,
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
 ) {
     Row(
-        modifier = modifier.visitCardSurface(elevation = 0.dp, contentPadding = spacing.spaceSmallPlus),
+        modifier = modifier
+            .visitCardChrome(elevation = 0.dp)
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .padding(spacing.spaceSmallPlus),
         horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
     ) {
         Column(
