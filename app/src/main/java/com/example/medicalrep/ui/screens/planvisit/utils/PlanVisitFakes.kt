@@ -43,6 +43,8 @@ object PlanVisitFakes {
             region = "البر الشرقى",
             address = "برج الأطباء",
             classCategory = "A",
+            lat = 30.0444,
+            lng = 31.2357,
             shift = Shift.Am,
             isDoubleVisit = true,
             supervisorName = "د. وائل نصار",

@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import com.appcore.core.domain.utils.UiEvent
 import com.example.medicalrep.ui.navigation.model.MainGraph
+import com.example.medicalrep.ui.screens.datacenter.main.DataCenterScreen
 import com.example.medicalrep.ui.screens.home.main.HomeScreen
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitScreen
 
@@ -24,6 +25,13 @@ fun NavGraphBuilder.mainNavGraph(
         }
         composable<MainGraph.PlanVisit> {
             PlanVisitScreen(
+                onNavigate = onNavigate,
+                navigationUp = navigationUp,
+                snackbarHostState = snackbarHostState,
+            )
+        }
+        composable<MainGraph.DataCenter> {
+            DataCenterScreen(
                 onNavigate = onNavigate,
                 navigationUp = navigationUp,
                 snackbarHostState = snackbarHostState,

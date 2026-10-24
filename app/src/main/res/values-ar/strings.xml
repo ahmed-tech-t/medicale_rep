@@ -123,6 +123,8 @@
     <string name="data_center_card_clinics_subtitle">سجلات المراكز الطبية، الصيدليات وبيانات التواصل</string>
     <string name="data_center_card_planned_title">الزيارات المخطط لها</string>
     <string name="data_center_card_planned_subtitle">جداول الزيارات المجدولة للدورة الحالية والملاحظات</string>
+    <string name="data_center_card_unplanned_title">الزيارات الغير مخطط لها</string>
+    <string name="data_center_card_unplanned_subtitle">جداول الزيارات المجدولة للدورة الحالية والملاحظات</string>
 
     <!-- Statics -->
     <string name="statics_title">لوحة الإحصائيات والتقارير</string>

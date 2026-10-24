@@ -1,4 +1,5 @@
 package com.example.medicalrep.ui.screens.planvisit.components
+import com.example.medicalrep.ui.components.chrome.AppHeader
 import com.example.medicalrep.ui.screens.planvisit.components.entity.EntityStepContent
 import com.example.medicalrep.ui.screens.planvisit.components.giftsproducts.GiftsProductsStepContent
 import com.example.medicalrep.ui.screens.planvisit.components.giftsproducts.AddVisitItemSheetHost
@@ -48,7 +49,7 @@ fun PlanVisitUi(
             .fillMaxSize()
             .background(Slate25),
     ) {
-        Header(
+        AppHeader(
             title = stringResource(
                 if (state.currentStep == PlanVisitStep.Entity) R.string.unplanned_visit_data_title
                 else R.string.unplanned_visit_title,

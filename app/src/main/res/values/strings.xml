@@ -123,6 +123,8 @@
     <string name="data_center_card_clinics_subtitle">Medical centers, pharmacies, and contact data</string>
     <string name="data_center_card_planned_title">Planned visits</string>
     <string name="data_center_card_planned_subtitle">Scheduled visit tables for the current cycle and notes</string>
+    <string name="data_center_card_unplanned_title">Unplanned visits</string>
+    <string name="data_center_card_unplanned_subtitle">Scheduled visit tables for the current cycle and notes</string>
 
     <!-- Statics -->
     <string name="statics_title">Statistics and reports</string>

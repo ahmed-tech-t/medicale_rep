@@ -25,6 +25,8 @@ data class VisitUi(
     val placeName: String = "",
     val specialty: String = "",
     val shift: Shift = Shift.Am,
+    val lat: Double = 0.0,
+    val lng: Double = 0.0,
     val isDoubleVisit: Boolean = false,
     val type: VisitType = VisitType.Unplanned,
     val supervisorName: String = "",

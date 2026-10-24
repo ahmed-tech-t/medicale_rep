@@ -1,4 +1,4 @@
-package com.example.medicalrep.ui.screens.planvisit.components
+package com.example.medicalrep.ui.components.chrome
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
@@ -22,10 +22,11 @@ import com.example.medicalrep.ui.ui.theme.Brand
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 import com.example.medicalrep.ui.ui.theme.Slate50
 
+/** Brand-colored top bar with a back arrow and a title, shared by full-screen flows. */
 @Composable
-internal fun Header(title: String, onBack: () -> Unit) {
+fun AppHeader(title: String, onBack: () -> Unit, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .background(Brand)
             .statusBarsPadding()
@@ -49,12 +50,12 @@ internal fun Header(title: String, onBack: () -> Unit) {
 
 @Preview(showBackground = true, locale = "ar")
 @Composable
-private fun HeaderArabicPreview() {
-    MedicalRepTheme { Header(title = "زيارة غير مخططة", onBack = {}) }
+private fun AppHeaderArabicPreview() {
+    MedicalRepTheme { AppHeader(title = "مركز البيانات والمزامنة", onBack = {}) }
 }
 
 @Preview(showBackground = true)
 @Composable
-private fun HeaderEnglishPreview() {
-    MedicalRepTheme { Header(title = "Unplanned Visit", onBack = {}) }
+private fun AppHeaderEnglishPreview() {
+    MedicalRepTheme { AppHeader(title = "Data center & sync", onBack = {}) }
 }

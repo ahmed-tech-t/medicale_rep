@@ -11,4 +11,7 @@ open class MainGraph {
 
     @Serializable
     data class PlanVisit(val visitId: String? = null,val isNew: Boolean = true) : MainGraph()
+
+    @Serializable
+    data object DataCenter : MainGraph()
 }

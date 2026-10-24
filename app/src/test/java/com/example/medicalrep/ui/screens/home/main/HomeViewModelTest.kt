@@ -144,6 +144,15 @@ class HomeViewModelTest {
         )
     }
 
+    @Test
+    fun `information center drawer row opens the data center`() = runTest(dispatcher) {
+        val events = collectEvents()
+        viewModel.onEvent(HomeEvents.OnMenuClick)
+        viewModel.onEvent(HomeEvents.OnDrawerItem(NavDrawerItem.InfoCenter))
+        assertFalse(state.isDrawerOpen)
+        assertEquals(listOf<UiEvent>(UiEvent.Navigate(MainGraph.DataCenter)), events)
+    }
+
     private fun kotlinx.coroutines.test.TestScope.collectEvents(): MutableList<UiEvent> {
         val events = mutableListOf<UiEvent>()
         backgroundScope.launch(dispatcher) { viewModel.uiEvent.toList(events) }

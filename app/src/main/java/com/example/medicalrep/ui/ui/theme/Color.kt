@@ -44,3 +44,5 @@ val Info = Color(0xFF2563EB)
 val InfoContainer = Color(0xFFDBEAFE)
 val OnInfoContainer = Color(0xFF1E40AF)
 val InfoBorder = Color(0xFFBFDBFE)
+
+val CardBorderSoft = Color(0xFFEDF2F7)
