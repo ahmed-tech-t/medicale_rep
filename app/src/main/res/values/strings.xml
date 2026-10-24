@@ -39,7 +39,6 @@
     <string name="visit_status_scheduled">Scheduled</string>
     <string name="visit_status_in_progress">Visit in progress (pending)</string>
     <string name="visit_status_pending_approval">Pending approval</string>
-    <string name="visit_status_completed">Completed</string>
     <string name="visit_status_approved_unplanned">Approved (unplanned)</string>
 
     <!-- Visit actions -->
@@ -274,4 +273,18 @@
     <string name="visit_details_latitude">Latitude:</string>
     <string name="visit_details_longitude">Longitude:</string>
     <string name="visit_details_view_on_map">View visit location on map</string>
+    <!-- Rep tracking -->
+    <string name="rep_tracking_title">Rep tracking</string>
+    <string name="rep_tracking_change">Change</string>
+    <string name="date_from_label">From:</string>
+    <string name="date_to_label">To:</string>
+    <string name="rep_tracking_period_summary">Period performance summary</string>
+    <string name="rep_tracking_total_visits">Total visits</string>
+    <string name="rep_tracking_products">Products</string>
+    <string name="rep_tracking_gifts">Gifts</string>
+    <string name="rep_tracking_view_route">View route on map</string>
+    <string name="rep_tracking_log_title">Visit log and what was done</string>
+    <string name="rep_tracking_samples_format">%1$d samples</string>
+    <string name="rep_tracking_gifts_format">%1$d promotional gifts</string>
+    <string name="visit_status_completed">Completed</string>
 </resources>

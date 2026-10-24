@@ -29,4 +29,7 @@ open class MainGraph {
 
     @Serializable
     data class VisitDetails(val visitId: String) : MainGraph()
+
+    @Serializable
+    data object RepTracking : MainGraph()
 }

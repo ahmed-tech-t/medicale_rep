@@ -40,6 +40,7 @@ class HomeViewModel @Inject constructor(
                     NavDrawerItem.AddVisit -> openPlanVisit()
                     NavDrawerItem.Products -> sendEvent(UiEvent.Navigate(MainGraph.Products))
                     NavDrawerItem.PlanVisit -> sendEvent(UiEvent.Navigate(MainGraph.VisitPlanning))
+                    NavDrawerItem.TrackReps -> sendEvent(UiEvent.Navigate(MainGraph.RepTracking))
                     NavDrawerItem.MyVisits -> sendEvent(UiEvent.Navigate(MainGraph.VisitLog))
                     NavDrawerItem.Custody -> sendEvent(UiEvent.Navigate(MainGraph.SampleAndGifts))
                     NavDrawerItem.InfoCenter -> sendEvent(UiEvent.Navigate(MainGraph.DataCenter))

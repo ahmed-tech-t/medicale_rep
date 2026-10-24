@@ -26,6 +26,15 @@ fun StaticsMetricCard(
     metric: StaticsMetricUi,
     modifier: Modifier = Modifier,
 ) {
+    StaticsMetricCard(label = stringResource(metric.labelRes), value = metric.value, modifier = modifier)
+}
+
+@Composable
+fun StaticsMetricCard(
+    label: String,
+    value: Int,
+    modifier: Modifier = Modifier,
+) {
     NexoraCard(modifier = modifier) {
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -33,14 +42,14 @@ fun StaticsMetricCard(
             verticalArrangement = Arrangement.spacedBy(spacing.spaceExtraSmall),
         ) {
             NexoraText(
-                text = stringResource(metric.labelRes),
+                text = label,
                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp),
                 color = Slate500,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),
             )
             NexoraText(
-                text = metric.value.toString(),
+                text = value.toString(),
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 20.sp,

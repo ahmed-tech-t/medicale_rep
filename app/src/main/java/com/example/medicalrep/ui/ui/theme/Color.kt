@@ -54,3 +54,7 @@ val SuccessBright = Color(0xFF34D399)
 
 val DetailsBorder = Color(0xFFEAECEF)
 val DetailsLabel = Color(0xFF8E9AA8)
+
+val CardBorderCool = Color(0xFFE8EEF3)
+val CompletedGreenSoft = Color(0xFFEAFBF0)
+val CompletedGreen = Color(0xFF16A34A)

@@ -145,6 +145,15 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun `track reps drawer row opens the rep tracking screen`() = runTest(dispatcher) {
+        val events = collectEvents()
+        viewModel.onEvent(HomeEvents.OnMenuClick)
+        viewModel.onEvent(HomeEvents.OnDrawerItem(NavDrawerItem.TrackReps))
+        assertFalse(state.isDrawerOpen)
+        assertEquals(listOf<UiEvent>(UiEvent.Navigate(MainGraph.RepTracking)), events)
+    }
+
+    @Test
     fun `plan visit drawer row opens the visit planning screen`() = runTest(dispatcher) {
         val events = collectEvents()
         viewModel.onEvent(HomeEvents.OnMenuClick)

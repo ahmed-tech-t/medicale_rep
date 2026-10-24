@@ -10,6 +10,7 @@ import com.example.medicalrep.ui.screens.datacenter.main.DataCenterScreen
 import com.example.medicalrep.ui.screens.home.main.HomeScreen
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitScreen
 import com.example.medicalrep.ui.screens.products.main.ProductsScreen
+import com.example.medicalrep.ui.screens.reptracking.main.RepTrackingScreen
 import com.example.medicalrep.ui.screens.sampleandgifts.main.SampleAndGiftsScreen
 import com.example.medicalrep.ui.screens.visitdetails.main.VisitDetailsScreen
 import com.example.medicalrep.ui.screens.visitlog.main.VisitLogScreen
@@ -65,6 +66,13 @@ fun NavGraphBuilder.mainNavGraph(
         }
         composable<MainGraph.VisitDetails> {
             VisitDetailsScreen(
+                onNavigate = onNavigate,
+                navigationUp = navigationUp,
+                snackbarHostState = snackbarHostState,
+            )
+        }
+        composable<MainGraph.RepTracking> {
+            RepTrackingScreen(
                 onNavigate = onNavigate,
                 navigationUp = navigationUp,
                 snackbarHostState = snackbarHostState,

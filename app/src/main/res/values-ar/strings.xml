@@ -39,7 +39,6 @@
     <string name="visit_status_scheduled">مجدولة</string>
     <string name="visit_status_in_progress">زيارة جارية الآن (معلقة)</string>
     <string name="visit_status_pending_approval">بانتظار الاعتماد</string>
-    <string name="visit_status_completed">مكتملة</string>
     <string name="visit_status_approved_unplanned">معتمدة (غير مخططة)</string>
 
     <!-- Visit actions -->
@@ -273,4 +272,18 @@
     <string name="visit_details_latitude">خط العرض:</string>
     <string name="visit_details_longitude">خط الطول:</string>
     <string name="visit_details_view_on_map">عرض موقع الزيارة على الخريطة</string>
+    <!-- Rep tracking -->
+    <string name="rep_tracking_title">متابعة المندوب</string>
+    <string name="rep_tracking_change">تغيير</string>
+    <string name="date_from_label">من:</string>
+    <string name="date_to_label">إلى:</string>
+    <string name="rep_tracking_period_summary">ملخص أداء الفترة</string>
+    <string name="rep_tracking_total_visits">إجمالي الزيارات</string>
+    <string name="rep_tracking_products">المنتجات</string>
+    <string name="rep_tracking_gifts">الهدايا</string>
+    <string name="rep_tracking_view_route">عرض خط السير على الخريطة</string>
+    <string name="rep_tracking_log_title">سجل الزيارات وما تم تنفيذه</string>
+    <string name="rep_tracking_samples_format">%1$d عينات</string>
+    <string name="rep_tracking_gifts_format">%1$d هدايا دعائية</string>
+    <string name="visit_status_completed">مكتملة</string>
 </resources>
