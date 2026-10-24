@@ -31,6 +31,10 @@ fun VisitUi.resolvedLocationLine(): String {
     }
 }
 
+/** "specialty • account" line shown under a visit's name; blank parts are skipped. */
+fun VisitUi.resolvedSpecialtyAccountLine(): String =
+    listOf(specialty, account).filter { it.isNotBlank() }.joinToString(" • ")
+
 @Composable
 fun VisitUi.resolvedDisplayName(): String =
     when {

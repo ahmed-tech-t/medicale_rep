@@ -15,6 +15,7 @@ import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.chrome.AppHeader
 import com.example.medicalrep.ui.components.chrome.NexoraTabs
+import com.example.medicalrep.ui.components.widgets.ResultsFilterRow
 import com.example.medicalrep.ui.components.widgets.visit.CompletedVisitCard
 import com.example.medicalrep.ui.components.widgets.visit.PlannedVisitCard
 import com.example.medicalrep.ui.models.VisitUi
@@ -59,7 +60,7 @@ fun VisitLogUi(
             verticalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
         ) {
             item(key = "results") {
-                VisitLogResultsRow(
+                ResultsFilterRow(
                     count = state.resultCount,
                     onFilterClick = { onEvent(VisitLogEvents.FilterClick) },
                 )

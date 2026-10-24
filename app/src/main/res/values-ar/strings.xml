@@ -245,4 +245,16 @@
     <string name="product_discount_format">الخصم : %1$d%%</string>
     <string name="products_action_add">اضافة</string>
     <string name="products_action_order">طلب</string>
+    <!-- Visit planning -->
+    <string name="visit_planning_title">تخطيط الزيارات</string>
+    <string name="visit_planning_tab_pending">بانتظار الاعتماد</string>
+    <string name="visit_planning_tab_visits">الزيارات</string>
+    <string name="visit_planning_out_of_plan">زيارة خارج الخطة (planning)</string>
+    <string name="visit_planning_schedule_action">تحديد موعد</string>
+    <string name="schedule_sheet_title">تحديد موعد الزيارة</string>
+    <string name="schedule_sheet_subtitle">اختر التاريخ والوقت المناسب لتطبيق الخطة</string>
+    <string name="schedule_sheet_date_label">تاريخ الزيارة</string>
+    <string name="schedule_sheet_request">طلب زيارة</string>
+    <string name="cd_calendar">التقويم</string>
+    <string name="cd_select_visit">تحديد الزيارة</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.example.medicalrep.ui.screens.visitlog.components
+package com.example.medicalrep.ui.components.widgets
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -20,7 +20,7 @@ import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 
 /** "19 results" with the filter button at the opposite end. */
 @Composable
-fun VisitLogResultsRow(
+fun ResultsFilterRow(
     count: Int,
     onFilterClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -46,6 +46,6 @@ fun VisitLogResultsRow(
 
 @Preview(showBackground = true, locale = "ar")
 @Composable
-private fun VisitLogResultsRowPreview() {
-    MedicalRepTheme { VisitLogResultsRow(count = 19, onFilterClick = {}, modifier = Modifier.padding(spacing.spaceMedium)) }
+private fun ResultsFilterRowPreview() {
+    MedicalRepTheme { ResultsFilterRow(count = 19, onFilterClick = {}, modifier = Modifier.padding(spacing.spaceMedium)) }
 }

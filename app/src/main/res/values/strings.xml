@@ -246,4 +246,16 @@
     <string name="product_discount_format">Discount: %1$d%%</string>
     <string name="products_action_add">Add</string>
     <string name="products_action_order">Order</string>
+    <!-- Visit planning -->
+    <string name="visit_planning_title">Visit planning</string>
+    <string name="visit_planning_tab_pending">Pending approval</string>
+    <string name="visit_planning_tab_visits">Visits</string>
+    <string name="visit_planning_out_of_plan">Visit outside the plan (planning)</string>
+    <string name="visit_planning_schedule_action">Set appointment</string>
+    <string name="schedule_sheet_title">Set visit appointment</string>
+    <string name="schedule_sheet_subtitle">Choose the date and time that suit the plan</string>
+    <string name="schedule_sheet_date_label">Visit date</string>
+    <string name="schedule_sheet_request">Request visit</string>
+    <string name="cd_calendar">Calendar</string>
+    <string name="cd_select_visit">Select visit</string>
 </resources>
