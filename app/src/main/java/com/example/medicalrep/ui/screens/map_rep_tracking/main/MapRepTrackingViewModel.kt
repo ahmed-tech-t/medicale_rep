@@ -1,9 +1,7 @@
 package com.example.medicalrep.ui.screens.map_rep_tracking.main
 
 import com.appcore.core.domain.repo.AppSettingsRepo
-import com.appcore.core.domain.utils.Resource
 import com.appcore.core.domain.utils.UiEvent
-import com.appcore.core.domain.utils.UiText
 import com.appcore.core.ui.utils.BaseViewModel
 import com.example.medicalrep.domain.models.RoutePoint
 import com.example.medicalrep.domain.repo.RouteRepo

@@ -53,6 +53,8 @@ fun NexoraButton(
     compact: Boolean = false,
     border: BorderStroke? = null,
     textStyle: TextStyle? = null,
+    /** Label color of the [NexoraButtonVariant.Text] variant; defaults to primary. */
+    textColor: Color = MaterialTheme.colorScheme.primary,
     leadingIcon: (@Composable () -> Unit)? = null,
 ) {
 
@@ -132,7 +134,7 @@ fun NexoraButton(
             NexoraButtonLabel(
                 text = text,
                 style = labelStyle,
-                color = MaterialTheme.colorScheme.primary,
+                color = textColor,
                 leadingIcon = leadingIcon,
             )
         }

@@ -4,7 +4,6 @@ import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.Resource
 import com.appcore.core.domain.utils.UiEvent
-import com.appcore.core.domain.utils.UiText
 import com.example.medicalrep.domain.models.RoutePoint
 import com.example.medicalrep.domain.repo.RouteRepo
 import com.example.medicalrep.ui.navigation.model.MainGraph
@@ -31,7 +30,7 @@ import org.junit.Test
  * 1. Given the screen opens, Then the first visit is selected and the route is loaded.
  * 2. When a known marker is clicked, Then that visit is selected; an unknown id keeps the selection.
  * 3. Given no visits, Then nothing is selected (no card).
- * 4. Given the route loads, Then state.route is Success; on error a snackbar shows and Retry reloads it.
+ * 4. Given the route loads, Then state.route is Success; on error it is kept and Retry reloads it.
  * 5. When Open visit details, Then Navigate(VisitDetails(id)). Back -> NavigationUp.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -76,15 +75,10 @@ class MapRepTrackingViewModelTest {
     }
 
     @Test
-    fun `route error shows a snackbar and retry reloads it`() = runTest(dispatcher) {
+    fun `route error is kept in state and retry reloads it`() {
         routeRepo.result = Resource.Error("down")
         viewModel = MapRepTrackingViewModel(FakeSettingsRepo, routeRepo)
-        val events = collectEvents()
-        viewModel.onEvent(MapRepTrackingEvents.RetryRoute)
         assertTrue(state.route is Resource.Error)
-        // One snackbar from the initial load, one from the retry.
-        val snackBar = UiEvent.ShowSnackBar(UiText.DynamicText("down"))
-        assertEquals(listOf<UiEvent>(snackBar, snackBar), events)
 
         routeRepo.result = Resource.Success(routeRepo.points)
         viewModel.onEvent(MapRepTrackingEvents.RetryRoute)

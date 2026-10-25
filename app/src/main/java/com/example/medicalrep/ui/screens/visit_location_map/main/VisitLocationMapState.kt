@@ -5,6 +5,6 @@ import com.example.medicalrep.domain.models.map.MapCameraTarget
 
 @Immutable
 data class VisitLocationMapState(
-    val userLocation: MapCameraTarget,
+    val userLocation: MapCameraTarget? = null,
     val visitLocation: MapCameraTarget,
 )

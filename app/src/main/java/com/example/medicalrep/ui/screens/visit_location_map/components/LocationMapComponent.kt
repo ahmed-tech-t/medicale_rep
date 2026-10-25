@@ -26,24 +26,24 @@ import com.google.maps.android.compose.rememberMarkerState
 private const val BOUNDS_PADDING_PX = 160
 private const val SINGLE_POINT_ZOOM = 16f
 
-/** Map with two pins (the user and the visit); the camera fits both once the map is loaded. */
+/** Map with the visit pin and, once known, the user's pin; the camera fits what is shown once the map is loaded. */
 @Composable
 fun LocationMapComponent(
-    userLocation: MapCameraTarget,
+    userLocation: MapCameraTarget?,
     visitLocation: MapCameraTarget,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val cameraPositionState = rememberCameraPositionState()
     var isMapReady by remember { mutableStateOf(false) }
-    val userPosition = remember(userLocation) { LatLng(userLocation.latitude, userLocation.longitude) }
+    val userPosition = remember(userLocation) { userLocation?.let { LatLng(it.latitude, it.longitude) } }
     val visitPosition = remember(visitLocation) { LatLng(visitLocation.latitude, visitLocation.longitude) }
     val userIcon = remember { BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE) }
     val visitIcon = remember(context) { context.vectorToBitmapDescriptor(R.drawable.ic_map_marker) }
 
     LaunchedEffect(isMapReady, userPosition, visitPosition) {
         if (!isMapReady) return@LaunchedEffect
-        val update = if (userPosition == visitPosition) {
+        val update = if (userPosition == null || userPosition == visitPosition) {
             CameraUpdateFactory.newLatLngZoom(visitPosition, SINGLE_POINT_ZOOM)
         } else {
             val bounds = LatLngBounds.builder().include(userPosition).include(visitPosition).build()
@@ -62,11 +62,13 @@ fun LocationMapComponent(
         ),
         onMapLoaded = { isMapReady = true },
     ) {
-        Marker(
-            state = rememberMarkerState(position = userPosition),
-            title = stringResource(R.string.map_my_location),
-            icon = userIcon,
-        )
+        if (userPosition != null) {
+            Marker(
+                state = rememberMarkerState(position = userPosition),
+                title = stringResource(R.string.map_my_location),
+                icon = userIcon,
+            )
+        }
         Marker(
             state = rememberMarkerState(position = visitPosition),
             title = stringResource(R.string.visit_details_visit_location),

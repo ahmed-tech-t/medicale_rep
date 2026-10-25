@@ -187,6 +187,9 @@
     <string name="unplanned_view_location">View location</string>
     <string name="visit_location_map_title">Visit location</string>
     <string name="map_my_location">My location</string>
+    <string name="location_warning">Please turn on GPS or grant location permission</string>
+    <string name="location_grant_permission">Grant permission</string>
+    <string name="location_turn_on_gps">Turn on GPS</string>
     <string name="visit_location_unavailable">Visit location is not available</string>
     <string name="unplanned_summary_title">Registered visit summary:</string>
     <string name="unplanned_summary_shift_label">Work period:</string>

@@ -70,6 +70,8 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.play.services.maps)
+    implementation(libs.play.services.location)
+    implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.maps.compose)
     ksp(libs.hilt.compiler)
     testImplementation(libs.junit)

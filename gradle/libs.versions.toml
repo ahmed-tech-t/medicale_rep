@@ -26,6 +26,7 @@ roomRuntime = "2.8.5"
 windowCore = "1.4.0"
 material3Adaptive = "1.2.0"
 playServicesMaps = "20.1.0"
+playServicesLocation = "21.3.0"
 mapsCompose = "6.4.1"
 
 [libraries]
@@ -68,6 +69,8 @@ chucker = { module = "com.github.chuckerteam.chucker:library", version.ref = "ch
 chucker-no-op = { module = "com.github.chuckerteam.chucker:library-no-op", version.ref = "chucker" }
 androidx-window-core = { group = "androidx.window", name = "window-core", version.ref = "windowCore" }
 androidx-compose-material3-adaptive = { group = "androidx.compose.material3.adaptive", name = "adaptive", version.ref = "material3Adaptive" }
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "coroutinesTest" }
 play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
 maps-compose = { group = "com.google.maps.android", name = "maps-compose", version.ref = "mapsCompose" }
 
