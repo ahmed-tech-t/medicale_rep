@@ -80,10 +80,6 @@ fun PlannedVisitCard(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            val dateTime = "${model.time} ${model.date}".trim()
-            if (dateTime.isNotBlank()) {
-                VisitInfoChip(text = dateTime, modifier = Modifier.padding(top = spacing.spaceExtraSmall))
-            }
         }
         NexoraButton(
             text = stringResource(R.string.visit_action_start),

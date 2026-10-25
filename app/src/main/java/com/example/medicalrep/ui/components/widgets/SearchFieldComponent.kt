@@ -1,131 +1,200 @@
 package com.example.medicalrep.ui.components.widgets
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import com.appcore.core.ui.components.modifier_ext.notchesPadding
+import com.appcore.core.ui.theme.dim
 import com.appcore.core.ui.theme.radii
 import com.appcore.core.ui.theme.spacing
+import com.example.medicalrep.R
+import com.example.medicalrep.ui.components.primitives.NexoraIcon
 import com.example.medicalrep.ui.components.primitives.NexoraText
-import com.example.medicalrep.ui.components.primitives.NexoraTextField
-import com.example.medicalrep.ui.ui.theme.Info
-import com.example.medicalrep.ui.ui.theme.InfoContainer
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
+import com.example.medicalrep.ui.ui.theme.Slate100
+import com.example.medicalrep.ui.ui.theme.Slate200
+import com.example.medicalrep.ui.ui.theme.Slate25
+import com.example.medicalrep.ui.ui.theme.Slate300
+import com.example.medicalrep.ui.ui.theme.Slate400
+import com.example.medicalrep.ui.ui.theme.Slate800
+import com.example.medicalrep.ui.ui.theme.Slate900
 
 /**
- * Read-only select (Figma "Background+Border" fields): value at the start, arrow at the end,
- * options in a dropdown. [label] sits above the field when given.
+ * Dropdown select with an integrated search popup (matching Figma design):
+ * - Trigger: Closed search bar with leading magnifying glass, placeholder or chosen value, and trailing dropdown arrow.
+ * - Dropdown: Floating Popup with a top pointer triangle, inner search input, and a divided list of options.
  */
 @Composable
-fun SearchFieldComponent(
-    value: String,
+private fun SearchFieldBodyComponent(
     options: List<String>,
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier,
-    placeholder: String? = null,
-    enabled: Boolean = true,
-    badge: (@Composable () -> Unit)? = null,
 ) {
-    val state = rememberTextFieldState(value)
-    var textFieldSize by remember { mutableStateOf(IntSize.Zero) }
+    val state = rememberTextFieldState()
     val query = state.text.toString()
 
-    LaunchedEffect(value) {
-        if (state.text.toString() != value) state.setTextAndPlaceCursorAtEnd(value)
+    val result = remember(query, options) {
+        if (query.isBlank()) {
+            options
+        } else {
+            options.filter { it.contains(query, ignoreCase = true) }
+        }
     }
 
-    val result = remember(query, options) {
-        options.filter { it.contains(query, ignoreCase = true) }
-    }
-    val showPopup = query.isNotBlank() && query != value && result.isNotEmpty()
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall)) {
-        NexoraTextField(
+    Column(
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        // Inner outlined search input box
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .onGloballyPositioned { coordinates ->
-                    textFieldSize = coordinates.size
-                },
-            state = state,
-            enabled = enabled,
-            placeholder = placeholder,
-            trailing = {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
-                    modifier = Modifier.padding(horizontal = spacing.spaceMedium)
-                ) {
-                    if (badge != null) {
-                        badge()
-                    }
-                    if (state.text.isNotBlank() && enabled) CloseIconComponent(
-                        modifier = Modifier.clickable(
-                            onClick = {
-                                state.clearText()
-                                onSelect("")
-                            })
-                    ) else if (!enabled) Unit else SearchIcon()
-
-                }
-
-            },
-
+                .padding(horizontal = 16.dp, vertical = 2.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .border(
+                    width = 1.dp,
+                    color = Slate300,
+                    shape = RoundedCornerShape(12.dp),
+                )
+                .background(Color.White)
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            NexoraIcon(
+                imageVector = Icons.Default.Search,
+                contentDescription = null,
+                tint = Slate400,
+                modifier = Modifier.size(18.dp),
             )
-        if (showPopup) {
-            Popup(
-                // focusable = false ensures the text field keeps focus while the user types
-                properties = PopupProperties(focusable = false),
-                offset = IntOffset(x = 0, y = textFieldSize.height),
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.CenterStart,
             ) {
-                Surface(
-                    color = MaterialTheme.colorScheme.background,
-                    modifier = Modifier
-                        // Convert the pixel width we captured back to Dp
-                        .width(with(LocalDensity.current) { textFieldSize.width.toDp() })
-                        .padding(top = 4.dp)
-                        .clip(RoundedCornerShape(radii.medium)), // Small gap between text field and dropdown
-                    shadowElevation = 4.dp,
-                ) {
-                    LazyColumn(
-                        modifier = Modifier.heightIn(max = 150.dp)
+                if (state.text.isEmpty()) {
+                    NexoraText(
+                        text = stringResource(R.string.products_search_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Slate400,
+                    )
+                }
+                BasicTextField(
+                    state = state,
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(
+                        color = Slate900,
+                        fontWeight = FontWeight.Medium,
+                    ),
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                )
+            }
+            if (state.text.isNotEmpty()) {
+                CloseIconComponent(
+                    modifier = Modifier.clickable {
+                        state.clearText()
+                    }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Options List with dividers
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 240.dp),
+        ) {
+            if (result.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 20.dp, horizontal = 16.dp),
+                        contentAlignment = Alignment.Center,
                     ) {
-                        items(result) { item ->
+                        NexoraText(
+                            text = stringResource(R.string.no_result),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Slate400,
+                        )
+                    }
+                }
+            } else {
+                itemsIndexed(result) { index, item ->
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onSelect(item)
+                                }
+                                .padding(horizontal = 20.dp, vertical = 14.dp),
+                        ) {
                             NexoraText(
                                 text = item,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        state.setTextAndPlaceCursorAtEnd(item)
-                                        onSelect(item)
-                                    }
-                                    .padding(16.dp)
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp,
+                                    textAlign = TextAlign.Start,
+                                ),
+                                color = Slate900,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                        if (index < result.size - 1) {
+                            HorizontalDivider(
+                                modifier = Modifier.fillMaxWidth(),
+                                thickness = 1.dp,
+                                color = Slate100,
                             )
                         }
                     }
@@ -135,42 +204,177 @@ fun SearchFieldComponent(
     }
 }
 
+@Composable
+fun SearchFieldComponent(
+    value: String,
+    options: List<String>,
+    onSelect: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    placeholder: String? = null,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    showPopup: Boolean,
+    badge: (@Composable () -> Unit)? = null,
+) {
+    var triggerSize by remember { mutableStateOf(IntSize.Zero) }
+    val density = LocalDensity.current
+
+    Box(modifier = modifier) {
+        // Trigger field (matches the top field in design)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .onGloballyPositioned { coordinates ->
+                    triggerSize = coordinates.size
+                }
+                .clip(RoundedCornerShape(radii.medium))
+                .background(Slate25)
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f),
+                    shape = RoundedCornerShape(radii.medium),
+                )
+                .clickable(enabled = enabled, onClick = onClick)
+                .padding(horizontal = spacing.spaceMedium, vertical = 13.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
+        ) {
+            NexoraIcon(
+                imageVector = Icons.Default.Search,
+                contentDescription = null,
+                tint = Slate400,
+                modifier = Modifier.size(20.dp),
+            )
+            NexoraText(
+                text = value.ifBlank { placeholder.orEmpty() },
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontWeight = if (value.isBlank()) FontWeight.Normal else FontWeight.SemiBold,
+                    fontSize = 15.sp,
+                    textAlign = TextAlign.Start,
+                ),
+                color = if (value.isBlank()) Slate400 else Slate800,
+                modifier = Modifier.weight(1f),
+            )
+            if (badge != null) {
+                badge()
+            }
+            NexoraIcon(
+                imageVector = Icons.Default.KeyboardArrowDown,
+                contentDescription = null,
+                tint = Slate400,
+                modifier = Modifier
+                    .size(dim.smallIconSize)
+                    .then(
+                        if (showPopup) Modifier.rotate(180f) else Modifier
+                    ),
+            )
+        }
+        // Floating dropdown popup
+        if (showPopup && enabled) {
+            SearchFieldPopup(
+                triggerSize = triggerSize,
+                options = options,
+                onClick = onClick,
+                onSelect = onSelect
+            )
+        }
+    }
+}
+
+@Composable
+fun SearchFieldPopup(
+    triggerSize: IntSize,
+    options: List<String>,
+    onSelect: (String) -> Unit,
+    onClick: () -> Unit
+) {
+    val density = LocalDensity.current
+
+    val popupOffsetY = if (triggerSize.height > 0) {
+        triggerSize.height + with(density) { 4.dp.roundToPx() }
+    } else {
+        with(density) { 56.dp.roundToPx() }
+    }
+    Popup(
+        offset = IntOffset(x = 0, y = popupOffsetY),
+        onDismissRequest = onClick,
+        properties = PopupProperties(
+            focusable = true,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true,
+        ),
+    ) {
+        Surface(
+            shape = RoundedCornerShape(radii.medium),
+            color = Color.White,
+            shadowElevation = 8.dp,
+            modifier = if (triggerSize.width > 0) {
+                Modifier.width(with(density) { triggerSize.width.toDp() })
+            } else {
+                Modifier.fillMaxWidth()
+            },
+        ) {
+            SearchFieldBodyComponent(
+                modifier = Modifier.padding(top = 14.dp, bottom = 6.dp),
+                options = options,
+                onSelect = onSelect,
+            )
+        }
+    }
+}
 
 
-@Preview(showBackground = true, locale = "ar")
+@Preview(showBackground = true, backgroundColor = 0xFFF8FAFC)
 @Composable
 private fun SearchFieldComponentPreview() {
     MedicalRepTheme {
+        var showPopup by remember { mutableStateOf(true) }
+
         Column(
             modifier = Modifier
-                .padding(spacing.spaceMedium)
-                .notchesPadding(),
-            verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
+                .fillMaxWidth()
+                .padding(spacing.spaceMedium),
         ) {
             SearchFieldComponent(
-                modifier = Modifier.fillMaxWidth(),
-                value = "شبين الكوم",
+                showPopup = showPopup,
+                value = "",
                 options = listOf(
-                    "ahmed mohamfed",
-                    "ahmed mohamfed",
-                    "ahmed mohamfed",
-                    "ahmed mohamfed"
+                    "Private Clinic",
+                    "Hospital",
+                    "Pharmacy",
+                    "Medical Center"
                 ),
-                onSelect = {},
+                onSelect = { showPopup = false },
+                placeholder = "Search account type",
+                onClick = { showPopup = !showPopup },
             )
+        }
+    }
+}
 
+@Preview(showBackground = true, locale = "ar", backgroundColor = 0xFFF8FAFC)
+@Composable
+private fun SearchFieldComponentWithValuePreview() {
+    var showPopup by remember { mutableStateOf(false) }
+
+    MedicalRepTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(spacing.spaceMedium),
+        ) {
             SearchFieldComponent(
-                value = "عيادة د. محمود عبد الرحمن عبد الله الطويل جدا",
-                options = emptyList(),
-                onSelect = {},
-                badge = { NexoraChip(text = "Class A", container = InfoContainer, content = Info) },
-            )
-            SearchFieldComponent(
-                value = "عيادة د. محمود عبد الرحمن عبد الله الطويل جدا",
-                options = emptyList(),
-                onSelect = {},
-                enabled = false,
-                badge = { NexoraChip(text = "Class A", container = InfoContainer, content = Info) },
+                showPopup = showPopup,
+                value = "Private Clinic",
+                options = listOf(
+                    "Private Clinic",
+                    "Hospital",
+                    "Pharmacy",
+                    "Medical Center"
+                ),
+                onSelect = { showPopup = false },
+                placeholder = "Search account type",
+                onClick = { showPopup = !showPopup },
             )
         }
     }

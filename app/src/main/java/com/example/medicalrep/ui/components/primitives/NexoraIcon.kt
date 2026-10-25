@@ -18,7 +18,7 @@ import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 @Composable
 fun NexoraIcon(
     imageVector: ImageVector,
-    contentDescription: String?,
+    contentDescription: String? = null,
     modifier: Modifier = Modifier,
     tint: Color = LocalContentColor.current,
 ) {
@@ -33,7 +33,7 @@ fun NexoraIcon(
 @Composable
 fun NexoraIcon(
     painter: Painter,
-    contentDescription: String? ="",
+    contentDescription: String? = "",
     modifier: Modifier = Modifier,
     tint: Color = LocalContentColor.current,
 ) {

@@ -1,4 +1,5 @@
 package com.example.medicalrep.ui.screens.planvisit.components.entity
+
 import com.example.medicalrep.ui.screens.planvisit.components.StepCard
 import com.example.medicalrep.ui.screens.planvisit.components.StepCardTitle
 
@@ -12,6 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -45,6 +50,13 @@ fun EntityStepContent(
     modifier: Modifier = Modifier,
 ) {
     val visit = state.visit
+    var showCityPopup by remember { mutableStateOf(false) }
+    var showRegionPopup by remember { mutableStateOf(false) }
+    var showAccountPopup by remember { mutableStateOf(false) }
+    var showplaceNamePopup by remember { mutableStateOf(false) }
+    var showSpecialtyPopup by remember { mutableStateOf(false) }
+    var showSupervisorNamePopup by remember { mutableStateOf(false) }
+
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
@@ -75,7 +87,11 @@ fun EntityStepContent(
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                     color = Ink,
                     modifier = Modifier
-                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(radii.medium))
+                        .border(
+                            1.dp,
+                            MaterialTheme.colorScheme.outline,
+                            RoundedCornerShape(radii.medium)
+                        )
                         .background(Slate100, RoundedCornerShape(radii.medium))
                         .padding(
                             horizontal = spacing.spaceSmallPlus,
@@ -95,9 +111,14 @@ fun EntityStepContent(
                     SearchFieldComponent(
                         enabled = visit.type == VisitType.Unplanned,
                         options = state.cityOptions,
-                        onSelect = { onEvent(PlanVisitEvents.SelectCity(it)) },
+                        onSelect = {
+                            onEvent(PlanVisitEvents.SelectCity(it))
+                            showCityPopup = false
+                        },
                         placeholder = stringResource(R.string.enter_city),
-                        value = visit.city
+                        value = visit.city,
+                        showPopup = showCityPopup,
+                        onClick = { showCityPopup = !showCityPopup }
                     )
                 }
 
@@ -109,8 +130,13 @@ fun EntityStepContent(
                         enabled = visit.type == VisitType.Unplanned,
                         value = visit.region,
                         options = state.districtOptions,
-                        onSelect = { onEvent(PlanVisitEvents.SelectDistrict(it)) },
+                        onSelect = {
+                            onEvent(PlanVisitEvents.SelectDistrict(it))
+                            showRegionPopup = false
+                        },
                         placeholder = stringResource(R.string.enter_district),
+                        showPopup = showRegionPopup,
+                        onClick = { showRegionPopup = !showRegionPopup }
                     )
                 }
 
@@ -121,11 +147,16 @@ fun EntityStepContent(
             StepCardTitle(stringResource(R.string.unplanned_label_entity_type))
             SearchFieldComponent(
                 enabled = visit.type == VisitType.Unplanned,
-                modifier= Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 value = visit.account,
                 options = state.entityTypeOptions,
-                onSelect = { onEvent(PlanVisitEvents.SelectEntityType(it)) },
+                onSelect = {
+                    onEvent(PlanVisitEvents.SelectEntityType(it))
+                    showAccountPopup = false
+                },
                 placeholder = stringResource(R.string.select_account),
+                showPopup = showAccountPopup,
+                onClick = { showAccountPopup = !showAccountPopup }
             )
         }
 
@@ -147,7 +178,12 @@ fun EntityStepContent(
                     modifier = Modifier.fillMaxWidth(),
                     value = visit.placeName,
                     options = state.placeOptions,
-                    onSelect = { onEvent(PlanVisitEvents.SelectPlace(it)) },
+                    onSelect = {
+                        onEvent(PlanVisitEvents.SelectPlace(it))
+                        showplaceNamePopup = false
+                    },
+                    showPopup = showplaceNamePopup,
+                    onClick = { showplaceNamePopup = !showplaceNamePopup },
                     badge = if (visit.classCategory.isBlank()) null else {
                         {
                             NexoraChip(
@@ -158,7 +194,8 @@ fun EntityStepContent(
                                 container = InfoContainer,
                                 content = Info,
                             )
-                        }},
+                        }
+                    },
                     placeholder = stringResource(R.string.enter_place_name),
                 )
             }
@@ -172,8 +209,13 @@ fun EntityStepContent(
                     modifier = Modifier.fillMaxWidth(),
                     value = visit.specialty,
                     options = state.specialtyOptions,
-                    onSelect = { onEvent(PlanVisitEvents.SelectSpecialty(it)) },
+                    onSelect = {
+                        onEvent(PlanVisitEvents.SelectSpecialty(it))
+                        showSpecialtyPopup = false
+                    },
                     placeholder = stringResource(R.string.enter_specialty),
+                    showPopup = showSpecialtyPopup,
+                    onClick = { showSpecialtyPopup = !showSpecialtyPopup }
                 )
             }
         }
@@ -221,8 +263,13 @@ fun EntityStepContent(
                         modifier = Modifier.fillMaxWidth(),
                         value = visit.supervisorName,
                         options = state.supervisorOptions,
-                        onSelect = { onEvent(PlanVisitEvents.SelectSupervisor(it)) },
+                        onSelect = {
+                            onEvent(PlanVisitEvents.SelectSupervisor(it))
+                            showSupervisorNamePopup = false
+                        },
                         placeholder = stringResource(R.string.select_supervisor),
+                        showPopup = showSupervisorNamePopup,
+                        onClick = { showSupervisorNamePopup = !showSupervisorNamePopup }
                     )
                 }
             }

@@ -326,4 +326,5 @@
     <string name="rep_tracking_samples_format">%1$d عينات</string>
     <string name="rep_tracking_gifts_format">%1$d هدايا دعائية</string>
     <string name="visit_status_completed">مكتملة</string>
+    <string name="no_result">لا توجد نتائج</string>
 </resources>

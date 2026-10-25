@@ -6,6 +6,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -25,6 +29,8 @@ import com.example.medicalrep.ui.ui.theme.Slate500
 /** City and district. */
 @Composable
 internal fun LocationCard(state: AddAccountState, onEvent: (AddAccountEvents) -> Unit) {
+    var showCityPopup by remember { mutableStateOf(false) }
+
     StepCard {
         StepCardTitle(stringResource(R.string.unplanned_section_location))
         Row(horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmall)) {
@@ -35,8 +41,13 @@ internal fun LocationCard(state: AddAccountState, onEvent: (AddAccountEvents) ->
                 SearchFieldComponent(
                     value = state.city,
                     options = state.cityOptions,
-                    onSelect = { onEvent(AddAccountEvents.SelectCity(it)) },
+                    onSelect = {
+                        onEvent(AddAccountEvents.SelectCity(it))
+                        showCityPopup = false
+                    },
                     placeholder = stringResource(R.string.enter_city),
+                    onClick = { showCityPopup = !showCityPopup },
+                    showPopup = showCityPopup
                 )
             }
             LabelWrapperComponent(
@@ -56,14 +67,22 @@ internal fun LocationCard(state: AddAccountState, onEvent: (AddAccountEvents) ->
 
 @Composable
 internal fun EntityTypeCard(state: AddAccountState, onEvent: (AddAccountEvents) -> Unit) {
+    var showEntityTypePopup by remember { mutableStateOf(false) }
+
     StepCard {
         StepCardTitle(stringResource(R.string.unplanned_label_entity_type))
         SearchFieldComponent(
             modifier = Modifier.fillMaxWidth(),
             value = state.entityType,
             options = state.entityTypeOptions,
-            onSelect = { onEvent(AddAccountEvents.SelectEntityType(it)) },
+            onSelect = {
+                onEvent(AddAccountEvents.SelectEntityType(it))
+                showEntityTypePopup = false
+            },
             placeholder = stringResource(R.string.select_account),
+            showPopup = showEntityTypePopup,
+            onClick = { showEntityTypePopup = !showEntityTypePopup }
+
         )
     }
 }
@@ -71,6 +90,8 @@ internal fun EntityTypeCard(state: AddAccountState, onEvent: (AddAccountEvents) 
 /** Class (select), name (typed) and specialty. */
 @Composable
 internal fun NameCard(state: AddAccountState, onEvent: (AddAccountEvents) -> Unit) {
+    var showSpecialtyPopup by remember { mutableStateOf(false) }
+
     StepCard {
         Column(verticalArrangement = Arrangement.spacedBy(spacing.spaceExtraSmall)) {
             StepCardTitle(stringResource(R.string.unplanned_section_place_specialty))
@@ -111,8 +132,13 @@ internal fun NameCard(state: AddAccountState, onEvent: (AddAccountEvents) -> Uni
                 modifier = Modifier.fillMaxWidth(),
                 value = state.specialty,
                 options = state.specialtyOptions,
-                onSelect = { onEvent(AddAccountEvents.SelectSpecialty(it)) },
+                onSelect = {
+                    onEvent(AddAccountEvents.SelectSpecialty(it))
+                    showSpecialtyPopup = false
+                },
                 placeholder = stringResource(R.string.enter_specialty),
+                showPopup = showSpecialtyPopup,
+                onClick = { showSpecialtyPopup = !showSpecialtyPopup }
             )
         }
     }

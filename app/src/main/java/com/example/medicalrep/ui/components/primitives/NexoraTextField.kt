@@ -60,6 +60,11 @@ fun NexoraTextField(
     isFocusedStyle: Boolean = false,
     isError: Boolean = false,
     enabled: Boolean = true,
+    style: TextStyle =MaterialTheme.typography.bodyLarge.copy(
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.primary,
+        textAlign = TextAlign.Start,
+    ),
     singleLine: Boolean = true,
     trailing: (@Composable () -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -77,11 +82,6 @@ fun NexoraTextField(
         .fillMaxWidth()
         .border(borderWidth, borderColor, shape)
         .heightIn(min = dim.primaryButtonHeight)
-    val textStyle = MaterialTheme.typography.bodyLarge.copy(
-        fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.primary,
-        textAlign = TextAlign.Start,
-    )
     val placeholderContent: (@Composable () -> Unit)? = placeholder?.let {
         {
             NexoraText(
@@ -117,7 +117,7 @@ fun NexoraTextField(
                 state = state,
                 modifier = fieldModifier,
                 enabled = enabled,
-                textStyle = textStyle,
+                textStyle = style,
                 placeholder = placeholderContent,
                 trailingIcon = trailing ?: {
                     NexoraIconButton(
@@ -148,7 +148,7 @@ fun NexoraTextField(
                     top = spacing.spaceSmall,
                     bottom = spacing.spaceSmall,
                 ),
-                textStyle = textStyle,
+                textStyle = style,
                 placeholder = placeholderContent,
                 trailingIcon = trailing,
                 isError = isError,

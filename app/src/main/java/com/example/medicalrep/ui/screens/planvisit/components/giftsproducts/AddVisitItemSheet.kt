@@ -1,4 +1,5 @@
 package com.example.medicalrep.ui.screens.planvisit.components.giftsproducts
+
 import com.example.medicalrep.ui.screens.planvisit.components.PlanVisitTestTags
 
 import androidx.compose.foundation.layout.Arrangement
@@ -90,6 +91,7 @@ fun AddVisitItemSheetContent(
     var lastPicked by remember { mutableStateOf("") }
     val catalogNames = remember(catalog) { catalog.map { it.name } }
     val isGift = kind == ProductType.Gift
+    var showPopup by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -129,12 +131,20 @@ fun AddVisitItemSheetContent(
                 onSelect = { name ->
                     if (name.isBlank()) return@SearchFieldComponent
                     lastPicked = name
-                    val item = catalog.firstOrNull { it.name == name } ?: return@SearchFieldComponent
-                    if (picked.none { it.id == item.id } && item.remaining > 0) picked.add(item.copy(quantity = 1))
+                    val item =
+                        catalog.firstOrNull { it.name == name } ?: return@SearchFieldComponent
+                    if (picked.none { it.id == item.id } && item.remaining > 0) picked.add(
+                        item.copy(
+                            quantity = 1
+                        )
+                    )
+                    showPopup = false
                 },
                 placeholder = stringResource(
                     if (isGift) R.string.unplanned_sheet_search_hint_gift else R.string.unplanned_sheet_search_hint_product,
                 ),
+                showPopup = showPopup,
+                onClick = { showPopup = !showPopup }
             )
         }
 

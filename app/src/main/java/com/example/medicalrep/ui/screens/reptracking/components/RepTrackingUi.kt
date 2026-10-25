@@ -12,6 +12,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +43,8 @@ fun RepTrackingUi(
     onEvent: (RepTrackingEvents) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var showPopup by remember { mutableStateOf(false) }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -58,8 +64,13 @@ fun RepTrackingUi(
             SearchFieldComponent(
                 value = state.selectedRep,
                 options = state.reps,
-                onSelect = { onEvent(RepTrackingEvents.SelectRep(it)) },
+                onSelect = {
+                    onEvent(RepTrackingEvents.SelectRep(it))
+                    showPopup = false
+                },
                 placeholder = stringResource(R.string.rep_tracking_change),
+                showPopup = showPopup,
+                onClick = { showPopup = !showPopup }
             )
             Row(horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmall)) {
                 DateField(
@@ -105,7 +116,9 @@ fun RepTrackingUi(
 
             SectionLabel(stringResource(R.string.rep_tracking_log_title))
             state.visits.forEach { visit ->
-                RepVisitCard(visit = visit, onClick = { onEvent(RepTrackingEvents.OpenVisit(visit.id)) })
+                RepVisitCard(
+                    visit = visit,
+                    onClick = { onEvent(RepTrackingEvents.OpenVisit(visit.id)) })
             }
         }
     }
@@ -113,9 +126,11 @@ fun RepTrackingUi(
 
 @Composable
 private fun SectionLabel(text: String) {
-    NexoraText(text = text, style = MaterialTheme.typography.labelMedium.copy(
-        fontSize = 12.sp, fontWeight = FontWeight.Bold
-    ), color = Slate500)
+    NexoraText(
+        text = text, style = MaterialTheme.typography.labelMedium.copy(
+            fontSize = 12.sp, fontWeight = FontWeight.Bold
+        ), color = Slate500
+    )
 }
 
 @Preview(showBackground = true, locale = "ar", heightDp = 900)
