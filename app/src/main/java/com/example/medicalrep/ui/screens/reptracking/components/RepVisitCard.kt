@@ -35,11 +35,11 @@ import com.example.medicalrep.ui.ui.theme.Slate800
 /** Figma 287:1287 visit card: time badge, doctor, summary line and gifts / samples / completed tags. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun RepVisitCard(visit: VisitUi, modifier: Modifier = Modifier) {
+fun RepVisitCard(visit: VisitUi, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val samples = visit.products.sumOf { it.quantity }
     val gifts = visit.gifts.sumOf { it.quantity }
 
-    NexoraCard(modifier = modifier, containerColor = Slate50, borderColor = CardBorderCool) {
+    NexoraCard(modifier = modifier, onClick = onClick, containerColor = Slate50, borderColor = CardBorderCool) {
         Column(verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -94,7 +94,7 @@ private fun RepVisitCardPreview() {
             modifier = Modifier.padding(spacing.spaceMedium),
             verticalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
         ) {
-            RepTrackingFakes.visits().forEach { RepVisitCard(visit = it) }
+            RepTrackingFakes.visits().forEach { RepVisitCard(visit = it, onClick = {}) }
         }
     }
 }

@@ -29,6 +29,8 @@ class RepTrackingViewModel @Inject constructor(
             }
             is RepTrackingEvents.FromDateChanged -> _state.update { it.copy(fromDateMillis = event.millis) }
             is RepTrackingEvents.ToDateChanged -> _state.update { it.copy(toDateMillis = event.millis) }
+            is RepTrackingEvents.OpenVisit ->
+                sendEvent(UiEvent.Navigate(MainGraph.VisitDetails(visitId = event.visitId)))
             RepTrackingEvents.ViewRoute -> sendEvent(UiEvent.Navigate(MainGraph.MapRepTracking))
         }
     }

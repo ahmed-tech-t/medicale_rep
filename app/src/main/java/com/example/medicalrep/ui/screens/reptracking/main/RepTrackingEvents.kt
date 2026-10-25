@@ -6,4 +6,5 @@ sealed interface RepTrackingEvents {
     data class FromDateChanged(val millis: Long) : RepTrackingEvents
     data class ToDateChanged(val millis: Long) : RepTrackingEvents
     data object ViewRoute : RepTrackingEvents
+    data class OpenVisit(val visitId: String) : RepTrackingEvents
 }

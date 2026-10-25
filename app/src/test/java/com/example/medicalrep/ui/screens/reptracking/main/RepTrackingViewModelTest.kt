@@ -87,6 +87,13 @@ class RepTrackingViewModelTest {
         assertEquals(UiEvent.NavigationUp, events.last())
     }
 
+    @Test
+    fun `clicking a visit opens its details`() = runTest(dispatcher) {
+        val events = collectEvents()
+        viewModel.onEvent(RepTrackingEvents.OpenVisit("rep-1"))
+        assertEquals(listOf<UiEvent>(UiEvent.Navigate(MainGraph.VisitDetails(visitId = "rep-1"))), events)
+    }
+
     private fun TestScope.collectEvents(): MutableList<UiEvent> {
         val events = mutableListOf<UiEvent>()
         backgroundScope.launch(dispatcher) { viewModel.uiEvent.toList(events) }

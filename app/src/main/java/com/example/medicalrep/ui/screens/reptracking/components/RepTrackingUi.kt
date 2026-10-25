@@ -104,7 +104,9 @@ fun RepTrackingUi(
             )
 
             SectionLabel(stringResource(R.string.rep_tracking_log_title))
-            state.visits.forEach { visit -> RepVisitCard(visit = visit) }
+            state.visits.forEach { visit ->
+                RepVisitCard(visit = visit, onClick = { onEvent(RepTrackingEvents.OpenVisit(visit.id)) })
+            }
         }
     }
 }
