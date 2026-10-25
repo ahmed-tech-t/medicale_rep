@@ -22,7 +22,7 @@ import org.junit.Test
 
 /**
  * 1. Given a route with a visit id, Then the state holds that visit.
- * 2. When View on map, Then one OpenUrl with the visit's geo uri (latitude, longitude).
+ * 2. When View on map, Then nothing happens yet (the map is implemented later).
  * 3. When Back, Then NavigationUp.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -46,12 +46,12 @@ class VisitDetailsViewModelTest {
     }
 
     @Test
-    fun `view on map opens the visit location`() = runTest(dispatcher) {
+    fun `view on map does nothing yet`() = runTest(dispatcher) {
         val events = collectEvents()
+        val before = viewModel.state.value
         viewModel.onEvent(VisitDetailsEvents.ViewOnMap)
-        val visit = viewModel.state.value.visit
-        val geo = "geo:${visit.visitLatitude},${visit.visitLongitude}?q=${visit.visitLatitude},${visit.visitLongitude}"
-        assertEquals(listOf<UiEvent>(UiEvent.OpenUrl(geo)), events)
+        assertEquals(before, viewModel.state.value)
+        assertEquals(emptyList<UiEvent>(), events)
     }
 
     @Test

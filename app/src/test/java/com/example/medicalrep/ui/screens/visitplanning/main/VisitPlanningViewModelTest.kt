@@ -22,7 +22,7 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * 1. Given the screen opens, Then Pending is selected and the count is the pending visits.
+ * 1. Given the screen opens, Then Visits is selected and the count is the visits.
  * 2. When the Visits tab is selected, Then its visits and count show.
  * 3. When a visit is toggled, Then it is selected; toggling again clears it; several can be selected;
  *    the selection survives a tab switch.
@@ -47,9 +47,9 @@ class VisitPlanningViewModelTest {
     fun tearDown() = Dispatchers.resetMain()
 
     @Test
-    fun `starts on pending with its count`() {
-        assertEquals(VisitPlanningTab.Pending, state.selectedTab)
-        assertEquals(state.pendingVisits.size, state.resultCount)
+    fun `starts on visits with its count`() {
+        assertEquals(VisitPlanningTab.Visits, state.selectedTab)
+        assertEquals(state.visits.size, state.resultCount)
         assertFalse(state.hasSelection)
     }
 
