@@ -272,6 +272,9 @@
     <string name="visit_details_latitude">خط العرض:</string>
     <string name="visit_details_longitude">خط الطول:</string>
     <string name="visit_details_view_on_map">عرض موقع الزيارة على الخريطة</string>
+    <string name="visit_details_location_matched">تم تسجيل الزيارة في موقع الحساب</string>
+    <string name="visit_details_location_away">تم تسجيل الزيارة بعيداً عن موقع الحساب</string>
+    <string name="visit_details_location_distance">المسافة عن الحساب: %1$d م</string>
     <!-- Rep tracking -->
     <string name="rep_tracking_title">متابعة المندوب</string>
     <string name="rep_tracking_change">تغيير</string>

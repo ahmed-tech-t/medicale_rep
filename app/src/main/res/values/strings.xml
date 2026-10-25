@@ -273,6 +273,9 @@
     <string name="visit_details_latitude">Latitude:</string>
     <string name="visit_details_longitude">Longitude:</string>
     <string name="visit_details_view_on_map">View visit location on map</string>
+    <string name="visit_details_location_matched">Visit recorded at the account location</string>
+    <string name="visit_details_location_away">Visit recorded away from the account location</string>
+    <string name="visit_details_location_distance">Distance from the account: %1$d m</string>
     <!-- Rep tracking -->
     <string name="rep_tracking_title">Rep tracking</string>
     <string name="rep_tracking_change">Change</string>

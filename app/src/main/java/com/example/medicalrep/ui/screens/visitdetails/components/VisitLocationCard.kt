@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -20,6 +21,8 @@ import com.example.medicalrep.ui.components.primitives.NexoraButton
 import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.models.VisitUi
 import com.example.medicalrep.ui.screens.visitdetails.utils.VisitDetailsFakes
+import com.example.medicalrep.ui.screens.visitdetails.utils.distanceFromAccountMeters
+import com.example.medicalrep.ui.screens.visitdetails.utils.hasLocations
 import com.example.medicalrep.ui.ui.theme.Brand
 import com.example.medicalrep.ui.ui.theme.DetailsLabel
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
@@ -47,6 +50,10 @@ fun VisitLocationCard(
                 longitude = visit.accountLongitude,
                 modifier = Modifier.weight(1f),
             )
+        }
+        if (visit.hasLocations) {
+            val distance = remember(visit) { visit.distanceFromAccountMeters }
+            LocationMatchBanner(distanceMeters = distance)
         }
         NexoraButton(text = stringResource(R.string.visit_details_view_on_map), onClick = onViewOnMap)
     }
