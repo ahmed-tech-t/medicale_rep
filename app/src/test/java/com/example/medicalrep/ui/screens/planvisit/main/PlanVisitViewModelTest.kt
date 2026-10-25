@@ -7,6 +7,7 @@ import com.appcore.core.domain.utils.UiEvent
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.VisitType
+import com.example.medicalrep.ui.navigation.model.MainGraph
 import com.example.medicalrep.ui.screens.planvisit.utils.PlanVisitFakes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -41,7 +42,7 @@ import org.junit.Test
  * 9. Given a row with quantity 1, When − is tapped, Then the row is removed.
  * 10. Given the result step, When the clinic checkbox toggles, Then state follows.
  * 11. When Back, Then NavigationUp. When EndVisit, Then snackbar then NavigationUp.
- * 12. When voice note / attach / view location, Then each sends one snackbar.
+ * 12. When view location, Then the map opens with the visit coordinates (no coordinates: see VisitDistanceTest).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlanVisitViewModelTest {
@@ -173,9 +174,9 @@ class PlanVisitViewModelTest {
     @Test
     fun `clinic open checkbox follows toggle`() {
         viewModel.onEvent(PlanVisitEvents.ToggleClinicOpen(false))
-        assertEquals(false, state.clinicOpenConfirmed)
+        assertEquals(false, state.visit.noIssueFound)
         viewModel.onEvent(PlanVisitEvents.ToggleClinicOpen(true))
-        assertEquals(true, state.clinicOpenConfirmed)
+        assertEquals(true, state.visit.noIssueFound)
     }
 
     @Test
@@ -190,13 +191,17 @@ class PlanVisitViewModelTest {
     }
 
     @Test
-    fun `unbuilt result actions each show one snackbar`() = runTest(dispatcher) {
+    fun `view location opens the map with the visit coordinates`() = runTest(dispatcher) {
         val events = collectEvents()
-        viewModel.onEvent(PlanVisitEvents.AttachClick)
         viewModel.onEvent(PlanVisitEvents.ViewLocationClick)
-        assertEquals(2, events.size)
-        assertTrue(events.all { it is UiEvent.ShowSnackBar })
+        assertEquals(
+            listOf<UiEvent>(
+                UiEvent.Navigate(MainGraph.VisitLocationMap(state.visit.visitLatitude, state.visit.visitLongitude))
+            ),
+            events,
+        )
     }
+
 
     @Test
     fun `recording started sets the recording flag`() {

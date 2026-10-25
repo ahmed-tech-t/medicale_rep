@@ -16,6 +16,7 @@ import com.example.medicalrep.ui.models.VisitUi
 import com.example.medicalrep.ui.navigation.model.MainGraph
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitOverlay.*
 import com.example.medicalrep.ui.screens.planvisit.utils.PlanVisitFakes
+import com.example.medicalrep.ui.screens.visitdetails.utils.hasVisitLocation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -92,10 +93,18 @@ class PlanVisitViewModel @Inject constructor(
             PlanVisitEvents.VoiceNotePermissionDenied ->
                 sendEvent(ShowSnackBar(StringResource(R.string.unplanned_voice_permission_denied)))
 
-            PlanVisitEvents.ViewLocationClick ->
-                sendEvent(ShowSnackBar(StringResource(R.string.placeholder_coming_soon)))
+            PlanVisitEvents.ViewLocationClick -> openVisitLocation()
 
             is PlanVisitEvents.AttachImageResult -> updateVisit { it.copy(imageNote = event.document.uri) }
+        }
+    }
+
+    private fun openVisitLocation() {
+        val visit = _state.value.visit
+        if (visit.hasVisitLocation) {
+            sendEvent(Navigate(MainGraph.VisitLocationMap(visit.visitLatitude, visit.visitLongitude)))
+        } else {
+            sendEvent(ShowSnackBar(StringResource(R.string.visit_location_unavailable)))
         }
     }
 

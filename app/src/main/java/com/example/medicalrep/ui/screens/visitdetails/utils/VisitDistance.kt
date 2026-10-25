@@ -26,8 +26,12 @@ fun isAtAccountLocation(distanceMeters: Int): Boolean = distanceMeters <= MAX_MA
 
 /** Both coordinates are known; (0.0, 0.0) is the "not recorded" default. */
 val VisitUi.hasLocations: Boolean
-    get() = (visitLatitude != 0.0 || visitLongitude != 0.0) &&
+    get() = hasVisitLocation &&
         (accountLatitude != 0.0 || accountLongitude != 0.0)
+
+/** The visit's own location was recorded. */
+val VisitUi.hasVisitLocation: Boolean
+    get() = visitLatitude != 0.0 || visitLongitude != 0.0
 
 val VisitUi.distanceFromAccountMeters: Int
     get() = distanceMeters(visitLatitude, visitLongitude, accountLatitude, accountLongitude)

@@ -185,6 +185,9 @@
     <string name="unplanned_add_gift">Choose gift</string>
     <string name="unplanned_add_product">Choose product</string>
     <string name="unplanned_view_location">View location</string>
+    <string name="visit_location_map_title">Visit location</string>
+    <string name="map_my_location">My location</string>
+    <string name="visit_location_unavailable">Visit location is not available</string>
     <string name="unplanned_summary_title">Registered visit summary:</string>
     <string name="unplanned_summary_shift_label">Work period:</string>
     <string name="unplanned_summary_visit_type_label">Current visit type:</string>

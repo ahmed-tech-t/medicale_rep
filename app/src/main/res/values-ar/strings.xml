@@ -185,6 +185,9 @@
     <string name="unplanned_add_gift">اختيار هدية</string>
     <string name="unplanned_add_product">اختيار المنتج</string>
     <string name="unplanned_view_location">عرض الموقع</string>
+    <string name="visit_location_map_title">موقع الزيارة</string>
+    <string name="map_my_location">موقعي</string>
+    <string name="visit_location_unavailable">موقع الزيارة غير متاح</string>
     <string name="unplanned_summary_title">ملخص بيانات الزيارة المسجلة:</string>
     <string name="unplanned_summary_shift_label">فترة العمل:</string>
     <string name="unplanned_summary_visit_type_label">نوع الزيارة الحالية:</string>
