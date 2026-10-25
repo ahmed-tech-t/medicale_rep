@@ -21,7 +21,7 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * 1. Given the screen opens, Then all five categories are listed, idle, full update first.
+ * 1. Given the screen opens, Then all six categories are listed, idle, full update first.
  * 2. When Back, Then NavigationUp.
  * 3. When OnSync for a category, Then the list is unchanged (server call is a TODO) and nothing crashes.
  */
@@ -41,10 +41,11 @@ class DataCenterViewModelTest {
     fun tearDown() = Dispatchers.resetMain()
 
     @Test
-    fun `starts with five idle categories and the full update first`() {
+    fun `starts with six idle categories and the full update first`() {
         val items = viewModel.state.value.items
-        assertEquals(5, items.size)
+        assertEquals(6, items.size)
         assertEquals(DataCenterSyncItemUi.ID_FULL, items.first().id)
+        assertEquals(DataCenterSyncItemUi.ID_PRODUCTS, items[items.indexOfFirst { it.id == DataCenterSyncItemUi.ID_CLINICS } + 1].id)
         assertEquals(true, items.all { it.status == DataCenterSyncStatus.Idle })
         assertEquals(items.size, items.map { it.id }.distinct().size)
     }

@@ -7,6 +7,7 @@ import com.example.medicalrep.ui.screens.datacenter.models.DataCenterSyncItemUi.
 import com.example.medicalrep.ui.screens.datacenter.models.DataCenterSyncItemUi.Companion.ID_DOCTORS
 import com.example.medicalrep.ui.screens.datacenter.models.DataCenterSyncItemUi.Companion.ID_FULL
 import com.example.medicalrep.ui.screens.datacenter.models.DataCenterSyncItemUi.Companion.ID_PLANNED
+import com.example.medicalrep.ui.screens.datacenter.models.DataCenterSyncItemUi.Companion.ID_PRODUCTS
 import com.example.medicalrep.ui.screens.datacenter.models.DataCenterSyncItemUi.Companion.ID_UNPLANNED
 
 /** Sample data shown until the real sync source exists. */
@@ -29,6 +30,12 @@ object DataCenterFakes {
             id = ID_CLINICS,
             titleRes = R.string.data_center_card_clinics_title,
             subtitleRes = R.string.data_center_card_clinics_subtitle,
+            lastUpdatedLabel = "آخر تحديث: منذ 25 دقيقة",
+        ),
+        DataCenterSyncItemUi(
+            id = ID_PRODUCTS,
+            titleRes = R.string.data_center_card_products_title,
+            subtitleRes = R.string.data_center_card_products_subtitle,
             lastUpdatedLabel = "آخر تحديث: منذ 25 دقيقة",
         ),
         DataCenterSyncItemUi(

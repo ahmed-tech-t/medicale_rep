@@ -120,6 +120,8 @@
     <string name="data_center_card_doctors_subtitle">تحديث تصنيفات الأطباء، التخصصات، والمناطق</string>
     <string name="data_center_card_clinics_title">العيادات والمستشفيات</string>
     <string name="data_center_card_clinics_subtitle">سجلات المراكز الطبية، الصيدليات وبيانات التواصل</string>
+    <string name="data_center_card_products_title">المنتجات</string>
+    <string name="data_center_card_products_subtitle">تحديث قائمة المنتجات والعينات والهدايا</string>
     <string name="data_center_card_planned_title">الزيارات المخطط لها</string>
     <string name="data_center_card_planned_subtitle">جداول الزيارات المجدولة للدورة الحالية والملاحظات</string>
     <string name="data_center_card_unplanned_title">الزيارات الغير مخطط لها</string>
