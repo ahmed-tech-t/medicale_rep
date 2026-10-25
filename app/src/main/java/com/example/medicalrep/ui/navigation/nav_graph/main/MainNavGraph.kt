@@ -13,6 +13,7 @@ import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitScreen
 import com.example.medicalrep.ui.screens.products.main.ProductsScreen
 import com.example.medicalrep.ui.screens.reptracking.main.RepTrackingScreen
 import com.example.medicalrep.ui.screens.sampleandgifts.main.SampleAndGiftsScreen
+import com.example.medicalrep.ui.screens.terms.main.TermsScreen
 import com.example.medicalrep.ui.screens.visitdetails.main.VisitDetailsScreen
 import com.example.medicalrep.ui.screens.visitlog.main.VisitLogScreen
 import com.example.medicalrep.ui.screens.visitplanning.main.VisitPlanningScreen
@@ -81,6 +82,13 @@ fun NavGraphBuilder.mainNavGraph(
         }
         composable<MainGraph.MapRepTracking> {
             MapRepTrackingScreen(
+                onNavigate = onNavigate,
+                navigationUp = navigationUp,
+                snackbarHostState = snackbarHostState,
+            )
+        }
+        composable<MainGraph.Terms> {
+            TermsScreen(
                 onNavigate = onNavigate,
                 navigationUp = navigationUp,
                 snackbarHostState = snackbarHostState,

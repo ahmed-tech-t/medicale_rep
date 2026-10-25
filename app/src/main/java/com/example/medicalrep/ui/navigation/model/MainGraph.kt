@@ -35,4 +35,7 @@ open class MainGraph {
 
     @Serializable
     data object MapRepTracking : MainGraph()
+
+    @Serializable
+    data object Terms : MainGraph()
 }

@@ -43,6 +43,7 @@ class HomeViewModel @Inject constructor(
                     NavDrawerItem.TrackReps -> sendEvent(UiEvent.Navigate(MainGraph.RepTracking))
                     NavDrawerItem.MyVisits -> sendEvent(UiEvent.Navigate(MainGraph.VisitLog))
                     NavDrawerItem.Custody -> sendEvent(UiEvent.Navigate(MainGraph.SampleAndGifts))
+                    NavDrawerItem.Terms -> sendEvent(UiEvent.Navigate(MainGraph.Terms))
                     NavDrawerItem.InfoCenter -> sendEvent(UiEvent.Navigate(MainGraph.DataCenter))
                     else -> showComingSoon()
                 }

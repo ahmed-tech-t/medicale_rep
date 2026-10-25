@@ -102,6 +102,15 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun `terms drawer row opens the terms screen`() = runTest(dispatcher) {
+        val events = collectEvents()
+        viewModel.onEvent(HomeEvents.OnMenuClick)
+        viewModel.onEvent(HomeEvents.OnDrawerItem(NavDrawerItem.Terms))
+        assertFalse(state.isDrawerOpen)
+        assertEquals(listOf<UiEvent>(UiEvent.Navigate(MainGraph.Terms)), events)
+    }
+
+    @Test
     fun `language row toggles language and publishes it`() = runTest(dispatcher) {
         val events = collectEvents()
         viewModel.onEvent(HomeEvents.OnMenuClick)
