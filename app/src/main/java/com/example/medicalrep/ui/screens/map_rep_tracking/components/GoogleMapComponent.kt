@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.medicalrep.R
+import com.example.medicalrep.domain.models.RoutePoint
 import com.example.medicalrep.domain.models.map.MapCameraTarget
 import com.example.medicalrep.ui.screens.map_rep_tracking.models.TrackUserMapMarker
 import com.example.medicalrep.ui.screens.map_rep_tracking.utils.MapRepTrackingFakes
@@ -45,6 +46,7 @@ fun GoogleMapComponent(
     modifier: Modifier = Modifier,
     visitss: List<TrackUserMapMarker>,
     repTrack: List<TrackUserMapMarker>,
+    roadRoute: List<RoutePoint> = emptyList(),
     onMarkerClick: (String) -> Unit,
     selectedVisitId: String? = null,
     mapType: MapType = MapType.NORMAL,
@@ -92,8 +94,16 @@ fun GoogleMapComponent(
             // 1. Extract the coordinates into a list of LatLng
             val routePoints = repTrack.map { LatLng(it.latitude, it.longitude) }
             val dashedPattern = remember { listOf(Dash(30f), Gap(20f)) }
-            // 2. Draw the path connecting the points
-            if (routePoints.size > 1) {
+            val roadPoints = remember(roadRoute) { roadRoute.map { LatLng(it.latitude, it.longitude) } }
+            // 2. Draw the real road route when loaded, otherwise the dashed line through the GPS points
+            if (roadPoints.size > 1) {
+                Polyline(
+                    points = roadPoints,
+                    color = MaterialTheme.colorScheme.primary,
+                    width = 12f,
+                    pattern = dashedPattern,
+                )
+            } else if (routePoints.size > 1) {
                 Polyline(
                     points = routePoints,
                     color = MaterialTheme.colorScheme.primary, // Adjust road color

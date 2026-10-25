@@ -2,12 +2,17 @@ package com.example.medicalrep.ui.screens.map_rep_tracking.main
 
 import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
+import com.appcore.core.domain.utils.Resource
 import com.appcore.core.domain.utils.UiEvent
+import com.appcore.core.domain.utils.UiText
+import com.example.medicalrep.domain.models.RoutePoint
+import com.example.medicalrep.domain.repo.RouteRepo
 import com.example.medicalrep.ui.navigation.model.MainGraph
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -18,6 +23,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -25,19 +31,21 @@ import org.junit.Test
  * 1. Given the screen opens, Then the first visit is selected and the route is loaded.
  * 2. When a known marker is clicked, Then that visit is selected; an unknown id keeps the selection.
  * 3. Given no visits, Then nothing is selected (no card).
- * 4. When Open visit details, Then Navigate(VisitDetails(id)). Back -> NavigationUp.
+ * 4. Given the route loads, Then state.route is Success; on error a snackbar shows and Retry reloads it.
+ * 5. When Open visit details, Then Navigate(VisitDetails(id)). Back -> NavigationUp.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class MapRepTrackingViewModelTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
+    private val routeRepo = FakeRouteRepo()
     private lateinit var viewModel: MapRepTrackingViewModel
     private val state get() = viewModel.state.value
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
-        viewModel = MapRepTrackingViewModel(FakeSettingsRepo)
+        viewModel = MapRepTrackingViewModel(FakeSettingsRepo, routeRepo)
     }
 
     @After
@@ -57,6 +65,30 @@ class MapRepTrackingViewModelTest {
 
         viewModel.onEvent(MapRepTrackingEvents.MarkerClicked("missing"))
         assertEquals(other, state.selectedVisit?.id)
+    }
+
+    @Test
+    fun `route is requested through every track point in order and stored`() {
+        val track = state.routePoints.map { RoutePoint(it.latitude, it.longitude) }
+        assertTrue(track.size > 2)
+        assertEquals(track, routeRepo.lastWaypoints)
+        assertEquals(routeRepo.points, state.route.data)
+    }
+
+    @Test
+    fun `route error shows a snackbar and retry reloads it`() = runTest(dispatcher) {
+        routeRepo.result = Resource.Error("down")
+        viewModel = MapRepTrackingViewModel(FakeSettingsRepo, routeRepo)
+        val events = collectEvents()
+        viewModel.onEvent(MapRepTrackingEvents.RetryRoute)
+        assertTrue(state.route is Resource.Error)
+        // One snackbar from the initial load, one from the retry.
+        val snackBar = UiEvent.ShowSnackBar(UiText.DynamicText("down"))
+        assertEquals(listOf<UiEvent>(snackBar, snackBar), events)
+
+        routeRepo.result = Resource.Success(routeRepo.points)
+        viewModel.onEvent(MapRepTrackingEvents.RetryRoute)
+        assertEquals(routeRepo.points, state.route.data)
     }
 
     @Test
@@ -88,4 +120,15 @@ private object FakeSettingsRepo : AppSettingsRepo {
     override suspend fun updateCountry(country: String) = Unit
     override suspend fun getShowOnBoarding() = false
     override suspend fun updateShowOnBoarding(showOnBoarding: Boolean) = Unit
+}
+
+private class FakeRouteRepo : RouteRepo {
+    val points = listOf(RoutePoint(30.0, 31.0), RoutePoint(30.1, 31.1))
+    var result: Resource<List<RoutePoint>> = Resource.Success(points)
+    var lastWaypoints: List<RoutePoint>? = null
+
+    override fun getRoute(waypoints: List<RoutePoint>): Flow<Resource<List<RoutePoint>>> {
+        lastWaypoints = waypoints
+        return flowOf(result)
+    }
 }

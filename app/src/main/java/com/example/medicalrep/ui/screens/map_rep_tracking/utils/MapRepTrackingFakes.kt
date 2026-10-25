@@ -7,25 +7,27 @@ import com.example.medicalrep.ui.screens.reptracking.utils.RepTrackingFakes
 /** Sample data shown until the rep's visits and GPS track are loaded. */
 object MapRepTrackingFakes {
 
-    /** 10-second interval tracking points: north, east, north, east, then a diagonal main street. */
+    /** Rep trip across Cairo, west to east: Tahrir, Ramses, Abbasia, Nasr City, Heliopolis, New Cairo. */
     fun route(): List<TrackUserMapMarker> = listOf(
-        30.0444 to 31.2357, 30.0448 to 31.2358, 30.0453 to 31.2359,
-        30.0454 to 31.2365, 30.0455 to 31.2371, 30.0456 to 31.2378,
-        30.0463 to 31.2379, 30.0470 to 31.2381, 30.0478 to 31.2383,
-        30.0480 to 31.2392, 30.0482 to 31.2401, 30.0488 to 31.2408,
-        30.0495 to 31.2414, 30.0502 to 31.2421, 30.0510 to 31.2428,
-        30.0518 to 31.2435, 30.0526 to 31.2442, 30.0535 to 31.2446,
-        30.0543 to 31.2448, 30.0550 to 31.2450,
+        30.0444 to 31.2357, 30.0520 to 31.2480, 30.0620 to 31.2650,
+        30.0700 to 31.2800, 30.0730 to 31.3000, 30.0626 to 31.3400,
+        30.0750 to 31.3300, 30.0910 to 31.3220, 30.0800 to 31.3600,
+        30.0600 to 31.4000, 30.0300 to 31.4500, 30.0074 to 31.4913,
     ).mapIndexed { index, (latitude, longitude) ->
         TrackUserMapMarker(id = index, latitude = latitude, longitude = longitude, visitId = "t$index")
     }
 
     fun state(): MapRepTrackingState {
         val route = route()
-        // Visits sit on the route: first at the start, second at the end.
-        val visits = RepTrackingFakes.visits().zip(listOf(route.first(), route.last())) { visit, point ->
-            visit.copy(visitLatitude = point.latitude, visitLongitude = point.longitude)
-        }
+        val baseVisits = RepTrackingFakes.visits()
+        val visits = (baseVisits + listOf(
+            baseVisits[0].copy(id = "rep-3", placeName = "د. أحمد فؤاد", time = "12:15 م"),
+            baseVisits[1].copy(id = "rep-4", placeName = "د. منى السيد", time = "01:30 م"),
+        ))
+            // Visits sit on the route: Tahrir, Nasr City, Heliopolis, New Cairo.
+            .zip(listOf(route[0], route[5], route[7], route.last())) { visit, point ->
+                visit.copy(visitLatitude = point.latitude, visitLongitude = point.longitude)
+            }
         return MapRepTrackingState(
             visits = visits,
             routePoints = route,
