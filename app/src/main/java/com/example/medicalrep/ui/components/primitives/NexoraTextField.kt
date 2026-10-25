@@ -121,7 +121,7 @@ fun NexoraTextField(
                 placeholder = placeholderContent,
                 trailingIcon = trailing ?: {
                     NexoraIconButton(
-                        imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                        imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                         contentDescription = stringResource(
                             if (passwordVisible) R.string.cd_hide_password else R.string.cd_show_password
                         ),
@@ -132,7 +132,7 @@ fun NexoraTextField(
                 textObfuscationMode = if (passwordVisible) {
                     TextObfuscationMode.Visible
                 } else {
-                    TextObfuscationMode.RevealLastTyped
+                    TextObfuscationMode.Hidden
                 },
                 isError = isError,
                 keyboardOptions = keyboardOptions,
