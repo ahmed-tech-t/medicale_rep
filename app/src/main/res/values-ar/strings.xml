@@ -282,6 +282,7 @@
     <string name="rep_tracking_products">المنتجات</string>
     <string name="rep_tracking_gifts">الهدايا</string>
     <string name="rep_tracking_view_route">عرض خط السير على الخريطة</string>
+    <string name="map_rep_tracking_title">خط سير المندوب</string>
     <string name="rep_tracking_log_title">سجل الزيارات وما تم تنفيذه</string>
     <string name="rep_tracking_samples_format">%1$d عينات</string>
     <string name="rep_tracking_gifts_format">%1$d هدايا دعائية</string>

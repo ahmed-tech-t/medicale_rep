@@ -8,6 +8,7 @@ import com.appcore.core.domain.utils.UiEvent
 import com.example.medicalrep.ui.navigation.model.MainGraph
 import com.example.medicalrep.ui.screens.datacenter.main.DataCenterScreen
 import com.example.medicalrep.ui.screens.home.main.HomeScreen
+import com.example.medicalrep.ui.screens.map_rep_tracking.main.MapRepTrackingScreen
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitScreen
 import com.example.medicalrep.ui.screens.products.main.ProductsScreen
 import com.example.medicalrep.ui.screens.reptracking.main.RepTrackingScreen
@@ -73,6 +74,13 @@ fun NavGraphBuilder.mainNavGraph(
         }
         composable<MainGraph.RepTracking> {
             RepTrackingScreen(
+                onNavigate = onNavigate,
+                navigationUp = navigationUp,
+                snackbarHostState = snackbarHostState,
+            )
+        }
+        composable<MainGraph.MapRepTracking> {
+            MapRepTrackingScreen(
                 onNavigate = onNavigate,
                 navigationUp = navigationUp,
                 snackbarHostState = snackbarHostState,

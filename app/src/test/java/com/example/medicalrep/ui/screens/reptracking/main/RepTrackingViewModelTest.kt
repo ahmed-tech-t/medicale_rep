@@ -3,6 +3,7 @@ package com.example.medicalrep.ui.screens.reptracking.main
 import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
+import com.example.medicalrep.ui.navigation.model.MainGraph
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -25,7 +26,7 @@ import org.junit.Test
  * 2. Given no visits, Then every count is 0.
  * 3. When a rep is selected, Then it changes; a blank selection (cleared field) is ignored.
  * 4. When From / To change, Then the range is stored.
- * 5. When View route, Then nothing changes and no event is sent (implemented later). Back -> NavigationUp.
+ * 5. When View route, Then Navigate(MapRepTracking). Back -> NavigationUp.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class RepTrackingViewModelTest {
@@ -77,15 +78,13 @@ class RepTrackingViewModelTest {
     }
 
     @Test
-    fun `view route does nothing yet and back navigates up`() = runTest(dispatcher) {
+    fun `view route opens the map and back navigates up`() = runTest(dispatcher) {
         val events = collectEvents()
-        val before = state
         viewModel.onEvent(RepTrackingEvents.ViewRoute)
-        assertEquals(before, state)
-        assertTrue(events.isEmpty())
+        assertEquals(listOf<UiEvent>(UiEvent.Navigate(MainGraph.MapRepTracking)), events)
 
         viewModel.onEvent(RepTrackingEvents.Back)
-        assertEquals(listOf<UiEvent>(UiEvent.NavigationUp), events)
+        assertEquals(UiEvent.NavigationUp, events.last())
     }
 
     private fun TestScope.collectEvents(): MutableList<UiEvent> {

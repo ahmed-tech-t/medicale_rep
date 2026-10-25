@@ -3,6 +3,7 @@ package com.example.medicalrep.ui.screens.reptracking.main
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
 import com.appcore.core.ui.utils.BaseViewModel
+import com.example.medicalrep.ui.navigation.model.MainGraph
 import com.example.medicalrep.ui.screens.reptracking.utils.RepTrackingFakes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,7 +29,7 @@ class RepTrackingViewModel @Inject constructor(
             }
             is RepTrackingEvents.FromDateChanged -> _state.update { it.copy(fromDateMillis = event.millis) }
             is RepTrackingEvents.ToDateChanged -> _state.update { it.copy(toDateMillis = event.millis) }
-            RepTrackingEvents.ViewRoute -> Unit // TODO: show the rep's route on a map.
+            RepTrackingEvents.ViewRoute -> sendEvent(UiEvent.Navigate(MainGraph.MapRepTracking))
         }
     }
 }

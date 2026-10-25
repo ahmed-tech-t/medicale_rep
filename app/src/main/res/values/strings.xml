@@ -283,6 +283,7 @@
     <string name="rep_tracking_products">Products</string>
     <string name="rep_tracking_gifts">Gifts</string>
     <string name="rep_tracking_view_route">View route on map</string>
+    <string name="map_rep_tracking_title">Rep route</string>
     <string name="rep_tracking_log_title">Visit log and what was done</string>
     <string name="rep_tracking_samples_format">%1$d samples</string>
     <string name="rep_tracking_gifts_format">%1$d promotional gifts</string>
