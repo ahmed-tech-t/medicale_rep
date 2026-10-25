@@ -24,9 +24,10 @@ fun AppNavHost(
         authNavGraph(
             // Leaving the auth graph (login success) must not leave Login on the back stack.
             onNavigate = {
+                navController.graph.setStartDestination(it.route)
                 navController.navigate(it.route) {
                     popUpTo<AuthGraph.Root> { inclusive = true }
-                    launchSingleTop = true
+                  //  launchSingleTop = true
                 }
             },
             navigationUp = { navController.navigateUp() },
