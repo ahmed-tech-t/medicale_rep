@@ -3,7 +3,6 @@ package com.example.medicalrep.ui.screens.planvisit.components.result
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.MaterialTheme
@@ -11,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
@@ -23,15 +21,13 @@ import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 @Composable
 internal fun ClinicOpenRow(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .toggleable(value = checked, role = Role.Checkbox, onValueChange = onCheckedChange),
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(spacing.spaceExtraSmall),
     ) {
         Checkbox(
             checked = checked,
-            onCheckedChange = null,
+            onCheckedChange = onCheckedChange,
             colors = CheckboxDefaults.colors(checkedColor = Brand),
         )
         NexoraText(

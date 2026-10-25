@@ -8,6 +8,7 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -80,7 +81,8 @@ class PlanVisitUiTest {
         val clinicOpen = text(R.string.unplanned_clinic_open)
         composeRule.onNodeWithTag(PlanVisitTestTags.Next).assertDoesNotExist()
         composeRule.onNodeWithTag(PlanVisitTestTags.Content).performScrollToNode(hasText(clinicOpen))
-        composeRule.onNodeWithText(clinicOpen).performClick()
+        // Only the checkbox toggles, not the label.
+        composeRule.onNode(isToggleable()).performClick()
         composeRule.onNodeWithTag(PlanVisitTestTags.EndVisit).performClick()
         assertEquals(
             listOf(PlanVisitEvents.ToggleClinicOpen(false), PlanVisitEvents.EndVisit),
