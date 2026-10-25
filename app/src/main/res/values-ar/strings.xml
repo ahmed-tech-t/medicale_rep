@@ -314,6 +314,12 @@
     <string name="visit_details_location_matched">تم تسجيل الزيارة في موقع الحساب</string>
     <string name="visit_details_location_away">تم تسجيل الزيارة بعيداً عن موقع الحساب</string>
     <string name="visit_details_location_distance">المسافة عن الحساب: %1$d م</string>
+    <string name="visit_details_location_distance_km">المسافة عن الحساب: %1$d كم</string>
+    <string name="plan_visit_your_location">موقعك</string>
+    <string name="plan_visit_location_captured">تم الالتقاط %1$s</string>
+    <string name="plan_visit_coordinates">Lat %1$.6f · Lng %2$.6f</string>
+    <string name="plan_visit_view_on_map">عرض على الخريطة</string>
+    <string name="plan_visit_refresh_location">تحديث</string>
     <!-- Rep tracking -->
     <string name="rep_tracking_title">متابعة المندوب</string>
     <string name="rep_tracking_change">تغيير</string>

@@ -47,6 +47,11 @@ fun ResultStepContent(
             state = state,
             onViewLocation = { onEvent(PlanVisitEvents.ViewLocationClick) },
         )
+        YourLocationCard(
+            state = state,
+            onViewOnMap = { onEvent(PlanVisitEvents.ViewLocationClick) },
+            onRefresh = { onEvent(PlanVisitEvents.RefreshLocation) },
+        )
         VoiceNoteCard(
             isRecording = state.isRecordingVoice,
             hasRecording = state.visit.voiceNote != null,

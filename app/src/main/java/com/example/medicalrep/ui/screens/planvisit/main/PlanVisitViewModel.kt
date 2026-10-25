@@ -1,8 +1,10 @@
 package com.example.medicalrep.ui.screens.planvisit.main
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.appcore.core.domain.repo.AppSettingsRepo
+import com.appcore.core.domain.utils.Resource
 import com.appcore.core.domain.utils.UiEvent
 import com.appcore.core.domain.utils.UiEvent.*
 import com.appcore.core.domain.utils.UiText
@@ -10,7 +12,10 @@ import com.appcore.core.domain.utils.UiText.*
 import com.appcore.core.ui.utils.BaseViewModel
 import com.example.medicalrep.R
 import com.example.medicalrep.domain.models.ProductType
+import com.example.medicalrep.domain.models.RoutePoint
 import com.example.medicalrep.domain.models.VisitType
+import com.example.medicalrep.domain.repo.GeocodingRepo
+import com.example.medicalrep.ui.common.location.LocationHelper
 import com.example.medicalrep.ui.models.ProductUi
 import com.example.medicalrep.ui.models.VisitUi
 import com.example.medicalrep.ui.navigation.model.MainGraph
@@ -22,12 +27,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class PlanVisitViewModel @Inject constructor(
     appSettingsRepo: AppSettingsRepo,
     savedStateHandle: SavedStateHandle,
+    private val locationHelper: LocationHelper,
+    private val geocodingRepo: GeocodingRepo,
 ) : BaseViewModel(appSettingsRepo) {
 
     /** Null means an unplanned visit: every field stays editable. */
@@ -94,6 +102,7 @@ class PlanVisitViewModel @Inject constructor(
                 sendEvent(ShowSnackBar(StringResource(R.string.unplanned_voice_permission_denied)))
 
             PlanVisitEvents.ViewLocationClick -> openVisitLocation()
+            PlanVisitEvents.RefreshLocation -> captureLocation()
 
             is PlanVisitEvents.AttachImageResult -> updateVisit { it.copy(imageNote = event.document.uri) }
         }
@@ -114,6 +123,33 @@ class PlanVisitViewModel @Inject constructor(
             val index =
                 (state.currentStep.ordinal + if (forward) 1 else -1).coerceIn(0, steps.lastIndex)
             state.copy(currentStep = steps[index])
+        }
+        val current = _state.value
+        if (current.currentStep == PlanVisitStep.Result && current.capturedAtMillis == null) captureLocation()
+    }
+
+    /** Stores where the rep is now (and its address, when the lookup works) as the visit location. */
+    private fun captureLocation() {
+        if (_state.value.isLocating) return
+        _state.update { it.copy(isLocating = true) }
+        viewModelScope.launch {
+            val location = locationHelper.getLocation()
+            if (location == null) {
+                _state.update { it.copy(isLocating = false) }
+                sendEvent(ShowSnackBar(StringResource(R.string.visit_location_unavailable)))
+                return@launch
+            }
+            _state.update {
+                it.copy(
+                    visit = it.visit.copy(visitLatitude = location.latitude, visitLongitude = location.longitude),
+                    capturedAtMillis = System.currentTimeMillis(),
+                    locationAddress = null,
+                    isLocating = false,
+                )
+            }
+            geocodingRepo.getAddress(RoutePoint(location.latitude, location.longitude)).collect { address ->
+                if (address is Resource.Success) _state.update { it.copy(locationAddress = address.data) }
+            }
         }
     }
 

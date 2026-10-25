@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import com.appcore.core.ui.theme.radii
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
@@ -34,6 +35,8 @@ import com.example.medicalrep.ui.ui.theme.SuccessContainer
 import com.example.medicalrep.ui.ui.theme.Warning
 import com.example.medicalrep.ui.ui.theme.WarningBorder
 import com.example.medicalrep.ui.ui.theme.WarningContainer
+
+private const val METERS_PER_KM = 1000
 
 /** Green when the visit was recorded at the account (within 50 m), amber warning otherwise. */
 @Composable
@@ -64,7 +67,11 @@ fun LocationMatchBanner(distanceMeters: Int, modifier: Modifier = Modifier) {
                     color = Slate800,
                 )
                 NexoraText(
-                    text = stringResource(R.string.visit_details_location_distance, distanceMeters),
+                    text = if (distanceMeters >= METERS_PER_KM) {
+                        stringResource(R.string.visit_details_location_distance_km, (distanceMeters / METERS_PER_KM.toDouble()).roundToInt())
+                    } else {
+                        stringResource(R.string.visit_details_location_distance, distanceMeters)
+                    },
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                     color = if (matched) OnSuccessContainer else OnWarningContainer,
                 )

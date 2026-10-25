@@ -3,16 +3,24 @@ package com.example.medicalrep.ui.screens.planvisit.main
 import androidx.lifecycle.SavedStateHandle
 import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
+import com.appcore.core.domain.utils.Resource
 import com.appcore.core.domain.utils.UiEvent
+import com.example.medicalrep.domain.models.RoutePoint
+import com.example.medicalrep.domain.models.map.MapCameraTarget
+import com.example.medicalrep.domain.repo.GeocodingRepo
+import com.example.medicalrep.ui.common.location.LocationHelper
+import com.example.medicalrep.ui.common.location.LocationStatus
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.VisitType
 import com.example.medicalrep.ui.navigation.model.MainGraph
 import com.example.medicalrep.ui.screens.planvisit.utils.PlanVisitFakes
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -22,6 +30,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -42,6 +52,12 @@ import org.junit.Test
  * 9. Given a row with quantity 1, When − is tapped, Then the row is removed.
  * 10. Given the result step, When the clinic checkbox toggles, Then state follows.
  * 11. When Back, Then NavigationUp. When EndVisit, Then snackbar then NavigationUp.
+ * 13. Given the visit moves to the result step, Then the location is captured once: coordinates, time and address.
+ * 14. Given the result step was reached before, When it is reached again, Then the location is not captured again.
+ * 15. When RefreshLocation, Then the location is captured again.
+ * 16. Given no location is available, Then a snackbar shows and the old coordinates are kept.
+ * 17. Given the address lookup fails, Then the address is null and the coordinates are kept.
+ * 18. Given a capture is running, When RefreshLocation arrives, Then it is ignored (no double submit).
  * 12. When view location, Then the map opens with the visit coordinates (no coordinates: see VisitDistanceTest).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -49,17 +65,80 @@ class PlanVisitViewModelTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: PlanVisitViewModel
+    private val locationHelper = FakeLocationHelper()
+    private val geocodingRepo = FakeGeocodingRepo()
 
     private val state get() = viewModel.state.value
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
-        viewModel = PlanVisitViewModel(FakeUnplannedSettingsRepo, SavedStateHandle())
+        viewModel = createViewModel()
     }
 
     @After
     fun tearDown() = Dispatchers.resetMain()
+
+    private fun createViewModel(savedStateHandle: SavedStateHandle = SavedStateHandle()) =
+        PlanVisitViewModel(FakeUnplannedSettingsRepo, savedStateHandle, locationHelper, geocodingRepo)
+
+    private fun openResultStep() {
+        viewModel.onEvent(PlanVisitEvents.Next)
+        viewModel.onEvent(PlanVisitEvents.Next)
+    }
+
+    @Test
+    fun `result step captures coordinates, time and address once`() {
+        openResultStep()
+        assertEquals(30.55, state.visit.visitLatitude, 0.0)
+        assertEquals(31.13, state.visit.visitLongitude, 0.0)
+        assertNotNull(state.capturedAtMillis)
+        assertEquals("Al Geish Street", state.locationAddress)
+        assertEquals(1, locationHelper.calls)
+
+        viewModel.onEvent(PlanVisitEvents.Previous)
+        viewModel.onEvent(PlanVisitEvents.Next)
+        assertEquals(1, locationHelper.calls)
+    }
+
+    @Test
+    fun `refresh captures the location again`() {
+        openResultStep()
+        locationHelper.location = MapCameraTarget(30.60, 31.20)
+        viewModel.onEvent(PlanVisitEvents.RefreshLocation)
+        assertEquals(30.60, state.visit.visitLatitude, 0.0)
+        assertEquals(2, locationHelper.calls)
+    }
+
+    @Test
+    fun `no location shows a snackbar and keeps the old coordinates`() = runTest(dispatcher) {
+        val events = collectEvents()
+        val before = state.visit.visitLatitude
+        locationHelper.location = null
+        openResultStep()
+        assertEquals(before, state.visit.visitLatitude, 0.0)
+        assertNull(state.capturedAtMillis)
+        assertTrue(events.any { it is UiEvent.ShowSnackBar })
+    }
+
+    @Test
+    fun `address lookup failure keeps coordinates and drops the address`() {
+        geocodingRepo.result = Resource.Error("offline")
+        openResultStep()
+        assertNull(state.locationAddress)
+        assertEquals(30.55, state.visit.visitLatitude, 0.0)
+    }
+
+    @Test
+    fun `refresh while capturing is ignored`() {
+        val gate = CompletableDeferred<Unit>()
+        locationHelper.gate = gate
+        openResultStep()
+        viewModel.onEvent(PlanVisitEvents.RefreshLocation)
+        assertEquals(1, locationHelper.calls)
+        gate.complete(Unit)
+        assertEquals(false, state.isLocating)
+    }
 
     @Test
     fun `no visit id opens an editable unplanned visit`() {
@@ -68,7 +147,7 @@ class PlanVisitViewModelTest {
 
     @Test
     fun `visit id opens a planned visit carrying that id`() {
-        val planned = PlanVisitViewModel(FakeUnplannedSettingsRepo, SavedStateHandle(mapOf("visitId" to "v-42")))
+        val planned = createViewModel(SavedStateHandle(mapOf("visitId" to "v-42")))
         assertEquals("v-42", planned.state.value.visit.id)
         assertEquals(VisitType.Planned, planned.state.value.visit.type)
     }
@@ -258,4 +337,22 @@ private object FakeUnplannedSettingsRepo : AppSettingsRepo {
     override suspend fun updateCountry(country: String) = Unit
     override suspend fun getShowOnBoarding() = false
     override suspend fun updateShowOnBoarding(showOnBoarding: Boolean) = Unit
+}
+
+private class FakeLocationHelper : LocationHelper {
+    var location: MapCameraTarget? = MapCameraTarget(30.55, 31.13)
+    var gate: CompletableDeferred<Unit>? = null
+    var calls = 0
+
+    override fun status() = LocationStatus.Ready
+    override suspend fun getLocation(): MapCameraTarget? {
+        calls++
+        gate?.await()
+        return location
+    }
+}
+
+private class FakeGeocodingRepo : GeocodingRepo {
+    var result: Resource<String> = Resource.Success("Al Geish Street")
+    override fun getAddress(point: RoutePoint): Flow<Resource<String>> = flowOf(result)
 }

@@ -45,6 +45,8 @@ object PlanVisitFakes {
             classCategory = "A",
             visitLatitude = 30.0444,
             visitLongitude = 31.2357,
+            accountLatitude = 30.1444,
+            accountLongitude = 31.2357,
             shift = Shift.Am,
             isDoubleVisit = true,
             supervisorName = "د. وائل نصار",
