@@ -26,6 +26,14 @@ android {
         // android.util.Log is a stub in JVM unit tests.
         unitTests.isReturnDefaultValues = true
     }
+    buildTypes {
+        create("benchmark") {
+            initWith(buildTypes.getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            // :core has no benchmark build type; consume its release variant.
+            matchingFallbacks += listOf("release")
+        }
+    }
 }
 
 kotlin {
@@ -54,6 +62,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     debugApi(libs.chucker)
     releaseApi(libs.chucker.no.op)
+    "benchmarkApi"(libs.chucker.no.op)
 
     api(libs.androidx.appcompat)
     api(libs.androidx.lifecycle.viewmodel.ktx)
