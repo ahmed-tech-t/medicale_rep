@@ -33,8 +33,8 @@ import org.junit.Test
  *    four visit metrics (today, completed, clinics, doctors), custody summary and a closed drawer.
  * 2. Given the drawer is closed, When the menu is tapped, Then the drawer opens.
  * 3. Given the drawer is open, When it is dismissed, Then it closes.
- * 4. Given the drawer is open, When a menu row (not language) is tapped, Then the drawer closes
- *    and a "coming soon" snackbar is sent.
+ * 4. Given the drawer is open, When the "Add account" row is tapped, Then the drawer closes
+ *    and the add account screen opens.
  * 5. Given Arabic, When the language row is tapped, Then language becomes "en", the drawer closes
  *    and the settings manager publishes "en". Tapping again returns to "ar".
  * 6. Given Home, When sync / continue / cancel / start visit / more is tapped,
@@ -92,13 +92,12 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `drawer menu row closes the drawer and shows coming soon`() = runTest(dispatcher) {
+    fun `add account drawer row closes the drawer and opens the add account screen`() = runTest(dispatcher) {
         val events = collectEvents()
         viewModel.onEvent(HomeEvents.OnMenuClick)
         viewModel.onEvent(HomeEvents.OnDrawerItem(NavDrawerItem.AddAccount))
         assertFalse(state.isDrawerOpen)
-        assertEquals(1, events.size)
-        assertTrue(events.single() is UiEvent.ShowSnackBar)
+        assertEquals(listOf<UiEvent>(UiEvent.Navigate(MainGraph.AddAccount)), events)
     }
 
     @Test

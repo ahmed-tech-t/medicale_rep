@@ -39,7 +39,7 @@ fun VisitLogUi(
             .background(Slate50),
     ) {
         AppHeader(
-            title = stringResource(R.string.visit_log_title),
+            title = stringResource(R.string.drawer_my_visits),
             onBack = { onEvent(VisitLogEvents.Back) },
         )
         NexoraTabs(

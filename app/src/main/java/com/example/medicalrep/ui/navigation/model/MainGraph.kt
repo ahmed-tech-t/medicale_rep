@@ -40,5 +40,8 @@ open class MainGraph {
     data object Terms : MainGraph()
 
     @Serializable
+    data object AddAccount : MainGraph()
+
+    @Serializable
     data class VisitLocationMap(val visitLatitude: Double, val visitLongitude: Double) : MainGraph()
 }

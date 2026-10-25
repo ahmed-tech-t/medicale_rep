@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import com.appcore.core.domain.utils.UiEvent
 import com.example.medicalrep.ui.navigation.model.MainGraph
+import com.example.medicalrep.ui.screens.addaccount.main.AddAccountScreen
 import com.example.medicalrep.ui.screens.datacenter.main.DataCenterScreen
 import com.example.medicalrep.ui.screens.home.main.HomeScreen
 import com.example.medicalrep.ui.screens.map_rep_tracking.main.MapRepTrackingScreen
@@ -90,6 +91,13 @@ fun NavGraphBuilder.mainNavGraph(
         }
         composable<MainGraph.VisitLocationMap> {
             VisitLocationMapScreen(
+                onNavigate = onNavigate,
+                navigationUp = navigationUp,
+                snackbarHostState = snackbarHostState,
+            )
+        }
+        composable<MainGraph.AddAccount> {
+            AddAccountScreen(
                 onNavigate = onNavigate,
                 navigationUp = navigationUp,
                 snackbarHostState = snackbarHostState,
