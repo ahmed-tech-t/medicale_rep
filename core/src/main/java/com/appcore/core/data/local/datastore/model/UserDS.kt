@@ -22,5 +22,9 @@ data class UserDS(
     val refreshExpiresIn: Int = 0,
     val roleName: String = "",
     val status: String = "",
-    val loginWithSocial: Boolean = false
+    val loginWithSocial: Boolean = false,
+    /** Where the user was last seen; null until the first GPS update. Cleared with the user. */
+    val lastLatitude: Double? = null,
+    val lastLongitude: Double? = null,
+    val lastLocationTimeMillis: Long = 0L,
 )

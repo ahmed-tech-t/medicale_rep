@@ -19,8 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.medicalrep.R
-import com.example.medicalrep.domain.models.RoutePoint
-import com.example.medicalrep.domain.models.map.MapCameraTarget
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.ui.components.widgets.TravelSegmentBadge
 import com.example.medicalrep.ui.screens.map_rep_tracking.models.TrackUserMapMarker
 import com.example.medicalrep.ui.screens.map_rep_tracking.utils.TravelSegment
@@ -50,7 +49,7 @@ fun GoogleMapComponent(
     visitss: List<TrackUserMapMarker>,
     repTrack: List<TrackUserMapMarker>,
     segments: List<TravelSegment> = emptyList(),
-    roadRoute: List<RoutePoint> = emptyList(),
+    roadRoute: List<GeoPoint> = emptyList(),
     onMarkerClick: (String) -> Unit,
     selectedVisitId: String? = null,
     mapType: MapType = MapType.NORMAL,

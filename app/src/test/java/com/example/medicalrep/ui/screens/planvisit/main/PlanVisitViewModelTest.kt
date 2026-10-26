@@ -5,10 +5,9 @@ import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.Resource
 import com.appcore.core.domain.utils.UiEvent
-import com.example.medicalrep.domain.models.RoutePoint
-import com.example.medicalrep.domain.models.map.MapCameraTarget
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.repo.GeocodingRepo
-import com.example.medicalrep.ui.common.location.LocationHelper
+import com.example.medicalrep.domain.repo.FakeLastLocationRepo
 import com.example.medicalrep.ui.common.location.LocationStatus
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
@@ -76,7 +75,7 @@ class PlanVisitViewModelTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: PlanVisitViewModel
-    private val locationHelper = FakeLocationHelper()
+    private val lastLocationRepo = FakeLastLocationRepo(GeoPoint(30.55, 31.13))
     private val geocodingRepo = FakeGeocodingRepo()
     private val draftRepo = FakeDraftVisitRepo()
     private val accountRepo = FakeAccountRepo(
@@ -127,7 +126,7 @@ class PlanVisitViewModelTest {
 
     private fun createViewModel(savedStateHandle: SavedStateHandle = SavedStateHandle()) =
         PlanVisitViewModel(
-            FakeUnplannedSettingsRepo, savedStateHandle, locationHelper, geocodingRepo, draftRepo, accountRepo, userRepo, productRepo, visitRepo,
+            FakeUnplannedSettingsRepo, savedStateHandle, lastLocationRepo, geocodingRepo, draftRepo, accountRepo, userRepo, productRepo, visitRepo,
         )
 
     @Test
@@ -232,27 +231,27 @@ class PlanVisitViewModelTest {
         assertEquals(31.13, state.visit.visitLongitude, 0.0)
         assertNotNull(state.capturedAtMillis)
         assertEquals("Al Geish Street", state.locationAddress)
-        assertEquals(1, locationHelper.calls)
+        assertEquals(1, lastLocationRepo.calls)
 
         viewModel.onEvent(PlanVisitEvents.Previous)
         viewModel.onEvent(PlanVisitEvents.Next)
-        assertEquals(1, locationHelper.calls)
+        assertEquals(1, lastLocationRepo.calls)
     }
 
     @Test
     fun `refresh captures the location again`() {
         openResultStep()
-        locationHelper.location = MapCameraTarget(30.60, 31.20)
+        lastLocationRepo.location = GeoPoint(30.60, 31.20)
         viewModel.onEvent(PlanVisitEvents.RefreshLocation)
         assertEquals(30.60, state.visit.visitLatitude, 0.0)
-        assertEquals(2, locationHelper.calls)
+        assertEquals(2, lastLocationRepo.calls)
     }
 
     @Test
     fun `no location shows a snackbar and keeps the old coordinates`() = runTest(dispatcher) {
         val events = collectEvents()
         val before = state.visit.visitLatitude
-        locationHelper.location = null
+        lastLocationRepo.location = null
         openResultStep()
         assertEquals(before, state.visit.visitLatitude, 0.0)
         assertNull(state.capturedAtMillis)
@@ -270,10 +269,10 @@ class PlanVisitViewModelTest {
     @Test
     fun `refresh while capturing is ignored`() {
         val gate = CompletableDeferred<Unit>()
-        locationHelper.gate = gate
+        lastLocationRepo.gate = gate
         openResultStep()
         viewModel.onEvent(PlanVisitEvents.RefreshLocation)
-        assertEquals(1, locationHelper.calls)
+        assertEquals(1, lastLocationRepo.calls)
         gate.complete(Unit)
         assertEquals(false, state.isLocating)
     }
@@ -654,20 +653,8 @@ private object FakeUnplannedSettingsRepo : AppSettingsRepo {
     override suspend fun updateShowOnBoarding(showOnBoarding: Boolean) = Unit
 }
 
-private class FakeLocationHelper : LocationHelper {
-    var location: MapCameraTarget? = MapCameraTarget(30.55, 31.13)
-    var gate: CompletableDeferred<Unit>? = null
-    var calls = 0
-
-    override fun status() = LocationStatus.Ready
-    override suspend fun getLocation(): MapCameraTarget? {
-        calls++
-        gate?.await()
-        return location
-    }
-}
 
 private class FakeGeocodingRepo : GeocodingRepo {
     var result: Resource<String> = Resource.Success("Al Geish Street")
-    override fun getAddress(point: RoutePoint): Flow<Resource<String>> = flowOf(result)
+    override fun getAddress(point: GeoPoint): Flow<Resource<String>> = flowOf(result)
 }

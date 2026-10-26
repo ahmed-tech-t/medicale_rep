@@ -3,7 +3,7 @@ package com.example.medicalrep.ui.screens.map_rep_tracking.main
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
 import com.appcore.core.ui.utils.BaseViewModel
-import com.example.medicalrep.domain.models.RoutePoint
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.repo.RouteRepo
 import com.example.medicalrep.ui.navigation.model.MainGraph
 import com.example.medicalrep.ui.screens.map_rep_tracking.utils.MapRepTrackingFakes
@@ -35,7 +35,7 @@ class MapRepTrackingViewModel @Inject constructor(
     private fun loadRoute() {
         val points = _state.value.routePoints
         if (points.size < 2) return
-        routeRepo.getRoute(points.map { RoutePoint(it.latitude, it.longitude) })
+        routeRepo.getRoute(points.map { GeoPoint(it.latitude, it.longitude) })
             .onEach { route ->
                 _state.update { it.copy(route = route) }
             }

@@ -5,7 +5,7 @@ import androidx.navigation.toRoute
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
 import com.appcore.core.ui.utils.BaseViewModel
-import com.example.medicalrep.domain.models.map.MapCameraTarget
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.ui.navigation.model.MainGraph
 import com.example.medicalrep.ui.screens.planvisit.account_location.utils.directionsUrl
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +24,7 @@ class AccountLocationViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(
         AccountLocationState(
-            accountLocation = MapCameraTarget(route.accountLatitude, route.accountLongitude),
+            accountLocation = GeoPoint(route.accountLatitude, route.accountLongitude),
             accountName = route.accountName,
             address = route.address,
             classCategory = route.classCategory,

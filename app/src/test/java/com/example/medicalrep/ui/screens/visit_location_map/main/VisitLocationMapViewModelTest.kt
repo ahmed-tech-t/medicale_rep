@@ -5,7 +5,7 @@ import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.Resource
 import com.appcore.core.domain.utils.UiEvent
-import com.example.medicalrep.domain.models.RoutePoint
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.models.RouteResult
 import com.example.medicalrep.domain.repo.RouteRepo
 import kotlinx.coroutines.Dispatchers
@@ -75,14 +75,14 @@ private object FakeSettingsRepo : AppSettingsRepo {
 
 private class FakeRouteRepo : RouteRepo {
     val route = RouteResult(
-        points = listOf(RoutePoint(30.04, 31.23), RoutePoint(30.09, 31.3), RoutePoint(30.14, 31.23)),
+        points = listOf(GeoPoint(30.04, 31.23), GeoPoint(30.09, 31.3), GeoPoint(30.14, 31.23)),
         distanceMeters = 13_000,
         durationSeconds = 1_500,
     )
     var result: Resource<RouteResult> = Resource.Success(route)
-    var lastWaypoints: List<RoutePoint>? = null
+    var lastWaypoints: List<GeoPoint>? = null
 
-    override fun getRoute(waypoints: List<RoutePoint>): Flow<Resource<RouteResult>> {
+    override fun getRoute(waypoints: List<GeoPoint>): Flow<Resource<RouteResult>> {
         lastWaypoints = waypoints
         return flowOf(result)
     }

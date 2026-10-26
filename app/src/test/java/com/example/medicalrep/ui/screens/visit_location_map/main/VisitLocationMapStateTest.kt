@@ -1,8 +1,7 @@
 package com.example.medicalrep.ui.screens.visit_location_map.main
 
-import com.example.medicalrep.domain.models.RoutePoint
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.models.RouteResult
-import com.example.medicalrep.domain.models.map.MapCameraTarget
 import com.example.medicalrep.ui.common.travel.TravelMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -18,10 +17,10 @@ import org.junit.Test
  */
 class VisitLocationMapStateTest {
 
-    private val rep = MapCameraTarget(latitude = 30.0444, longitude = 31.2357)
-    private val account = MapCameraTarget(latitude = 30.1444, longitude = 31.2357) // about 11 km
+    private val rep = GeoPoint(latitude = 30.0444, longitude = 31.2357)
+    private val account = GeoPoint(latitude = 30.1444, longitude = 31.2357) // about 11 km
 
-    private fun state(travelSeconds: Int, visit: MapCameraTarget = rep) =
+    private fun state(travelSeconds: Int, visit: GeoPoint = rep) =
         VisitLocationMapState(visitLocation = visit, accountLocation = account, travelSeconds = travelSeconds)
 
     @Test
@@ -41,7 +40,7 @@ class VisitLocationMapStateTest {
 
     @Test
     fun `rep within range of the account has no line and no badge`() {
-        val state = state(travelSeconds = 600, visit = MapCameraTarget(latitude = 30.14445, longitude = 31.2357))
+        val state = state(travelSeconds = 600, visit = GeoPoint(latitude = 30.14445, longitude = 31.2357))
         assertTrue(state.isAtAccount)
         assertTrue(state.line.isEmpty())
         assertFalse(state.showTravel)
@@ -50,7 +49,7 @@ class VisitLocationMapStateTest {
     @Test
     fun `loaded road route is the line and its length decides the mode`() {
         val road = RouteResult(
-            points = listOf(RoutePoint(30.0444, 31.2357), RoutePoint(30.07, 31.30), RoutePoint(30.1444, 31.2357)),
+            points = listOf(GeoPoint(30.0444, 31.2357), GeoPoint(30.07, 31.30), GeoPoint(30.1444, 31.2357)),
             distanceMeters = 30_000,
             durationSeconds = 1_500,
         )

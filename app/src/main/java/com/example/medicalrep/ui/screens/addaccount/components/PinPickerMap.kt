@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.appcore.core.ui.theme.radii
 import com.example.medicalrep.R
-import com.example.medicalrep.domain.models.map.MapCameraTarget
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.ui.utils.vectorToBitmapDescriptor
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -30,8 +30,8 @@ private const val INITIAL_ZOOM = 15f
 /** Map where a tap drops (or moves) the single pin; the camera starts at [userLocation] and follows the pin. */
 @Composable
 fun PinPickerMap(
-    userLocation: MapCameraTarget,
-    pin: MapCameraTarget?,
+    userLocation: GeoPoint,
+    pin: GeoPoint?,
     onPinPlaced: (latitude: Double, longitude: Double) -> Unit,
     modifier: Modifier = Modifier,
 ) {

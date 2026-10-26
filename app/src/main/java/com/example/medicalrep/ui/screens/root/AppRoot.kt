@@ -7,6 +7,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.medicalrep.ui.common.location.LOCATION_PERMISSIONS
 import com.example.medicalrep.ui.common.location.locationDialogNeeded
+import com.example.medicalrep.ui.common.location.LocationStatus
 import com.example.medicalrep.ui.common.location.LocationStatusEvents
 import com.example.medicalrep.ui.common.location.LocationStatusViewModel
 import com.example.medicalrep.ui.common.location.hasLocationPermission
@@ -61,6 +62,10 @@ fun AppRoot(
     })
     LaunchedEffect(isMain) {
         if (isMain && !context.hasLocationPermission()) permissionLauncher.launch(LOCATION_PERMISSIONS)
+    }
+    // Keeps the saved location fresh while the app is open; cancelled when location stops being Ready or on leaving.
+    LaunchedEffect(isMain, locationStatus) {
+        if (isMain && locationStatus == LocationStatus.Ready) locationViewModel.trackLocation()
     }
     LifecycleResumeEffect(Unit) {
         locationViewModel.onEvent(LocationStatusEvents.Refresh)

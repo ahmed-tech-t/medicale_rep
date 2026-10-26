@@ -14,7 +14,7 @@ import com.example.medicalrep.R
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.ProductType
-import com.example.medicalrep.domain.models.RoutePoint
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.models.UserRole
 import com.example.medicalrep.domain.models.VisitType
 import com.example.medicalrep.domain.repo.AccountRepo
@@ -23,7 +23,7 @@ import com.example.medicalrep.domain.repo.GeocodingRepo
 import com.example.medicalrep.domain.repo.ProductRepo
 import com.example.medicalrep.domain.repo.UserRepo
 import com.example.medicalrep.domain.repo.VisitRepo
-import com.example.medicalrep.ui.common.location.LocationHelper
+import com.example.medicalrep.domain.repo.LastLocationRepo
 import com.example.medicalrep.ui.mapper.toDomain
 import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.ProductUi
@@ -57,7 +57,7 @@ import javax.inject.Inject
 class PlanVisitViewModel @Inject constructor(
     appSettingsRepo: AppSettingsRepo,
     savedStateHandle: SavedStateHandle,
-    private val locationHelper: LocationHelper,
+    private val lastLocationRepo: LastLocationRepo,
     private val geocodingRepo: GeocodingRepo,
     private val draftRepo: DraftVisitRepo,
     private val accountRepo: AccountRepo,
@@ -290,7 +290,7 @@ class PlanVisitViewModel @Inject constructor(
         if (_state.value.isLocating) return
         _state.update { it.copy(isLocating = true) }
         viewModelScope.launch {
-            val location = locationHelper.getLocation()
+            val location = lastLocationRepo.current()
             if (location == null) {
                 _state.update { it.copy(isLocating = false) }
                 sendEvent(ShowSnackBar(StringResource(R.string.visit_location_unavailable)))
@@ -304,7 +304,7 @@ class PlanVisitViewModel @Inject constructor(
                     isLocating = false,
                 )
             }
-            geocodingRepo.getAddress(RoutePoint(location.latitude, location.longitude)).collect { address ->
+            geocodingRepo.getAddress(GeoPoint(location.latitude, location.longitude)).collect { address ->
                 if (address is Resource.Success) _state.update { it.copy(locationAddress = address.data) }
             }
         }

@@ -12,8 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.example.medicalrep.R
-import com.example.medicalrep.domain.models.RoutePoint
-import com.example.medicalrep.domain.models.map.MapCameraTarget
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.ui.common.location.hasLocationPermission
 import com.example.medicalrep.ui.utils.vectorToBitmapDescriptor
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -36,10 +35,10 @@ private const val SINGLE_POINT_ZOOM = 16f
 /** Map with the visit pin and, once known, the user's pin; the camera fits what is shown once the map is loaded. */
 @Composable
 fun LocationMapComponent(
-    userLocation: MapCameraTarget?,
-    visitLocation: MapCameraTarget,
+    userLocation: GeoPoint?,
+    visitLocation: GeoPoint,
     modifier: Modifier = Modifier,
-    routePoints: List<RoutePoint> = emptyList(),
+    routePoints: List<GeoPoint> = emptyList(),
     showMyLocationDot: Boolean = false,
     destinationTitle: String = stringResource(R.string.visit_details_visit_location),
     badge: (@Composable () -> Unit)? = null,

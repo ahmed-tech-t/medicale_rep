@@ -7,8 +7,7 @@ import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.Resource
 import com.appcore.core.domain.utils.UiEvent
 import com.appcore.core.ui.utils.BaseViewModel
-import com.example.medicalrep.domain.models.RoutePoint
-import com.example.medicalrep.domain.models.map.MapCameraTarget
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.repo.RouteRepo
 import com.example.medicalrep.ui.navigation.model.MainGraph
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,8 +29,8 @@ class VisitLocationMapViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(
         VisitLocationMapState(
-            visitLocation = MapCameraTarget(route.visitLatitude, route.visitLongitude),
-            accountLocation = MapCameraTarget(route.accountLatitude, route.accountLongitude),
+            visitLocation = GeoPoint(route.visitLatitude, route.visitLongitude),
+            accountLocation = GeoPoint(route.accountLatitude, route.accountLongitude),
             travelSeconds = route.travelSeconds,
         )
     )
@@ -46,7 +45,7 @@ class VisitLocationMapViewModel @Inject constructor(
         val rep = _state.value.visitLocation
         val account = _state.value.accountLocation
         routeRepo.getRoute(
-            listOf(RoutePoint(rep.latitude, rep.longitude), RoutePoint(account.latitude, account.longitude))
+            listOf(GeoPoint(rep.latitude, rep.longitude), GeoPoint(account.latitude, account.longitude))
         ).collect { result ->
             if (result is Resource.Success) _state.update { it.copy(route = result.data) }
         }

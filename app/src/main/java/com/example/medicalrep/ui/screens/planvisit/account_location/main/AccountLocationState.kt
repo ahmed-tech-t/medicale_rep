@@ -1,11 +1,11 @@
 package com.example.medicalrep.ui.screens.planvisit.account_location.main
 
 import androidx.compose.runtime.Immutable
-import com.example.medicalrep.domain.models.map.MapCameraTarget
+import com.example.medicalrep.domain.models.GeoPoint
 
 @Immutable
 data class AccountLocationState(
-    val accountLocation: MapCameraTarget,
+    val accountLocation: GeoPoint,
     val accountName: String,
     val address: String,
     val classCategory: String,

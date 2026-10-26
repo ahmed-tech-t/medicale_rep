@@ -12,7 +12,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
-import com.example.medicalrep.domain.models.map.MapCameraTarget
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.ui.components.chrome.AppHeader
 import com.example.medicalrep.ui.screens.planvisit.account_location.main.AccountLocationEvents
 import com.example.medicalrep.ui.screens.planvisit.account_location.main.AccountLocationState
@@ -55,7 +55,7 @@ private fun AccountLocationUiPreview() {
     MedicalRepTheme {
         AccountLocationUi(
             state = AccountLocationState(
-                accountLocation = MapCameraTarget(latitude = 30.5657, longitude = 31.0043),
+                accountLocation = GeoPoint(latitude = 30.5657, longitude = 31.0043),
                 accountName = "Al-Iman Pharmacy",
                 address = "Shebin El-Kom - Stadium Square",
                 classCategory = "C",

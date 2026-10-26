@@ -3,7 +3,7 @@ package com.example.medicalrep.data.repo
 import com.appcore.core.domain.utils.Resource
 import com.example.medicalrep.data.remote.OsrmApi
 import com.example.medicalrep.data.remote.dto.OsrmRouteDto
-import com.example.medicalrep.domain.models.RoutePoint
+import com.example.medicalrep.domain.models.GeoPoint
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -20,8 +20,8 @@ import java.io.IOException
  */
 class RouteRepoImplTest {
 
-    private val from = RoutePoint(latitude = 30.0, longitude = 31.0)
-    private val to = RoutePoint(latitude = 30.5, longitude = 31.5)
+    private val from = GeoPoint(latitude = 30.0, longitude = 31.0)
+    private val to = GeoPoint(latitude = 30.5, longitude = 31.5)
 
     private fun repo(api: OsrmApi) = RouteRepoImpl(api, Json)
 
@@ -46,7 +46,7 @@ class RouteRepoImplTest {
 
         assertTrue(emissions[0] is Resource.Loading)
         assertEquals(
-            listOf(RoutePoint(30.0, 31.0), RoutePoint(30.5, 31.5)),
+            listOf(GeoPoint(30.0, 31.0), GeoPoint(30.5, 31.5)),
             (emissions[1] as Resource.Success).data?.points,
         )
         assertEquals(1234, (emissions[1] as Resource.Success).data?.distanceMeters)
@@ -57,7 +57,7 @@ class RouteRepoImplTest {
     @Test
     fun `three waypoints are sent in order`() = runTest {
         val api = FakeApi { dto() }
-        repo(api).getRoute(listOf(from, RoutePoint(30.2, 31.2), to)).toList()
+        repo(api).getRoute(listOf(from, GeoPoint(30.2, 31.2), to)).toList()
         assertEquals("31.0,30.0;31.2,30.2;31.5,30.5", api.lastCoordinates)
     }
 

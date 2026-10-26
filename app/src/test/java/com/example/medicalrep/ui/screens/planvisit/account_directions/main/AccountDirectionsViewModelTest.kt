@@ -5,12 +5,11 @@ import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.Resource
 import com.appcore.core.domain.utils.UiEvent
-import com.example.medicalrep.domain.models.RoutePoint
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.models.RouteResult
-import com.example.medicalrep.domain.models.map.MapCameraTarget
 import com.example.medicalrep.domain.repo.GeocodingRepo
 import com.example.medicalrep.domain.repo.RouteRepo
-import com.example.medicalrep.ui.common.location.LocationHelper
+import com.example.medicalrep.domain.repo.FakeLastLocationRepo
 import com.example.medicalrep.ui.common.location.LocationStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -47,12 +46,12 @@ class AccountDirectionsViewModelTest {
     private val dispatcher = UnconfinedTestDispatcher()
 
     // Route args are not readable from SavedStateHandle in JVM tests, so the account stays at (0, 0).
-    private val account = MapCameraTarget(latitude = 0.0, longitude = 0.0)
-    private val far = MapCameraTarget(latitude = 0.1, longitude = 0.0) // about 11 km
-    private val near = MapCameraTarget(latitude = 0.0001, longitude = 0.0) // about 11 m
+    private val account = GeoPoint(latitude = 0.0, longitude = 0.0)
+    private val far = GeoPoint(latitude = 0.1, longitude = 0.0) // about 11 km
+    private val near = GeoPoint(latitude = 0.0001, longitude = 0.0) // about 11 m
     private val routeRepo = FakeRouteRepo()
     private val geocodingRepo = FakeGeocodingRepo()
-    private val locationHelper = FakeLocationHelper()
+    private val lastLocationRepo = FakeLastLocationRepo()
 
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -60,8 +59,8 @@ class AccountDirectionsViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun createViewModel(userLocation: MapCameraTarget?): AccountDirectionsViewModel {
-        locationHelper.location = userLocation
+    private fun createViewModel(userLocation: GeoPoint?): AccountDirectionsViewModel {
+        lastLocationRepo.location = userLocation
         return AccountDirectionsViewModel(
             FakeSettingsRepo,
             SavedStateHandle(
@@ -71,7 +70,7 @@ class AccountDirectionsViewModelTest {
                     "accountName" to "Clinic",
                 )
             ),
-            locationHelper,
+            lastLocationRepo,
             routeRepo,
             geocodingRepo,
         )
@@ -80,7 +79,7 @@ class AccountDirectionsViewModelTest {
     @Test
     fun `far rep gets the route to the account and the distance`() {
         val state = createViewModel(far).state.value
-        assertEquals(listOf(RoutePoint(far.latitude, far.longitude), RoutePoint(account.latitude, account.longitude)), routeRepo.lastWaypoints)
+        assertEquals(listOf(GeoPoint(far.latitude, far.longitude), GeoPoint(account.latitude, account.longitude)), routeRepo.lastWaypoints)
         assertEquals(routeRepo.route, state.route)
         assertEquals(routeRepo.route.points, state.lineToAccount)
         assertEquals(routeRepo.route.durationSeconds, state.carSeconds)
@@ -118,7 +117,7 @@ class AccountDirectionsViewModelTest {
         assertNull(state.walkingSeconds)
         assertNull(state.travelDistanceMeters)
         assertEquals(
-            listOf(RoutePoint(far.latitude, far.longitude), RoutePoint(account.latitude, account.longitude)),
+            listOf(GeoPoint(far.latitude, far.longitude), GeoPoint(account.latitude, account.longitude)),
             state.lineToAccount,
         )
     }
@@ -142,13 +141,13 @@ class AccountDirectionsViewModelTest {
     @Test
     fun `refresh reads the location again and keeps the old one without a new fix`() {
         val viewModel = createViewModel(far)
-        locationHelper.location = near
+        lastLocationRepo.location = near
         viewModel.onEvent(AccountDirectionsEvents.RefreshLocation)
         assertEquals(near, viewModel.state.value.userLocation)
         assertTrue(viewModel.state.value.isAtAccount)
         assertNull(viewModel.state.value.route)
 
-        locationHelper.location = null
+        lastLocationRepo.location = null
         viewModel.onEvent(AccountDirectionsEvents.RefreshLocation)
         assertEquals(near, viewModel.state.value.userLocation)
         assertFalse(viewModel.state.value.isLocating)
@@ -170,22 +169,17 @@ class AccountDirectionsViewModelTest {
     }
 }
 
-private class FakeLocationHelper : LocationHelper {
-    var location: MapCameraTarget? = null
-    override fun status() = LocationStatus.Ready
-    override suspend fun getLocation() = location
-}
 
 private class FakeRouteRepo : RouteRepo {
     val route = RouteResult(
-        points = listOf(RoutePoint(30.0, 31.0), RoutePoint(30.1, 31.2)),
+        points = listOf(GeoPoint(30.0, 31.0), GeoPoint(30.1, 31.2)),
         distanceMeters = 13_000,
         durationSeconds = 1_500,
     )
     var result: Resource<RouteResult> = Resource.Success(route)
-    var lastWaypoints: List<RoutePoint>? = null
+    var lastWaypoints: List<GeoPoint>? = null
 
-    override fun getRoute(waypoints: List<RoutePoint>): Flow<Resource<RouteResult>> {
+    override fun getRoute(waypoints: List<GeoPoint>): Flow<Resource<RouteResult>> {
         lastWaypoints = waypoints
         return flowOf(result)
     }
@@ -193,7 +187,7 @@ private class FakeRouteRepo : RouteRepo {
 
 private class FakeGeocodingRepo : GeocodingRepo {
     var result: Resource<String> = Resource.Success("Al Geish Street")
-    override fun getAddress(point: RoutePoint): Flow<Resource<String>> = flowOf(result)
+    override fun getAddress(point: GeoPoint): Flow<Resource<String>> = flowOf(result)
 }
 
 private object FakeSettingsRepo : AppSettingsRepo {

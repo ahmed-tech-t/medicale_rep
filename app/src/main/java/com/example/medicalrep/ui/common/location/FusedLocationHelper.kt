@@ -5,26 +5,25 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.location.Location
 import android.location.LocationManager
-import com.google.android.gms.tasks.Task
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
-import com.example.medicalrep.domain.models.map.MapCameraTarget
+import com.example.medicalrep.domain.models.GeoPoint
+import android.os.Looper
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.coroutines.cancellation.CancellationException
-import kotlin.time.Duration.Companion.milliseconds
 
-private const val GPS_FIX_TIMEOUT_MS = 10_000L
+private const val UPDATE_INTERVAL_MS = 5_000L
+private const val MIN_DISTANCE_METERS = 5f
 
 @Singleton
 class FusedLocationHelper @Inject constructor(
@@ -52,26 +51,17 @@ class FusedLocationHelper @Inject constructor(
         awaitClose { context.unregisterReceiver(receiver) }
     }
 
-    @SuppressLint("MissingPermission") // Checked by hasLocationPermission().
-    override suspend fun getLocation(): MapCameraTarget? {
-        if (!context.hasLocationPermission()) return null
-        val current = withTimeoutOrNull(GPS_FIX_TIMEOUT_MS.milliseconds) {
-            client.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null).awaitOrNull()
+    @SuppressLint("MissingPermission") // Only collected while the location status is Ready.
+    override fun updates(): Flow<GeoPoint> = callbackFlow {
+        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, UPDATE_INTERVAL_MS)
+            .setMinUpdateDistanceMeters(MIN_DISTANCE_METERS)
+            .build()
+        val callback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                result.lastLocation?.let { trySend(GeoPoint(it.latitude, it.longitude)) }
+            }
         }
-        return current?.toTarget() ?: getLastLocation()
+        client.requestLocationUpdates(request, callback, Looper.getMainLooper())
+        awaitClose { client.removeLocationUpdates(callback) }
     }
-
-    @SuppressLint("MissingPermission") // Only called after getLocation() checked the permission.
-    private suspend fun getLastLocation(): MapCameraTarget? = client.lastLocation.awaitOrNull()?.toTarget()
-
-    private fun Location.toTarget() = MapCameraTarget(latitude, longitude)
-}
-
-/** A failed task (e.g. location services error) counts as "no location" so the caller can fall back. */
-private suspend fun <T> Task<T>.awaitOrNull(): T? = try {
-    await()
-} catch (e: CancellationException) {
-    throw e
-} catch (e: Exception) {
-    null
 }

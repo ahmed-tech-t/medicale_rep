@@ -4,7 +4,7 @@ import com.appcore.core.data.local.settings.AppSettingsManager
 import com.appcore.core.data.utils.toApiErrorMessage
 import com.appcore.core.domain.utils.Resource
 import com.example.medicalrep.data.remote.NominatimApi
-import com.example.medicalrep.domain.models.RoutePoint
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.repo.GeocodingRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -17,7 +17,7 @@ class GeocodingRepoImpl @Inject constructor(
     private val json: Json,
 ) : GeocodingRepo {
 
-    override fun getAddress(point: RoutePoint): Flow<Resource<String>> = flow {
+    override fun getAddress(point: GeoPoint): Flow<Resource<String>> = flow {
         emit(Resource.Loading())
         try {
             val street = api.reverse(

@@ -7,7 +7,7 @@ import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.Resource
 import com.example.medicalrep.data.remote.NominatimApi
 import com.example.medicalrep.data.remote.dto.NominatimReverseDto
-import com.example.medicalrep.domain.models.RoutePoint
+import com.example.medicalrep.domain.models.GeoPoint
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.toList
@@ -27,7 +27,7 @@ import java.io.IOException
  */
 class GeocodingRepoImplTest {
 
-    private val point = RoutePoint(latitude = 30.0444, longitude = 31.2357)
+    private val point = GeoPoint(latitude = 30.0444, longitude = 31.2357)
 
     private val settings = AppSettingsManager(
         FakeSettingsRepo,

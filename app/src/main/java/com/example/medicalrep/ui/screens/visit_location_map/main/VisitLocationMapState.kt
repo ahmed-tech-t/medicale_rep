@@ -1,9 +1,8 @@
 package com.example.medicalrep.ui.screens.visit_location_map.main
 
 import androidx.compose.runtime.Immutable
-import com.example.medicalrep.domain.models.RoutePoint
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.models.RouteResult
-import com.example.medicalrep.domain.models.map.MapCameraTarget
 import com.example.medicalrep.ui.common.travel.travelModeOf
 import com.example.medicalrep.ui.screens.visitdetails.utils.distanceMeters
 import com.example.medicalrep.ui.screens.visitdetails.utils.isAtAccountLocation
@@ -11,8 +10,8 @@ import com.example.medicalrep.ui.screens.visitdetails.utils.isAtAccountLocation
 /** Where the rep did the visit ([visitLocation]), the account, and how long the rep took to get to the visit. */
 @Immutable
 data class VisitLocationMapState(
-    val visitLocation: MapCameraTarget,
-    val accountLocation: MapCameraTarget,
+    val visitLocation: GeoPoint,
+    val accountLocation: GeoPoint,
     val travelSeconds: Int = 0,
     /** The road route from the rep to the account; null while loading, offline or failed. */
     val route: RouteResult? = null,
@@ -25,13 +24,13 @@ data class VisitLocationMapState(
     val isAtAccount: Boolean get() = isAtAccountLocation(distanceMeters)
 
     /** The road route when loaded, otherwise a straight line from the rep to the account; none when he was at the account. */
-    val line: List<RoutePoint>
+    val line: List<GeoPoint>
         get() = when {
             isAtAccount -> emptyList()
             route != null -> route.points
             else -> listOf(
-                RoutePoint(visitLocation.latitude, visitLocation.longitude),
-                RoutePoint(accountLocation.latitude, accountLocation.longitude),
+                GeoPoint(visitLocation.latitude, visitLocation.longitude),
+                GeoPoint(accountLocation.latitude, accountLocation.longitude),
             )
         }
 

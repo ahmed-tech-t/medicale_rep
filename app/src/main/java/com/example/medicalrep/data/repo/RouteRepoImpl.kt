@@ -3,7 +3,7 @@ package com.example.medicalrep.data.repo
 import com.appcore.core.data.utils.toApiErrorMessage
 import com.appcore.core.domain.utils.Resource
 import com.example.medicalrep.data.remote.OsrmApi
-import com.example.medicalrep.domain.models.RoutePoint
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.models.RouteResult
 import com.example.medicalrep.domain.repo.RouteRepo
 import kotlinx.coroutines.flow.Flow
@@ -17,7 +17,7 @@ class RouteRepoImpl @Inject constructor(
     private val json: Json,
 ) : RouteRepo {
 
-    override fun getRoute(waypoints: List<RoutePoint>): Flow<Resource<RouteResult>> = flow {
+    override fun getRoute(waypoints: List<GeoPoint>): Flow<Resource<RouteResult>> = flow {
         emit(Resource.Loading())
         try {
             val coordinates = waypoints.joinToString(";") { "${it.longitude},${it.latitude}" }
@@ -30,7 +30,7 @@ class RouteRepoImpl @Inject constructor(
                 emit(
                     Resource.Success(
                         RouteResult(
-                            points = line.map { RoutePoint(latitude = it[1], longitude = it[0]) },
+                            points = line.map { GeoPoint(latitude = it[1], longitude = it[0]) },
                             distanceMeters = route.distance.roundToInt(),
                             durationSeconds = route.duration.roundToInt(),
                         )

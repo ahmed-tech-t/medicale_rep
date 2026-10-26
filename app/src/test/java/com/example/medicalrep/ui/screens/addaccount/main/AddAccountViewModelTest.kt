@@ -16,9 +16,9 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.SyncStatus
-import com.example.medicalrep.domain.models.map.MapCameraTarget
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.repo.FakeAccountRepo
-import com.example.medicalrep.ui.common.location.LocationHelper
+import com.example.medicalrep.domain.repo.FakeLastLocationRepo
 import com.example.medicalrep.ui.common.location.LocationStatus
 import com.appcore.core.ui.utils.document_picker.PickedDocument
 import org.junit.After
@@ -48,14 +48,14 @@ class AddAccountViewModelTest {
             Account("a2", name = "صيدلية الشفاء", city = "قويسنا", district = "البر الشرقى", entityType = "صيدلية", specialty = "صيدلة"),
         ),
     )
-    private val locationHelper = FakeLocationHelper(MapCameraTarget(30.1, 31.2))
+    private val lastLocationRepo = FakeLastLocationRepo(GeoPoint(30.1, 31.2))
     private lateinit var viewModel: AddAccountViewModel
     private val state get() = viewModel.state.value
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
-        viewModel = AddAccountViewModel(FakeSettingsRepo, repo, locationHelper)
+        viewModel = AddAccountViewModel(FakeSettingsRepo, repo, lastLocationRepo)
     }
 
     @After
@@ -85,7 +85,7 @@ class AddAccountViewModelTest {
 
     @Test
     fun `without a location the map keeps its default start`() {
-        viewModel = AddAccountViewModel(FakeSettingsRepo, repo, FakeLocationHelper(null))
+        viewModel = AddAccountViewModel(FakeSettingsRepo, repo, FakeLastLocationRepo())
         assertEquals(AddAccountState().userLocation, state.userLocation)
     }
 
@@ -170,10 +170,6 @@ class AddAccountViewModelTest {
     }
 }
 
-private class FakeLocationHelper(private val location: MapCameraTarget?) : LocationHelper {
-    override fun status() = LocationStatus.Ready
-    override suspend fun getLocation(): MapCameraTarget? = location
-}
 
 private object FakeSettingsRepo : AppSettingsRepo {
     override fun getSettings(): Flow<AppSettings> = emptyFlow()

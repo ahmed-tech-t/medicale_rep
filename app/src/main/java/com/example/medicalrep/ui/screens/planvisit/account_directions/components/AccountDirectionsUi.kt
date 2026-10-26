@@ -12,7 +12,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
-import com.example.medicalrep.domain.models.map.MapCameraTarget
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.ui.components.chrome.AppHeader
 import com.example.medicalrep.ui.screens.planvisit.account_directions.main.AccountDirectionsEvents
 import com.example.medicalrep.ui.screens.planvisit.account_directions.main.AccountDirectionsState
@@ -58,9 +58,9 @@ private fun AccountDirectionsUiPreview() {
     MedicalRepTheme {
         AccountDirectionsUi(
             state = AccountDirectionsState(
-                accountLocation = MapCameraTarget(latitude = 30.1444, longitude = 31.2357),
+                accountLocation = GeoPoint(latitude = 30.1444, longitude = 31.2357),
                 accountName = "عيادة د. محمود عبد الرحمن",
-                userLocation = MapCameraTarget(latitude = 30.0444, longitude = 31.2357),
+                userLocation = GeoPoint(latitude = 30.0444, longitude = 31.2357),
                 userStreet = "Al Geish Street, Quesna",
                 capturedAtMillis = 1_791_000_000_000L,
             ),

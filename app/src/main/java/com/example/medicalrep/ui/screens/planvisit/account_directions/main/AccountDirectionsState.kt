@@ -1,18 +1,17 @@
 package com.example.medicalrep.ui.screens.planvisit.account_directions.main
 
 import androidx.compose.runtime.Immutable
-import com.example.medicalrep.domain.models.RoutePoint
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.models.RouteResult
-import com.example.medicalrep.domain.models.map.MapCameraTarget
 import com.example.medicalrep.ui.screens.planvisit.account_directions.utils.estimateWalkingSeconds
 import com.example.medicalrep.ui.screens.visitdetails.utils.distanceMeters
 import com.example.medicalrep.ui.screens.visitdetails.utils.isAtAccountLocation
 
 @Immutable
 data class AccountDirectionsState(
-    val accountLocation: MapCameraTarget,
+    val accountLocation: GeoPoint,
     val accountName: String,
-    val userLocation: MapCameraTarget? = null,
+    val userLocation: GeoPoint? = null,
     val route: RouteResult? = null,
     val userStreet: String? = null,
     val capturedAtMillis: Long? = null,
@@ -41,13 +40,13 @@ data class AccountDirectionsState(
      * The road route when it is loaded; otherwise (offline, failed, still loading) a straight line from the rep
      * to the account. No line within range of the account or without the rep's position.
      */
-    val lineToAccount: List<RoutePoint>
+    val lineToAccount: List<GeoPoint>
         get() = when {
             userLocation == null || isAtAccount -> emptyList()
             route != null -> route.points
             else -> listOf(
-                RoutePoint(userLocation.latitude, userLocation.longitude),
-                RoutePoint(accountLocation.latitude, accountLocation.longitude),
+                GeoPoint(userLocation.latitude, userLocation.longitude),
+                GeoPoint(accountLocation.latitude, accountLocation.longitude),
             )
         }
 }

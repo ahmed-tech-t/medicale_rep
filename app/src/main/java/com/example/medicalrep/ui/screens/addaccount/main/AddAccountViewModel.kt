@@ -8,9 +8,9 @@ import com.appcore.core.ui.utils.BaseViewModel
 import com.example.medicalrep.R
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.SyncStatus
-import com.example.medicalrep.domain.models.map.MapCameraTarget
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.repo.AccountRepo
-import com.example.medicalrep.ui.common.location.LocationHelper
+import com.example.medicalrep.domain.repo.LastLocationRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +25,7 @@ import javax.inject.Inject
 class AddAccountViewModel @Inject constructor(
     appSettingsRepo: AppSettingsRepo,
     private val accountRepo: AccountRepo,
-    locationHelper: LocationHelper,
+    lastLocationRepo: LastLocationRepo,
 ) : BaseViewModel(appSettingsRepo) {
 
     private val _state = MutableStateFlow(AddAccountState())
@@ -37,7 +37,7 @@ class AddAccountViewModel @Inject constructor(
         collectInto(accountRepo.entityTypes()) { state, types -> state.copy(entityTypeOptions = types) }
         collectInto(accountRepo.specialties()) { state, specialties -> state.copy(specialtyOptions = specialties) }
         viewModelScope.launch {
-            locationHelper.getLocation()?.let { location -> _state.update { it.copy(userLocation = location) } }
+            lastLocationRepo.current()?.let { location -> _state.update { it.copy(userLocation = location) } }
         }
     }
 
@@ -54,7 +54,7 @@ class AddAccountViewModel @Inject constructor(
             is AddAccountEvents.SelectClass -> _state.update { it.copy(classCategory = event.value) }
             is AddAccountEvents.SelectSpecialty -> _state.update { it.copy(specialty = event.value) }
             is AddAccountEvents.PinPlaced -> _state.update {
-                it.copy(pin = MapCameraTarget(event.latitude, event.longitude))
+                it.copy(pin = GeoPoint(event.latitude, event.longitude))
             }
             is AddAccountEvents.SignPhotoCaptured -> _state.update {
                 it.copy(signPhoto = event.document.uri, capturedAtMillis = System.currentTimeMillis())

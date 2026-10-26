@@ -13,7 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
-import com.example.medicalrep.domain.models.map.MapCameraTarget
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.ui.components.primitives.NexoraButton
 import com.example.medicalrep.ui.components.primitives.NexoraCard
 import com.example.medicalrep.ui.components.primitives.NexoraText
@@ -72,7 +72,7 @@ private fun AccountDetailsCardPreview() {
     MedicalRepTheme {
         AccountDetailsCard(
             state = AccountLocationState(
-                accountLocation = MapCameraTarget(latitude = 30.5657, longitude = 31.0043),
+                accountLocation = GeoPoint(latitude = 30.5657, longitude = 31.0043),
                 accountName = "Al-Iman Pharmacy",
                 address = "Shebin El-Kom - Stadium Square",
                 classCategory = "C",

@@ -7,11 +7,10 @@ import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.Resource
 import com.appcore.core.domain.utils.UiEvent
 import com.appcore.core.ui.utils.BaseViewModel
-import com.example.medicalrep.domain.models.RoutePoint
-import com.example.medicalrep.domain.models.map.MapCameraTarget
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.repo.GeocodingRepo
 import com.example.medicalrep.domain.repo.RouteRepo
-import com.example.medicalrep.ui.common.location.LocationHelper
+import com.example.medicalrep.domain.repo.LastLocationRepo
 import com.example.medicalrep.ui.navigation.model.MainGraph
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +24,7 @@ import javax.inject.Inject
 class AccountDirectionsViewModel @Inject constructor(
     appSettingsRepo: AppSettingsRepo,
     savedStateHandle: SavedStateHandle,
-    private val locationHelper: LocationHelper,
+    private val lastLocationRepo: LastLocationRepo,
     private val routeRepo: RouteRepo,
     private val geocodingRepo: GeocodingRepo,
 ) : BaseViewModel(appSettingsRepo) {
@@ -34,7 +33,7 @@ class AccountDirectionsViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(
         AccountDirectionsState(
-            accountLocation = MapCameraTarget(route.accountLatitude, route.accountLongitude),
+            accountLocation = GeoPoint(route.accountLatitude, route.accountLongitude),
             accountName = route.accountName,
         )
     )
@@ -49,7 +48,7 @@ class AccountDirectionsViewModel @Inject constructor(
         if (_state.value.isLocating) return
         _state.update { it.copy(isLocating = true) }
         viewModelScope.launch {
-            val user = locationHelper.getLocation()
+            val user = lastLocationRepo.current()
             if (user == null) {
                 _state.update { it.copy(isLocating = false) }
                 return@launch
@@ -69,16 +68,16 @@ class AccountDirectionsViewModel @Inject constructor(
         }
     }
 
-    private suspend fun loadStreet(user: MapCameraTarget) {
-        geocodingRepo.getAddress(RoutePoint(user.latitude, user.longitude)).collect { result ->
+    private suspend fun loadStreet(user: GeoPoint) {
+        geocodingRepo.getAddress(GeoPoint(user.latitude, user.longitude)).collect { result ->
             if (result is Resource.Success) _state.update { it.copy(userStreet = result.data) }
         }
     }
 
-    private suspend fun loadRoute(user: MapCameraTarget) {
+    private suspend fun loadRoute(user: GeoPoint) {
         val account = _state.value.accountLocation
         routeRepo.getRoute(
-            listOf(RoutePoint(user.latitude, user.longitude), RoutePoint(account.latitude, account.longitude))
+            listOf(GeoPoint(user.latitude, user.longitude), GeoPoint(account.latitude, account.longitude))
         ).collect { result ->
             if (result is Resource.Success) _state.update { it.copy(route = result.data) }
         }
