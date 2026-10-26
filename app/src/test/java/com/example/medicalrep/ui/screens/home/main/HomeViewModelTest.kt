@@ -19,6 +19,9 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import com.example.medicalrep.domain.models.ConnectionState
+import com.example.medicalrep.ui.common.connectivity.ConnectivityObserver
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -40,6 +43,8 @@ import org.junit.Test
  * 6. Given Home, When sync / continue / cancel / more is tapped,
  *    Then each sends exactly one "coming soon" snackbar.
  * 6b. Given Home, When a today's visit is started, Then it opens the visit screen with that visit id.
+ * 8. Given the network changes, Then the connection state starts Offline, follows Online/Offline, and shouldSync
+ *    is true only while Online with visits to upload.
  * 7. Given Home, When the add-visit FAB or the drawer "Add visit" row is tapped,
  *    Then it navigates to the unplanned visit screen (drawer closes).
  */
@@ -49,6 +54,7 @@ class HomeViewModelTest {
     private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var settingsManager: AppSettingsManager
     private lateinit var viewModel: HomeViewModel
+    private val connectivity = MutableStateFlow<ConnectionState>(ConnectionState.Offline)
 
     @Before
     fun setUp() {
@@ -57,13 +63,27 @@ class HomeViewModelTest {
             FakeHomeSettingsRepo,
             CoreConfig(baseUrl = "", isDebug = false, cryptoKeyAlias = "", defaultLanguage = "ar"),
         )
-        viewModel = HomeViewModel(FakeHomeSettingsRepo, settingsManager, LocaleHelper(settingsManager))
+        viewModel = HomeViewModel(FakeHomeSettingsRepo, settingsManager, LocaleHelper(settingsManager), FakeConnectivityObserver(connectivity))
     }
 
     @After
     fun tearDown() = Dispatchers.resetMain()
 
     private val state get() = viewModel.state.value
+
+    @Test
+    fun `connection starts offline and follows the network`() {
+        assertEquals(ConnectionState.Offline, state.connection)
+        assertFalse(state.shouldSync)
+
+        connectivity.value = ConnectionState.Online
+        assertEquals(ConnectionState.Online, state.connection)
+        assertEquals(state.toSyncVisits.isNotEmpty(), state.shouldSync)
+
+        connectivity.value = ConnectionState.Offline
+        assertEquals(ConnectionState.Offline, state.connection)
+        assertFalse(state.shouldSync)
+    }
 
     @Test
     fun `initial state matches the design sections`() {
@@ -237,4 +257,8 @@ private object FakeHomeSettingsRepo : AppSettingsRepo {
     override suspend fun updateCountry(country: String) = Unit
     override suspend fun getShowOnBoarding() = false
     override suspend fun updateShowOnBoarding(showOnBoarding: Boolean) = Unit
+}
+
+private class FakeConnectivityObserver(private val flow: MutableStateFlow<ConnectionState>) : ConnectivityObserver {
+    override val connection: Flow<ConnectionState> = flow
 }

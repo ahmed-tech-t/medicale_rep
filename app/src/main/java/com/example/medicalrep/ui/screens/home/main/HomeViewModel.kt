@@ -8,6 +8,8 @@ import com.appcore.core.domain.utils.UiEvent
 import com.appcore.core.domain.utils.UiText
 import com.appcore.core.ui.utils.BaseViewModel
 import com.example.medicalrep.R
+import com.example.medicalrep.domain.models.ConnectionState
+import com.example.medicalrep.ui.common.connectivity.ConnectivityObserver
 import com.example.medicalrep.ui.navigation.model.MainGraph
 import com.example.medicalrep.ui.preview.HomeSamples
 import com.example.medicalrep.ui.screens.home.components.nav_drawer.NavDrawerItem
@@ -24,10 +26,20 @@ class HomeViewModel @Inject constructor(
     appSettingsRepo: AppSettingsRepo,
     private val appSettingsManager: AppSettingsManager,
     private val localeHelper: LocaleHelper,
+    connectivityObserver: ConnectivityObserver,
 ) : BaseViewModel(appSettingsRepo) {
 
-    private val _state = MutableStateFlow(HomeSamples.homeState(language = appSettingsManager.getLanguageSync()))
+    // Offline until the observer reports the real network state.
+    private val _state = MutableStateFlow(
+        HomeSamples.homeState(language = appSettingsManager.getLanguageSync()).copy(connection = ConnectionState.Offline),
+    )
     val state: StateFlow<HomeState> = _state.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            connectivityObserver.connection.collect { connection -> _state.update { it.copy(connection = connection) } }
+        }
+    }
 
     fun onEvent(event: HomeEvents) {
         when (event) {
