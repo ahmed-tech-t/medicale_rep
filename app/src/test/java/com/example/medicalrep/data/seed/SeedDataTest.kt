@@ -39,6 +39,16 @@ class SeedDataTest {
     }
 
     @Test
+    fun `every city, district and type has an account so the place list is never empty`() {
+        val existing = data.accounts.map { Triple(it.city, it.district, it.entityType) }.toSet()
+        val cities = data.accounts.map { it.city }.toSet()
+        val districts = data.accounts.map { it.district }.toSet()
+        val types = data.accounts.map { it.entityType }.toSet()
+        val missing = cities.flatMap { c -> districts.flatMap { d -> types.map { t -> Triple(c, d, t) } } } - existing
+        assertEquals(emptyList<Triple<String, String, String>>(), missing)
+    }
+
+    @Test
     fun `ids are unique`() {
         assertEquals(data.users.size, data.users.map { it.id }.toSet().size)
         assertEquals(data.accounts.size, data.accounts.map { it.id }.toSet().size)

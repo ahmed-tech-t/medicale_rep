@@ -34,6 +34,6 @@ class DebugSeeder @Inject constructor(
     }
 
     companion object {
-        const val SEED_KEY = "debug_seed_v2"
+        const val SEED_KEY = "debug_seed_v3"
     }
 }

@@ -117,20 +117,29 @@ object SeedDataFactory {
     private val specialties = listOf("باطنة", "أطفال", "عظام", "جلدية", "قلب", "نساء وتوليد", "أسنان", "عيون")
     private val kinds = listOf("عيادة" to "عيادة د.", "صيدلية" to "صيدلية", "مستشفى" to "مستشفى", "مركز طبي" to "مركز")
 
-    /** Accounts 13..50: every type, class, city and district, so lists, search and filters have plenty to show. */
-    private fun generatedAccounts(): List<Account> = (13..50).map { n ->
-        val (type, prefix) = kinds[n % kinds.size]
-        account(
-            id = n,
-            name = "$prefix ${doctorNames[n % doctorNames.size]}",
-            type = type,
-            specialty = if (type == "صيدلية") "صيدلة" else specialties[n % specialties.size],
-            classCategory = listOf("A", "B", "C")[n % 3],
-            city = cities[(n * 3) % cities.size],
-            district = districts[(n * 5) % districts.size],
-            address = "شارع ${n * 7 % 90 + 1}",
-            supervisorId = if (n % 2 == 0) "sup-1" else "sup-2",
-        )
+    /**
+     * Accounts 13..50. The combinations of city, district and type that the first twelve do not cover come first, so
+     * choosing any city, district and type in the visit form finds at least one account.
+     */
+    private fun generatedAccounts(): List<Account> {
+        val covered = baseAccounts().map { Triple(it.city, it.district, it.entityType) }.toSet()
+        val all = cities.flatMap { city -> districts.flatMap { district -> kinds.map { (type, _) -> Triple(city, district, type) } } }
+        val combos = ((all - covered) + all).take(38)
+        return combos.mapIndexed { index, (city, district, type) ->
+            val n = 13 + index
+            val prefix = kinds.first { it.first == type }.second
+            account(
+                id = n,
+                name = "$prefix ${doctorNames[n % doctorNames.size]}",
+                type = type,
+                specialty = if (type == "صيدلية") "صيدلة" else specialties[n % specialties.size],
+                classCategory = listOf("A", "B", "C")[n % 3],
+                city = city,
+                district = district,
+                address = "شارع ${n * 7 % 90 + 1}",
+                supervisorId = if (n % 2 == 0) "sup-1" else "sup-2",
+            )
+        }
     }
 
     private val drugs = listOf(
