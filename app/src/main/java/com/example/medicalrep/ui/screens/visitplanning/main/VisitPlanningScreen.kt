@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.appcore.core.domain.utils.UiEvent
 import com.appcore.core.ui.utils.HandleUiEvents
 import com.example.medicalrep.ui.screens.visitplanning.components.VisitPlanningUi
@@ -24,9 +25,11 @@ fun VisitPlanningScreen(
         navigationUp = navigationUp,
     )
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val visits = viewModel.visits.collectAsLazyPagingItems()
 
     VisitPlanningUi(
         state = state,
+        visits = visits,
         onEvent = viewModel::onEvent,
         modifier = modifier,
     )

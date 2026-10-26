@@ -115,8 +115,11 @@ abstract class VisitDao : BaseDao<VisitEntity> {
 
     /** Requests that are Pending or Rejected, newest first. */
     @Transaction
-    @Query("SELECT * FROM visits WHERE type = 'Planning' AND approvalStatus IN ('Pending', 'Rejected') ORDER BY requestedAtMillis DESC")
-    abstract fun pendingPaged(): PagingSource<Int, VisitWithDetails>
+    @Query("SELECT * FROM visits WHERE type = 'Planning' AND approvalStatus IN ('Pending', 'Rejected') AND (:shift IS NULL OR shift = :shift) AND (:classCategory IS NULL OR accountId IN (SELECT id FROM accounts WHERE classCategory = :classCategory)) ORDER BY requestedAtMillis DESC")
+    abstract fun pendingPaged(shift: Shift?, classCategory: String?): PagingSource<Int, VisitWithDetails>
+
+    @Query("SELECT COUNT(*) FROM visits WHERE type = 'Planning' AND approvalStatus IN ('Pending', 'Rejected') AND (:shift IS NULL OR shift = :shift) AND (:classCategory IS NULL OR accountId IN (SELECT id FROM accounts WHERE classCategory = :classCategory))")
+    abstract fun pendingFilteredCount(shift: Shift?, classCategory: String?): Flow<Int>
 
     @Query("SELECT COUNT(*) FROM visits WHERE type = 'Planning' AND approvalStatus = 'Pending'")
     abstract fun countPending(): Flow<Int>
@@ -146,11 +149,11 @@ abstract class VisitDao : BaseDao<VisitEntity> {
 
     /** Finished visits, newest first. [doubleOnly] keeps only double visits; the other filters are optional. */
     @Transaction
-    @Query("SELECT * FROM visits WHERE completedAtMillis IS NOT NULL AND (:shift IS NULL OR shift = :shift) AND (:doubleOnly = 0 OR visitMode = 'Double') AND (:syncStatus IS NULL OR syncStatus = :syncStatus) ORDER BY completedAtMillis DESC")
-    abstract fun donePaged(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?): PagingSource<Int, VisitWithDetails>
+    @Query("SELECT * FROM visits WHERE completedAtMillis IS NOT NULL AND (:shift IS NULL OR shift = :shift) AND (:doubleOnly = 0 OR visitMode = 'Double') AND (:syncStatus IS NULL OR syncStatus = :syncStatus) AND (:classCategory IS NULL OR accountId IN (SELECT id FROM accounts WHERE classCategory = :classCategory)) ORDER BY completedAtMillis DESC")
+    abstract fun donePaged(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?, classCategory: String?): PagingSource<Int, VisitWithDetails>
 
-    @Query("SELECT COUNT(*) FROM visits WHERE completedAtMillis IS NOT NULL AND (:shift IS NULL OR shift = :shift) AND (:doubleOnly = 0 OR visitMode = 'Double') AND (:syncStatus IS NULL OR syncStatus = :syncStatus)")
-    abstract fun doneCount(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?): Flow<Int>
+    @Query("SELECT COUNT(*) FROM visits WHERE completedAtMillis IS NOT NULL AND (:shift IS NULL OR shift = :shift) AND (:doubleOnly = 0 OR visitMode = 'Double') AND (:syncStatus IS NULL OR syncStatus = :syncStatus) AND (:classCategory IS NULL OR accountId IN (SELECT id FROM accounts WHERE classCategory = :classCategory))")
+    abstract fun doneCount(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?, classCategory: String?): Flow<Int>
 
     /** Only planned visits that are not finished can be started. */
     @Transaction

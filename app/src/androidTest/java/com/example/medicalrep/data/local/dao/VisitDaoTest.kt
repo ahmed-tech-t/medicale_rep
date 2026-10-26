@@ -108,11 +108,11 @@ class VisitDaoTest : DaoTestBase() {
     @Test fun planRequestIsPendingThenApprovedBecomesStartable() = runBlocking {
         dao.save(visit("p", type = VisitType.Planning, approvalStatus = ApprovalStatus.Pending, requestedAtMillis = 5, backendId = "b1"), emptyList())
         assertEquals(1, dao.countPending().first())
-        assertEquals(listOf("p"), dao.pendingPaged().allRows().map { it.visit.id })
+        assertEquals(listOf("p"), dao.pendingPaged(null, null).allRows().map { it.visit.id })
         assertTrue(dao.startablePaged().allRows().isEmpty())
         assertEquals(1, dao.applyDecision("b1", ApprovalStatus.Approved, null, 9))
         assertEquals(0, dao.countPending().first())
-        assertTrue(dao.pendingPaged().allRows().isEmpty())
+        assertTrue(dao.pendingPaged(null, null).allRows().isEmpty())
         val started = dao.startablePaged().allRows().single().visit
         assertEquals(VisitType.Planned, started.type)
         assertEquals(9L, started.decidedAtMillis)
@@ -121,7 +121,7 @@ class VisitDaoTest : DaoTestBase() {
     @Test fun rejectedRequestKeepsReasonUntilDismissed() = runBlocking {
         dao.save(visit("p", type = VisitType.Planning, approvalStatus = ApprovalStatus.Pending, backendId = "b1"), emptyList())
         dao.applyDecision("b1", ApprovalStatus.Rejected, "too far", 9)
-        val row = dao.pendingPaged().allRows().single().visit
+        val row = dao.pendingPaged(null, null).allRows().single().visit
         assertEquals(VisitType.Planning, row.type)
         assertEquals("too far", row.decisionNote)
         assertTrue(dao.startablePaged().allRows().isEmpty())
@@ -154,11 +154,24 @@ class VisitDaoTest : DaoTestBase() {
         assertEquals(listOf("todo-pm"), dao.requiredPaged(Shift.Pm, null).allRows().map { it.visit.id })
         assertEquals(listOf("todo-am"), dao.requiredPaged(null, "A").allRows().map { it.visit.id })
         assertEquals(2, dao.requiredCount(null, null).first())
-        assertEquals(listOf("done-double", "done-planned"), dao.donePaged(null, false, null).allRows().map { it.visit.id })
-        assertEquals(listOf("done-double"), dao.donePaged(null, true, null).allRows().map { it.visit.id })
-        assertEquals(listOf("done-double"), dao.donePaged(null, false, SyncStatus.NotSynced).allRows().map { it.visit.id })
-        assertEquals(1, dao.doneCount(Shift.Am, true, null).first())
+        assertEquals(listOf("done-double", "done-planned"), dao.donePaged(null, false, null, null).allRows().map { it.visit.id })
+        assertEquals(listOf("done-double"), dao.donePaged(null, true, null, null).allRows().map { it.visit.id })
+        assertEquals(listOf("done-double"), dao.donePaged(null, false, SyncStatus.NotSynced, null).allRows().map { it.visit.id })
+        assertEquals(1, dao.doneCount(Shift.Am, true, null, null).first())
         assertEquals(listOf("todo-am", "todo-pm"), dao.startablePaged().allRows().map { it.visit.id }.sorted())
+    }
+
+    @Test fun pendingRequestsAreFilteredByShiftAndClass() = runBlocking {
+        db.accountDao().save(account("a1", "A", classCategory = "A"))
+        db.accountDao().save(account("a2", "B", classCategory = "B"))
+        dao.save(visit("am", accountId = "a1", type = VisitType.Planning, approvalStatus = ApprovalStatus.Pending, requestedAtMillis = 1), emptyList())
+        dao.save(visit("pm", accountId = "a2", type = VisitType.Planning, approvalStatus = ApprovalStatus.Pending, requestedAtMillis = 2, shift = Shift.Pm), emptyList())
+        assertEquals(2, dao.pendingFilteredCount(null, null).first())
+        assertEquals(listOf("pm"), dao.pendingPaged(Shift.Pm, null).allRows().map { it.visit.id })
+        assertEquals(listOf("am"), dao.pendingPaged(null, "A").allRows().map { it.visit.id })
+        assertEquals(0, dao.pendingFilteredCount(Shift.Pm, "A").first())
+        dao.save(visit("done-b", accountId = "a2", completedAtMillis = 9), emptyList())
+        assertEquals(listOf("done-b"), dao.donePaged(null, false, null, "B").allRows().map { it.visit.id })
     }
 
     @Test fun clearEmptiesTable() = runBlocking {

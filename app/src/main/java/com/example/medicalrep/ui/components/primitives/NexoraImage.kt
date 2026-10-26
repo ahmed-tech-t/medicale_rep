@@ -22,7 +22,7 @@ import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 @Composable
 fun NexoraImage(
     painter: Painter,
-    contentDescription: String?,
+    contentDescription: String? =null,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
     alpha: Float = DefaultAlpha,

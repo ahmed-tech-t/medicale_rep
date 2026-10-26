@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">CRM_Nexora</string>
+    <string name="app_name">Rep Track</string>
 
     <!-- Login -->
     <string name="login_logo_initials">MR</string>
-    <string name="login_title">Medical Rep</string>
+    <string name="login_title">Rep Track</string>
     <string name="login_subtitle">Field medical visit management and monitoring system</string>
     <string name="login_company_code">Company code</string>
     <string name="login_username">Username</string>
@@ -295,6 +295,7 @@
     <string name="visit_planning_tab_pending">Pending approval</string>
     <string name="visit_planning_tab_visits">Visits</string>
     <string name="visit_planning_out_of_plan">Visit outside the plan (planning)</string>
+    <string name="visit_planning_requested">Visit requests saved. They wait for approval.</string>
     <string name="visit_planning_schedule_action">Set appointment</string>
     <string name="schedule_sheet_title">Set visit appointment</string>
     <string name="schedule_sheet_subtitle">Choose the date and time that suit the plan</string>

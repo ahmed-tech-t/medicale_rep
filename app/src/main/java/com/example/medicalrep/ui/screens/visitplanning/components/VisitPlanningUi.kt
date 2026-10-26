@@ -11,8 +11,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.itemKey
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
+import com.example.medicalrep.ui.models.VisitUi
+import com.example.medicalrep.ui.preview.pagingItemsOf
 import com.example.medicalrep.ui.components.chrome.AppHeader
 import com.example.medicalrep.ui.components.chrome.NexoraTabs
 import com.example.medicalrep.ui.components.primitives.NexoraButton
@@ -31,6 +35,7 @@ import com.example.medicalrep.ui.ui.theme.Slate50
 @Composable
 fun VisitPlanningUi(
     state: VisitPlanningState,
+    visits: LazyPagingItems<VisitUi>,
     onEvent: (VisitPlanningEvents) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -76,14 +81,16 @@ fun VisitPlanningUi(
                     },
                 )
             }
-            items(items = state.visibleVisits, key = { it.id }) { visit ->
-                when (state.selectedTab) {
-                    VisitPlanningTab.Pending -> PendingVisitCard(visit = visit)
-                    VisitPlanningTab.Visits -> SelectableVisitCard(
-                        visit = visit,
-                        selected = visit.id in state.selectedIds,
-                        onToggle = { onEvent(VisitPlanningEvents.ToggleSelect(visit.id)) },
-                    )
+            items(count = visits.itemCount, key = visits.itemKey { it.id }) { index ->
+                visits[index]?.let { visit ->
+                    when (state.selectedTab) {
+                        VisitPlanningTab.Pending -> PendingVisitCard(visit = visit)
+                        VisitPlanningTab.Visits -> SelectableVisitCard(
+                            visit = visit,
+                            selected = visit.id in state.selectedIds,
+                            onToggle = { onEvent(VisitPlanningEvents.ToggleSelect(visit.id)) },
+                        )
+                    }
                 }
             }
             if (state.selectedTab == VisitPlanningTab.Visits && state.hasSelection) {
@@ -102,16 +109,23 @@ fun VisitPlanningUi(
 @Preview(showBackground = true, locale = "ar", heightDp = 800)
 @Composable
 private fun VisitPlanningUiPendingPreview() {
-    MedicalRepTheme { VisitPlanningUi(state = VisitPlanningFakes.state(), onEvent = {}) }
+    MedicalRepTheme {
+        VisitPlanningUi(
+            state = VisitPlanningFakes.state().copy(selectedTab = VisitPlanningTab.Pending),
+            visits = pagingItemsOf(VisitPlanningFakes.pendingVisits()),
+            onEvent = {},
+        )
+    }
 }
 
 @Preview(showBackground = true, locale = "ar", heightDp = 800)
 @Composable
 private fun VisitPlanningUiVisitsPreview() {
     MedicalRepTheme {
-        val base = VisitPlanningFakes.state()
+        val visits = VisitPlanningFakes.visits()
         VisitPlanningUi(
-            state = base.copy(selectedTab = VisitPlanningTab.Visits, selectedIds = setOf(base.visits.last().id)),
+            state = VisitPlanningFakes.state().copy(selectedIds = setOf(visits.last().id)),
+            visits = pagingItemsOf(visits),
             onEvent = {},
         )
     }

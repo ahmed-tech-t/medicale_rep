@@ -18,11 +18,24 @@ interface VisitRepo {
     fun requiredCount(shift: Shift? = null, classCategory: String? = null): Flow<Int>
 
     /** Finished visits, newest first; [doubleOnly] keeps only double visits. */
-    fun doneVisits(shift: Shift? = null, doubleOnly: Boolean = false, syncStatus: SyncStatus? = null): Flow<PagingData<Visit>>
-    fun doneCount(shift: Shift? = null, doubleOnly: Boolean = false, syncStatus: SyncStatus? = null): Flow<Int>
+    fun doneVisits(
+        shift: Shift? = null,
+        doubleOnly: Boolean = false,
+        syncStatus: SyncStatus? = null,
+        classCategory: String? = null,
+    ): Flow<PagingData<Visit>>
+    fun doneCount(
+        shift: Shift? = null,
+        doubleOnly: Boolean = false,
+        syncStatus: SyncStatus? = null,
+        classCategory: String? = null,
+    ): Flow<Int>
 
     /** Plan requests that are Pending or Rejected. */
-    fun pendingRequests(): Flow<PagingData<Visit>>
+    fun pendingRequests(shift: Shift? = null, classCategory: String? = null): Flow<PagingData<Visit>>
+
+    /** How many requests [pendingRequests] lists for the same filters. */
+    fun pendingRequestCount(shift: Shift? = null, classCategory: String? = null): Flow<Int>
     fun pendingCount(): Flow<Int>
 
     /** Only planned visits can be started. */

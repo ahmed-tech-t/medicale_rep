@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">CRM_Nexora</string>
+    <string name="app_name">Rep Track</string>
 
     <!-- Login -->
     <string name="login_logo_initials">MR</string>
-    <string name="login_title">Medical Rep</string>
+    <string name="login_title">Rep Track</string>
     <string name="login_subtitle">نظام إدارة ومراقبة الزيارات الطبية الميدانية</string>
     <string name="login_company_code">كود الشركة</string>
     <string name="login_username">اسم المستخدم</string>
@@ -294,6 +294,7 @@
     <string name="visit_planning_tab_pending">بانتظار الاعتماد</string>
     <string name="visit_planning_tab_visits">الزيارات</string>
     <string name="visit_planning_out_of_plan">زيارة خارج الخطة (planning)</string>
+    <string name="visit_planning_requested">تم حفظ طلبات الزيارة وهي بانتظار الموافقة.</string>
     <string name="visit_planning_schedule_action">تحديد موعد</string>
     <string name="schedule_sheet_title">تحديد موعد الزيارة</string>
     <string name="schedule_sheet_subtitle">اختر التاريخ والوقت المناسب لتطبيق الخطة</string>

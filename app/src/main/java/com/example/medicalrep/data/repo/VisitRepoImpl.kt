@@ -31,12 +31,16 @@ class VisitRepoImpl @Inject constructor(
 
     override fun requiredCount(shift: Shift?, classCategory: String?) = dao.requiredCount(shift, classCategory)
 
-    override fun doneVisits(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?) =
-        pagedFlow({ dao.donePaged(shift, doubleOnly, syncStatus) }) { it.toDomain() }
+    override fun doneVisits(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?, classCategory: String?) =
+        pagedFlow({ dao.donePaged(shift, doubleOnly, syncStatus, classCategory) }) { it.toDomain() }
 
-    override fun doneCount(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?) = dao.doneCount(shift, doubleOnly, syncStatus)
+    override fun doneCount(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?, classCategory: String?) =
+        dao.doneCount(shift, doubleOnly, syncStatus, classCategory)
 
-    override fun pendingRequests() = pagedFlow({ dao.pendingPaged() }) { it.toDomain() }
+    override fun pendingRequests(shift: Shift?, classCategory: String?) =
+        pagedFlow({ dao.pendingPaged(shift, classCategory) }) { it.toDomain() }
+
+    override fun pendingRequestCount(shift: Shift?, classCategory: String?) = dao.pendingFilteredCount(shift, classCategory)
 
     override fun pendingCount(): Flow<Int> = dao.countPending()
 

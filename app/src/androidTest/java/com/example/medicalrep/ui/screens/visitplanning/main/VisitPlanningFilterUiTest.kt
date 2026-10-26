@@ -8,6 +8,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.example.medicalrep.R
 import com.example.medicalrep.ui.models.VisitFilter
+import com.example.medicalrep.ui.preview.pagingItemsOf
 import com.example.medicalrep.ui.screens.visitplanning.components.VisitPlanningUi
 import com.example.medicalrep.ui.screens.visitplanning.utils.VisitPlanningFakes
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
@@ -26,7 +27,11 @@ class VisitPlanningFilterUiTest {
     private fun text(id: Int) = composeRule.activity.getString(id)
 
     private fun setUi(state: VisitPlanningState) {
-        composeRule.setContent { MedicalRepTheme { VisitPlanningUi(state = state, onEvent = { events += it }) } }
+        composeRule.setContent {
+            MedicalRepTheme {
+                VisitPlanningUi(state = state, visits = pagingItemsOf(VisitPlanningFakes.visits()), onEvent = { events += it })
+            }
+        }
     }
 
     @Test

@@ -38,8 +38,7 @@ object VisitPlanningFakes {
     }
 
     fun state(): VisitPlanningState = VisitPlanningState(
-        pendingVisits = pendingVisits(),
-        visits = visits(),
+        resultCount = visits().size,
         scheduleDateMillis = 1_792_000_000_000L,
     )
 }

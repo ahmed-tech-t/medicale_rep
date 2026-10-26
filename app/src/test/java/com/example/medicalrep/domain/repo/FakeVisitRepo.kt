@@ -21,6 +21,12 @@ class FakeVisitRepo(initial: List<Visit> = emptyList()) : VisitRepo {
     /** The (shift, doubleOnly, syncStatus) of every `doneVisits` call, in order. */
     val doneRequests = mutableListOf<Triple<Shift?, Boolean, SyncStatus?>>()
 
+    /** The class of every `doneVisits` call, in order. */
+    val doneClassRequests = mutableListOf<String?>()
+
+    /** The (shift, class) of every `pendingRequests` call, in order. */
+    val pendingRequestsAsked = mutableListOf<Pair<Shift?, String?>>()
+
     private fun required(shift: Shift?, classCategory: String?) = current.map { list ->
         list.filter {
             it.type == VisitType.Planned && it.completedAtMillis == null &&
@@ -28,10 +34,18 @@ class FakeVisitRepo(initial: List<Visit> = emptyList()) : VisitRepo {
         }
     }
 
-    private fun done(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?) = current.map { list ->
+    private fun done(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?, classCategory: String?) = current.map { list ->
         list.filter {
             it.completedAtMillis != null && (shift == null || it.shift == shift) &&
-                (!doubleOnly || it.visitMode == VisitMode.Double) && (syncStatus == null || it.syncStatus == syncStatus)
+                (!doubleOnly || it.visitMode == VisitMode.Double) && (syncStatus == null || it.syncStatus == syncStatus) &&
+                (classCategory == null || it.classCategory == classCategory)
+        }
+    }
+
+    private fun pending(shift: Shift?, classCategory: String?) = current.map { list ->
+        list.filter {
+            it.type == VisitType.Planning && it.approvalStatus != ApprovalStatus.Approved &&
+                (shift == null || it.shift == shift) && (classCategory == null || it.classCategory == classCategory)
         }
     }
 
@@ -42,21 +56,26 @@ class FakeVisitRepo(initial: List<Visit> = emptyList()) : VisitRepo {
 
     override fun requiredCount(shift: Shift?, classCategory: String?): Flow<Int> = required(shift, classCategory).map { it.size }
 
-    override fun doneVisits(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?): Flow<PagingData<Visit>> {
+    override fun doneVisits(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?, classCategory: String?): Flow<PagingData<Visit>> {
         doneRequests += Triple(shift, doubleOnly, syncStatus)
-        return done(shift, doubleOnly, syncStatus).map { PagingData.from(it) }
+        doneClassRequests += classCategory
+        return done(shift, doubleOnly, syncStatus, classCategory).map { PagingData.from(it) }
     }
 
-    override fun doneCount(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?): Flow<Int> =
-        done(shift, doubleOnly, syncStatus).map { it.size }
+    override fun doneCount(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?, classCategory: String?): Flow<Int> =
+        done(shift, doubleOnly, syncStatus, classCategory).map { it.size }
 
     override fun visits(query: String): Flow<PagingData<Visit>> = current.map { PagingData.from(it) }
 
     override fun visitsFiltered(type: VisitType?, syncStatus: SyncStatus?, repId: String?, fromMillis: Long, toMillis: Long): Flow<PagingData<Visit>> =
         current.map { PagingData.from(it) }
 
-    override fun pendingRequests(): Flow<PagingData<Visit>> =
-        current.map { list -> PagingData.from(list.filter { it.type == VisitType.Planning && it.approvalStatus != ApprovalStatus.Approved }) }
+    override fun pendingRequests(shift: Shift?, classCategory: String?): Flow<PagingData<Visit>> {
+        pendingRequestsAsked += shift to classCategory
+        return pending(shift, classCategory).map { PagingData.from(it) }
+    }
+
+    override fun pendingRequestCount(shift: Shift?, classCategory: String?): Flow<Int> = pending(shift, classCategory).map { it.size }
 
     override fun pendingCount(): Flow<Int> = current.map { list -> list.count { it.type == VisitType.Planning && it.approvalStatus == ApprovalStatus.Pending } }
 
