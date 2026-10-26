@@ -52,11 +52,15 @@ abstract class AccountDao : BaseDao<AccountEntity> {
     @Query("UPDATE visits SET searchText = $VISIT_SEARCH_TEXT_SQL WHERE accountId = :accountId")
     abstract suspend fun refreshVisitSearchText(accountId: String)
 
-    /** Saves the account and refreshes the search text of its visits. */
+    @Query("UPDATE orders SET searchText = $ORDER_SEARCH_TEXT_SQL WHERE accountId = :accountId")
+    abstract suspend fun refreshOrderSearchText(accountId: String)
+
+    /** Saves the account and refreshes the search text of its visits and orders. */
     @Transaction
     open suspend fun save(account: AccountEntity) {
         upsert(account)
         refreshVisitSearchText(account.id)
+        refreshOrderSearchText(account.id)
     }
 
     /** A download never overwrites an account that has changes waiting to be uploaded. */

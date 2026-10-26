@@ -39,10 +39,14 @@ abstract class UserDao : BaseDao<UserEntity> {
     @Query("UPDATE visits SET searchText = $VISIT_SEARCH_TEXT_SQL WHERE supervisorId = :userId")
     abstract suspend fun refreshVisitSearchText(userId: String)
 
-    /** Saves the user and refreshes the search text of the visits he supervises. */
+    @Query("UPDATE orders SET searchText = $ORDER_SEARCH_TEXT_SQL WHERE repId = :userId")
+    abstract suspend fun refreshOrderSearchText(userId: String)
+
+    /** Saves the user and refreshes the search text of the visits he supervises and the orders he took. */
     @Transaction
     open suspend fun save(user: UserEntity) {
         upsert(user)
         refreshVisitSearchText(user.id)
+        refreshOrderSearchText(user.id)
     }
 }

@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.example.medicalrep.BuildConfig
 import com.example.medicalrep.data.local.dao.AccountDao
 import com.example.medicalrep.data.local.dao.CustodyDao
+import com.example.medicalrep.data.local.dao.OrderDao
 import com.example.medicalrep.data.local.dao.ProductDao
 import com.example.medicalrep.data.local.dao.SyncInfoDao
 import com.example.medicalrep.data.local.dao.TrackPointDao
@@ -59,6 +60,7 @@ object DatabaseModule {
     @Provides fun provideProductDao(db: AppDatabase): ProductDao = db.productDao()
     @Provides fun provideCustodyDao(db: AppDatabase): CustodyDao = db.custodyDao()
     @Provides fun provideVisitDao(db: AppDatabase): VisitDao = db.visitDao()
+    @Provides fun provideOrderDao(db: AppDatabase): OrderDao = db.orderDao()
     @Provides fun provideTrackPointDao(db: AppDatabase): TrackPointDao = db.trackPointDao()
     @Provides fun provideSyncInfoDao(db: AppDatabase): SyncInfoDao = db.syncInfoDao()
 }
