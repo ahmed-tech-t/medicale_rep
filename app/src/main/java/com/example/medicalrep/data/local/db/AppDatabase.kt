@@ -38,7 +38,7 @@ import com.example.medicalrep.data.local.entity.VisitEntity
         TrackPointEntity::class,
         SyncInfoEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)

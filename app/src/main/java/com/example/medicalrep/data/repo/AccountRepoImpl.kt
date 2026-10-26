@@ -5,12 +5,21 @@ import com.example.medicalrep.data.local.mapper.toDomain
 import com.example.medicalrep.data.local.mapper.toEntity
 import com.example.medicalrep.data.local.search.normalizeSearch
 import com.example.medicalrep.domain.models.Account
+import com.example.medicalrep.domain.models.AccountType
 import com.example.medicalrep.domain.repo.AccountRepo
 import javax.inject.Inject
 
 class AccountRepoImpl @Inject constructor(private val dao: AccountDao) : AccountRepo {
 
-    override fun accounts(query: String) = pagedFlow({ dao.search(normalizeSearch(query)) }) { it.toDomain() }
+    override fun accounts(query: String, type: AccountType?) = pagedFlow(
+        source = {
+            val text = normalizeSearch(query)
+            if (type == null) dao.search(text) else dao.searchByType(type, text)
+        },
+        toDomain = { it.toDomain() },
+    )
+
+    override fun accountCount(query: String, type: AccountType?) = dao.count(type, normalizeSearch(query))
 
     override suspend fun get(id: String): Account? = dao.getById(id)?.toDomain()
 

@@ -8,12 +8,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
+import com.example.medicalrep.ui.models.AccountUi
 import com.example.medicalrep.ui.components.chrome.AppHeader
 import com.example.medicalrep.ui.components.widgets.FilterMenu
 import com.example.medicalrep.ui.components.widgets.accountTypeFilterOptions
@@ -24,15 +28,16 @@ import com.example.medicalrep.ui.screens.accounts.main.AccountsState
 import com.example.medicalrep.ui.screens.accounts.utils.AccountsFakes
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 import com.example.medicalrep.ui.ui.theme.Slate50
+import kotlinx.coroutines.flow.flowOf
 
 /** Accounts list with a results row; its filter icon opens the account type popup. */
 @Composable
 fun AccountsUi(
     state: AccountsState,
+    accounts: LazyPagingItems<AccountUi>,
     onEvent: (AccountsEvents) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val visibleAccounts = remember(state.accounts, state.selectedType) { state.visibleAccounts }
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -46,7 +51,7 @@ fun AccountsUi(
         ) {
             item(key = "results") {
                 ResultsFilterRow(
-                    count = visibleAccounts.size,
+                    count = state.resultCount,
                     onFilterClick = { onEvent(AccountsEvents.OpenFilter) },
                     isFiltered = state.isFiltered,
                     filterMenu = {
@@ -60,8 +65,8 @@ fun AccountsUi(
                     },
                 )
             }
-            items(items = visibleAccounts, key = { it.id }) { account ->
-                AccountCard(account = account)
+            items(count = accounts.itemCount, key = accounts.itemKey { it.id }) { index ->
+                accounts[index]?.let { AccountCard(account = it) }
             }
         }
     }
@@ -70,11 +75,23 @@ fun AccountsUi(
 @Preview(showBackground = true, locale = "ar", heightDp = 760)
 @Composable
 private fun AccountsUiArabicPreview() {
-    MedicalRepTheme { AccountsUi(state = AccountsFakes.state(), onEvent = {}) }
+    MedicalRepTheme {
+        AccountsUi(state = AccountsFakes.state(), accounts = previewAccounts(), onEvent = {})
+    }
 }
 
 @Preview(showBackground = true, locale = "ar", heightDp = 760)
 @Composable
 private fun AccountsUiFilterOpenPreview() {
-    MedicalRepTheme { AccountsUi(state = AccountsFakes.state().copy(overlay = AccountsOverlay.TypeFilter), onEvent = {}) }
+    MedicalRepTheme {
+        AccountsUi(
+            state = AccountsFakes.state().copy(overlay = AccountsOverlay.TypeFilter),
+            accounts = previewAccounts(),
+            onEvent = {},
+        )
+    }
 }
+
+@Composable
+private fun previewAccounts(): LazyPagingItems<AccountUi> =
+    flowOf(PagingData.from(AccountsFakes.accounts())).collectAsLazyPagingItems()

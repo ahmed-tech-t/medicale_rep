@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import com.example.medicalrep.data.local.entity.AccountEntity
+import com.example.medicalrep.domain.models.AccountType
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -21,6 +22,13 @@ abstract class AccountDao : BaseDao<AccountEntity> {
 
     @Query("SELECT * FROM accounts WHERE searchText LIKE '%' || :query || '%' ORDER BY name")
     abstract fun search(query: String): PagingSource<Int, AccountEntity>
+
+    @Query("SELECT * FROM accounts WHERE accountType = :type AND searchText LIKE '%' || :query || '%' ORDER BY name")
+    abstract fun searchByType(type: AccountType, query: String): PagingSource<Int, AccountEntity>
+
+    /** [type] null counts every type. */
+    @Query("SELECT COUNT(*) FROM accounts WHERE (:type IS NULL OR accountType = :type) AND searchText LIKE '%' || :query || '%'")
+    abstract fun count(type: AccountType?, query: String): Flow<Int>
 
     @Query("DELETE FROM accounts WHERE id = :id")
     abstract suspend fun deleteById(id: String): Int

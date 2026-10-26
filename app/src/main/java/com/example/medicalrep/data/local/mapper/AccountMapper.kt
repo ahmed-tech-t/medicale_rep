@@ -3,6 +3,7 @@ package com.example.medicalrep.data.local.mapper
 import com.example.medicalrep.data.local.entity.AccountEntity
 import com.example.medicalrep.data.local.search.searchTextOf
 import com.example.medicalrep.domain.models.Account
+import com.example.medicalrep.domain.models.AccountType
 
 fun AccountEntity.toDomain() = Account(
     id = id,
@@ -38,5 +39,6 @@ fun Account.toEntity() = AccountEntity(
     syncStatus = syncStatus,
     signPhoto = signPhoto,
     createdAt = createdAt,
+    accountType = AccountType.fromEntityType(entityType),
     searchText = searchTextOf(name, entityType, classCategory, specialty, city, district, address),
 )

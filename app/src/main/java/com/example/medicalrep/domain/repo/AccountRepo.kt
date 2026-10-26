@@ -2,10 +2,15 @@ package com.example.medicalrep.domain.repo
 
 import androidx.paging.PagingData
 import com.example.medicalrep.domain.models.Account
+import com.example.medicalrep.domain.models.AccountType
 import kotlinx.coroutines.flow.Flow
 
 interface AccountRepo {
-    fun accounts(query: String = ""): Flow<PagingData<Account>>
+    /** [type] null means every type; the filter runs in the database. */
+    fun accounts(query: String = "", type: AccountType? = null): Flow<PagingData<Account>>
+
+    /** How many accounts [accounts] would list for the same [query] and [type]. */
+    fun accountCount(query: String = "", type: AccountType? = null): Flow<Int>
     suspend fun get(id: String): Account?
     suspend fun save(account: Account)
     suspend fun delete(id: String)

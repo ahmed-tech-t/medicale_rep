@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.example.medicalrep.domain.models.AccountType
 import com.example.medicalrep.domain.models.SyncStatus
 
 @Entity(
@@ -16,7 +17,7 @@ import com.example.medicalrep.domain.models.SyncStatus
             onDelete = ForeignKey.SET_NULL,
         ),
     ],
-    indices = [Index("supervisorId"), Index("backendId"), Index("syncStatus")],
+    indices = [Index("supervisorId"), Index("backendId"), Index("syncStatus"), Index("accountType")],
 )
 data class AccountEntity(
     @PrimaryKey val id: String,
@@ -34,5 +35,7 @@ data class AccountEntity(
     val syncStatus: SyncStatus,
     val signPhoto: String?,
     val createdAt: Long,
+    /** Read from [entityType] when the account is saved, so the list can be filtered by type in the database. */
+    val accountType: AccountType? = null,
     val searchText: String = "",
 )

@@ -38,5 +38,5 @@ object AccountsFakes {
         account("a10", "Nile Medical Center", AccountType.MedicalCenter, "Multi-specialty", "C", "Station St."),
     )
 
-    fun state(): AccountsState = AccountsState(accounts = accounts())
+    fun state(): AccountsState = AccountsState(resultCount = accounts().size)
 }

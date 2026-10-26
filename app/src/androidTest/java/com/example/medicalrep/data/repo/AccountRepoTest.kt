@@ -30,6 +30,17 @@ class AccountRepoTest : RepoTestBase() {
         assertTrue(repo.accounts("zzz").asSnapshot().isEmpty())
     }
 
+    @Test fun typeFilterAndCountRunInTheDatabase() = runTest {
+        repo.save(Account("1", name = "عيادة أ", entityType = "عيادة"))
+        repo.save(Account("2", name = "عيادة ب", entityType = "عيادة"))
+        repo.save(Account("3", name = "مستشفى", entityType = "مستشفى"))
+        assertEquals(setOf("1", "2"), repo.accounts(type = AccountType.Clinic).asSnapshot().map { it.id }.toSet())
+        assertEquals(listOf("2"), repo.accounts("ب", AccountType.Clinic).asSnapshot().map { it.id })
+        assertEquals(3, repo.accountCount().first())
+        assertEquals(2, repo.accountCount(type = AccountType.Clinic).first())
+        assertEquals(0, repo.accountCount(type = AccountType.Pharmacy).first())
+    }
+
     @Test fun distinctValues() = runTest {
         repo.save(Account("1", name = "a", city = "Cairo", specialty = "Cardio"))
         repo.save(Account("2", name = "b", city = "Cairo"))

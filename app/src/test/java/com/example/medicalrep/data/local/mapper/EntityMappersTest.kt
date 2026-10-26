@@ -48,6 +48,12 @@ class EntityMappersTest {
     }
 
     @Test
+    fun `account entity stores its type read from the entity type text`() {
+        assertEquals(com.example.medicalrep.domain.models.AccountType.Pharmacy, Account("a", name = "x", entityType = "صيدلية").toEntity().accountType)
+        assertEquals(null, Account("a", name = "x", entityType = "").toEntity().accountType)
+    }
+
+    @Test
     fun `product round trip and id is required`() {
         val product = Product(id = "p1", name = "Panadol", description = "Pain", price = 50, discountPercent = 10)
         val entity = product.toEntity()

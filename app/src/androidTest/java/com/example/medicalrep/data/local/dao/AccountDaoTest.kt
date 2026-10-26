@@ -7,6 +7,8 @@ import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import com.example.medicalrep.domain.models.Account
+import com.example.medicalrep.data.local.mapper.toEntity
+import com.example.medicalrep.domain.models.AccountType
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.data.local.search.normalizeSearch
 
@@ -42,6 +44,16 @@ class AccountDaoTest : DaoTestBase() {
         assertEquals(listOf("1"), dao.search("cai").allRows().map { it.id })
         assertEquals(2, dao.search("").allRows().size)
         assertTrue(dao.search("nothing").allRows().isEmpty())
+    }
+
+    @Test fun searchByTypeAndCount() = runBlocking {
+        dao.insertAll(listOf(
+            Account("1", name = "عيادة أ", entityType = "عيادة").toEntity(),
+            Account("2", name = "مستشفى", entityType = "مستشفى").toEntity(),
+        ))
+        assertEquals(listOf("1"), dao.searchByType(AccountType.Clinic, "").allRows().map { it.id })
+        assertEquals(2, dao.count(null, "").first())
+        assertEquals(1, dao.count(AccountType.Hospital, "").first())
     }
 
     @Test fun distinctValuesSkipBlank() = runBlocking {
