@@ -13,6 +13,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -235,6 +244,30 @@ private fun <T : SearchableItem> SearchFieldBodyComponent(
     }
 }
 
+private val PopupSpace = 360.dp
+
+/**
+ * While the keyboard is up and the popup below this anchor is open, scrolls the parent so the anchor
+ * and the popup space under it are on screen. The parent must have room to scroll (see PlanVisitUi).
+ */
+@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
+@Composable
+fun Modifier.revealPopupAboveKeyboard(popupOpen: Boolean): Modifier {
+    val requester = remember { BringIntoViewRequester() }
+    var anchorSize by remember { mutableStateOf(IntSize.Zero) }
+    val popupSpacePx = with(LocalDensity.current) { PopupSpace.toPx() }
+    val keyboardVisible = WindowInsets.isImeVisible
+
+    LaunchedEffect(popupOpen, keyboardVisible, anchorSize) {
+        if (popupOpen && keyboardVisible && anchorSize != IntSize.Zero) {
+            requester.bringIntoView(Rect(0f, 0f, anchorSize.width.toFloat(), anchorSize.height + popupSpacePx))
+        }
+    }
+    return this
+        .onSizeChanged { anchorSize = it }
+        .bringIntoViewRequester(requester)
+}
+
 @Composable
 fun <T : SearchableItem> SearchFieldComponent(
     value: String,
@@ -250,7 +283,7 @@ fun <T : SearchableItem> SearchFieldComponent(
     var triggerSize by remember { mutableStateOf(IntSize.Zero) }
     val density = LocalDensity.current
 
-    Box(modifier = modifier) {
+    Box(modifier = modifier.revealPopupAboveKeyboard(showPopup && enabled)) {
         // Trigger field (matches the top field in design)
         Row(
             modifier = Modifier

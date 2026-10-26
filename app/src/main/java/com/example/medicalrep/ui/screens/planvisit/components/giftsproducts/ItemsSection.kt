@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
 import com.example.medicalrep.ui.components.widgets.SearchFieldPopup
+import com.example.medicalrep.ui.components.widgets.revealPopupAboveKeyboard
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -64,6 +65,7 @@ internal fun ItemsSection(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .revealPopupAboveKeyboard(showPopup)
                 .onGloballyPositioned { headerSize = it.size },
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,

@@ -6,6 +6,11 @@ import com.example.medicalrep.ui.screens.planvisit.components.result.ResultStepC
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,6 +36,8 @@ import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 import com.example.medicalrep.ui.ui.theme.Slate200
 import com.example.medicalrep.ui.ui.theme.Slate25
 
+private val KeyboardScrollRoom = 360.dp
+
 object PlanVisitTestTags {
     const val Content = "unplanned_content"
     const val Next = "unplanned_next"
@@ -38,16 +45,19 @@ object PlanVisitTestTags {
     const val EndVisit = "unplanned_end_visit"
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PlanVisitUi(
     state: PlanVisitState,
     onEvent: (PlanVisitEvents) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val keyboardVisible = WindowInsets.isImeVisible
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Slate25),
+            .background(Slate25)
+            .imePadding(),
     ) {
         AppHeader(
             title = stringResource(
@@ -68,6 +78,8 @@ fun PlanVisitUi(
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = spacing.spaceMedium, vertical = spacing.spaceMedium)
+                // Extra scroll room so a popup near the bottom can be scrolled up above the keyboard.
+                .padding(bottom = if (keyboardVisible) KeyboardScrollRoom else 0.dp)
                 .testTag(PlanVisitTestTags.Content)
             when (state.currentStep) {
                 PlanVisitStep.Entity -> EntityStepContent(state, onEvent, contentModifier)
