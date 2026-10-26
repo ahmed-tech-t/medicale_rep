@@ -1,6 +1,7 @@
 package com.example.medicalrep.ui.components.widgets
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,6 +25,7 @@ fun ResultsFilterRow(
     count: Int,
     onFilterClick: () -> Unit,
     modifier: Modifier = Modifier,
+    filterMenu: @Composable () -> Unit = {},
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -35,12 +37,16 @@ fun ResultsFilterRow(
             style = MaterialTheme.typography.labelMedium,
             color = Ink,
         )
-        NexoraIconButton(
-            painter = painterResource(R.drawable.ic_filter_list),
-            contentDescription = stringResource(R.string.cd_filter),
-            onClick = onFilterClick,
-            tint = Ink,
-        )
+        // The menu sits in the same Box so it opens right under the icon.
+        Box {
+            NexoraIconButton(
+                painter = painterResource(R.drawable.ic_filter_list),
+                contentDescription = stringResource(R.string.cd_filter),
+                onClick = onFilterClick,
+                tint = Ink,
+            )
+            filterMenu()
+        }
     }
 }
 

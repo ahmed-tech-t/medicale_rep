@@ -74,6 +74,13 @@ class HomeUiTest {
     }
 
     @Test
+    fun openDrawer_accountsRowSendsItem() {
+        setHome(HomeSamples.homeState(language = "en").copy(isDrawerOpen = true))
+        composeRule.onNodeWithText(text(R.string.accounts)).assertIsDisplayed().performClick()
+        assertTrue(events.contains(HomeEvents.OnDrawerItem(NavDrawerItem.Accounts)))
+    }
+
+    @Test
     fun emptyToday_showsNoVisitCards() {
         setHome(HomeSamples.homeState(language = "en").copy(todayVisits = emptyList(), activeVisit = null))
         composeRule.onAllNodesWithTag(HomeTestTags.TodayVisit).assertCountEquals(0)

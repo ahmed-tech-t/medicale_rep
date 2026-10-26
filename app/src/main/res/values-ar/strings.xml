@@ -217,7 +217,7 @@
     <string name="unplanned_attach_hint">برجاء ارفاق صوره من امام باب العياده</string>
     <string name="unplanned_summary_gifts_format">هدايا: %1$d قطعة</string>
     <string name="unplanned_summary_products_format">منتجات: %1$d علب</string>
-    <string name="unplanned_class_format">Class %1$s</string>
+    <string name="unplanned_class_format">تصنيف %1$s</string>
     <string name="unplanned_datetime_format">%1$s - %2$s</string>
     <string name="unplanned_add_format">+ %1$s</string>
     <string name="unplanned_no_items">لم تتم إضافة أصناف بعد</string>
@@ -342,4 +342,11 @@
     <string name="rep_tracking_gifts_format">%1$d هدايا دعائية</string>
     <string name="visit_status_completed">مكتملة</string>
     <string name="no_result">لا توجد نتائج</string>
+    <string name="accounts">الأطباء والحسابات</string>
+    <string name="accounts_filter_all">الكل</string>
+    <string name="accounts_filter_clinics">العيادات</string>
+    <string name="accounts_filter_hospitals">المستشفيات</string>
+    <string name="accounts_filter_pharmacies">الصيدليات</string>
+    <string name="accounts_filter_medical_centers">المراكز الطبية</string>
+    <string name="account_type_medical_center">مركز طبي</string>
 </resources>

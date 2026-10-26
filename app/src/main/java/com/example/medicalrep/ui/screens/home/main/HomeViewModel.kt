@@ -39,6 +39,7 @@ class HomeViewModel @Inject constructor(
                     NavDrawerItem.Language -> switchLanguage()
                     NavDrawerItem.AddVisit -> openPlanVisit()
                     NavDrawerItem.Products -> sendEvent(UiEvent.Navigate(MainGraph.Products))
+                    NavDrawerItem.Accounts -> sendEvent(UiEvent.Navigate(MainGraph.Accounts))
                     NavDrawerItem.PlanVisit -> sendEvent(UiEvent.Navigate(MainGraph.VisitPlanning))
                     NavDrawerItem.TrackReps -> sendEvent(UiEvent.Navigate(MainGraph.RepTracking))
                     NavDrawerItem.MyVisits -> sendEvent(UiEvent.Navigate(MainGraph.VisitLog))

@@ -343,4 +343,11 @@
     <string name="rep_tracking_gifts_format">%1$d promotional gifts</string>
     <string name="visit_status_completed">Completed</string>
     <string name="no_result">No results found</string>
+    <string name="accounts">Doctors &amp; Accounts</string>
+    <string name="accounts_filter_all">All</string>
+    <string name="accounts_filter_clinics">Clinics</string>
+    <string name="accounts_filter_hospitals">Hospitals</string>
+    <string name="accounts_filter_pharmacies">Pharmacies</string>
+    <string name="accounts_filter_medical_centers">Medical centers</string>
+    <string name="account_type_medical_center">Medical center</string>
 </resources>
