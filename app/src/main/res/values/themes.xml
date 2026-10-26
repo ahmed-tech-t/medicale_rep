@@ -5,7 +5,7 @@
 
     <style name="Theme.MedicalRep.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/brand</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_app_logo</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_app_splash_icon</item>
         <item name="postSplashScreenTheme">@style/Theme.MedicalRep</item>
     </style>
 </resources>

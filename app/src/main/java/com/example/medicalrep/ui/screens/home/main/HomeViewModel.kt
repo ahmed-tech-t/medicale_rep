@@ -78,7 +78,9 @@ class HomeViewModel @Inject constructor(
             }
             HomeEvents.OnOverlayDismiss -> _state.update { it.copy(overlay = HomeOverlay.None) }
             HomeEvents.OnSyncClick,
-            HomeEvents.OnTodayMoreClick -> showComingSoon()
+            HomeEvents.OnTodayMoreClick ->{
+                sendEvent(UiEvent.Navigate(MainGraph.VisitLog))
+            }
         }
     }
 

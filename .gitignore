@@ -17,6 +17,7 @@ build/
 .kotlin
 .agents
 .gemini
+.claude
 /captures
 .externalNativeBuild
 .cxx
