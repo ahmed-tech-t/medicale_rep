@@ -49,6 +49,12 @@ class CustodyDaoTest : DaoTestBase() {
         assertEquals(5, row.remaining)
     }
 
+    @Test fun searchByKindFiltersBothKindAndText() = runBlocking {
+        dao.insertAll(listOf(custody("1", "Pen", ProductType.Gift), custody("2", "Pen", ProductType.Product), custody("3", "Cap", ProductType.Gift)))
+        assertEquals(listOf("1"), dao.searchByKind(ProductType.Gift, "pen").allRows().map { it.custody.id })
+        assertTrue(dao.searchByKind(ProductType.Product, "cap").allRows().isEmpty())
+    }
+
     @Test fun noVisitsMeansNoPending() = runBlocking {
         dao.insert(custody("c1", received = 10, dispatched = 2))
         assertEquals(8, dao.getWithPending("c1")!!.toDomain().remaining)

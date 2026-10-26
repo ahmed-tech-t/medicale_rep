@@ -1,0 +1,102 @@
+package com.example.medicalrep.ui.mapper
+
+import com.example.medicalrep.domain.models.Account
+import com.example.medicalrep.domain.models.AccountType
+import com.example.medicalrep.domain.models.Custody
+import com.example.medicalrep.domain.models.Order
+import com.example.medicalrep.domain.models.OrderItem
+import com.example.medicalrep.domain.models.ProductType
+import com.example.medicalrep.domain.models.SyncInfo
+import com.example.medicalrep.domain.models.SyncStatus
+import com.example.medicalrep.domain.models.TrackPoint
+import com.example.medicalrep.ui.utils.formatClockTime
+import com.example.medicalrep.ui.utils.formatDate
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+/**
+ * Account: every field maps; Synced means isSynced.
+ * Custody: gift flag from kind; remaining includes pending.
+ * Order: account name (empty when the account was deleted), date/time from millis (empty when 0), totals, lines.
+ * TrackPoint: date and time formatted. SyncInfo: updated time formatted, empty when never updated.
+ */
+class NewUiMappersTest {
+
+    @Test
+    fun `account maps all fields and sync flag`() {
+        val ui = Account("a1", "b", "Clinic", "Pharmacy", "A", "Cardio", "Cairo", "Nasr", "St 1", 1.5, 2.5, "s", SyncStatus.Synced).toUi()
+        assertEquals("a1", ui.id)
+        assertEquals("Clinic", ui.name)
+        assertEquals("Pharmacy", ui.entityType)
+        assertEquals("A", ui.classCategory)
+        assertEquals("Cardio", ui.specialty)
+        assertEquals("Cairo", ui.city)
+        assertEquals("Nasr", ui.district)
+        assertEquals("St 1", ui.address)
+        assertEquals(1.5, ui.latitude, 0.0)
+        assertEquals(2.5, ui.longitude, 0.0)
+        assertTrue(ui.isSynced)
+        assertFalse(Account("a2", name = "x").toUi().isSynced)
+    }
+
+    @Test
+    fun `account type is read from the entity type text`() {
+        assertEquals(AccountType.Hospital, Account("a", name = "x", entityType = "مستشفى").toUi().type)
+        assertEquals(null, Account("a", name = "x").toUi().type)
+    }
+
+    @Test
+    fun `custody maps kind and remaining with pending`() {
+        val ui = Custody("c1", "Pen", ProductType.Gift, "Blue", received = 10, dispatched = 3, pending = 2).toUi()
+        assertTrue(ui.isGift)
+        assertEquals(5, ui.remaining)
+        assertEquals(2, ui.pending)
+        assertFalse(Custody("c2", "Drug", ProductType.Product).toUi().isGift)
+    }
+
+    @Test
+    fun `order maps account lines totals and time`() {
+        val millis = 1_792_000_000_000L
+        val order = Order(
+            id = "o1", accountName = "Clinic", createdAtMillis = millis, syncStatus = SyncStatus.Synced,
+            items = listOf(OrderItem("p1", "Panadol", 50, 10, 2), OrderItem("p2", "Brufen", 20, 0, 1)),
+        )
+        val ui = order.toUi()
+        assertEquals("Clinic", ui.accountName)
+        assertEquals(formatDate(millis), ui.date)
+        assertEquals(formatClockTime(millis), ui.time)
+        assertEquals(110, ui.total)
+        assertTrue(ui.isSynced)
+        assertEquals(listOf("Panadol", "Brufen"), ui.items.map { it.name })
+        assertEquals(90, ui.items[0].lineTotal)
+    }
+
+    @Test
+    fun `order without account time or items gives empty text`() {
+        val ui = Order(id = "o").toUi()
+        assertEquals("", ui.accountName)
+        assertEquals("", ui.date)
+        assertEquals("", ui.time)
+        assertEquals(0, ui.total)
+        assertTrue(ui.items.isEmpty())
+        assertFalse(ui.isSynced)
+    }
+
+    @Test
+    fun `track point formats date and time`() {
+        val ui = TrackPoint(id = 4, repId = "r", latitude = 1.0, longitude = 2.0, timeMillis = 1_792_000_000_000L, syncStatus = SyncStatus.Synced).toUi()
+        assertEquals(4L, ui.id)
+        assertEquals(formatDate(1_792_000_000_000L), ui.date)
+        assertEquals(formatClockTime(1_792_000_000_000L), ui.time)
+        assertTrue(ui.isSynced)
+    }
+
+    @Test
+    fun `sync info formats updated time and is empty when never updated`() {
+        assertEquals("${formatDate(1_792_000_000_000L)} ${formatClockTime(1_792_000_000_000L)}", SyncInfo("products", 1_792_000_000_000L).toUi().lastUpdated)
+        assertEquals("", SyncInfo("products", 0).toUi().lastUpdated)
+        assertEquals("products", SyncInfo("products", 0).toUi().key)
+    }
+}

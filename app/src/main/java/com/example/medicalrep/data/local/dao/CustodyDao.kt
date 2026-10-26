@@ -36,6 +36,9 @@ interface CustodyDao : BaseDao<CustodyEntity> {
     @Query("$WITH_PENDING WHERE c.searchText LIKE '%' || :query || '%' ORDER BY c.name")
     fun search(query: String): PagingSource<Int, CustodyWithPending>
 
+    @Query("$WITH_PENDING WHERE c.kind = :kind AND c.searchText LIKE '%' || :query || '%' ORDER BY c.name")
+    fun searchByKind(kind: ProductType, query: String): PagingSource<Int, CustodyWithPending>
+
     @Query("DELETE FROM custody WHERE id = :id")
     suspend fun deleteById(id: String): Int
 
