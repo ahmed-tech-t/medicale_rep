@@ -10,6 +10,7 @@ import com.example.medicalrep.data.local.entity.VisitCustodyEntity
 import com.example.medicalrep.data.local.entity.VisitEntity
 import com.example.medicalrep.data.local.relation.VisitWithDetails
 import com.example.medicalrep.domain.models.ApprovalStatus
+import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.VisitType
 import kotlinx.coroutines.flow.Flow
@@ -135,8 +136,24 @@ abstract class VisitDao : BaseDao<VisitEntity> {
     @Query("DELETE FROM visits WHERE id = :id AND type = 'Planning' AND syncStatus = 'NotSynced'")
     abstract suspend fun cancelRequest(id: String): Int
 
-    /** Only planned visits can be started. */
+    /** Visits still to do: planned, not finished. Every filter is optional (null = ignore). */
     @Transaction
-    @Query("SELECT * FROM visits WHERE type = 'Planned' ORDER BY dateTimeMillis DESC")
+    @Query("SELECT * FROM visits WHERE type = 'Planned' AND completedAtMillis IS NULL AND (:shift IS NULL OR shift = :shift) AND (:classCategory IS NULL OR accountId IN (SELECT id FROM accounts WHERE classCategory = :classCategory)) ORDER BY dateTimeMillis")
+    abstract fun requiredPaged(shift: Shift?, classCategory: String?): PagingSource<Int, VisitWithDetails>
+
+    @Query("SELECT COUNT(*) FROM visits WHERE type = 'Planned' AND completedAtMillis IS NULL AND (:shift IS NULL OR shift = :shift) AND (:classCategory IS NULL OR accountId IN (SELECT id FROM accounts WHERE classCategory = :classCategory))")
+    abstract fun requiredCount(shift: Shift?, classCategory: String?): Flow<Int>
+
+    /** Finished visits, newest first. [doubleOnly] keeps only double visits; the other filters are optional. */
+    @Transaction
+    @Query("SELECT * FROM visits WHERE completedAtMillis IS NOT NULL AND (:shift IS NULL OR shift = :shift) AND (:doubleOnly = 0 OR visitMode = 'Double') AND (:syncStatus IS NULL OR syncStatus = :syncStatus) ORDER BY completedAtMillis DESC")
+    abstract fun donePaged(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?): PagingSource<Int, VisitWithDetails>
+
+    @Query("SELECT COUNT(*) FROM visits WHERE completedAtMillis IS NOT NULL AND (:shift IS NULL OR shift = :shift) AND (:doubleOnly = 0 OR visitMode = 'Double') AND (:syncStatus IS NULL OR syncStatus = :syncStatus)")
+    abstract fun doneCount(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?): Flow<Int>
+
+    /** Only planned visits that are not finished can be started. */
+    @Transaction
+    @Query("SELECT * FROM visits WHERE type = 'Planned' AND completedAtMillis IS NULL ORDER BY dateTimeMillis DESC")
     abstract fun startablePaged(): PagingSource<Int, VisitWithDetails>
 }

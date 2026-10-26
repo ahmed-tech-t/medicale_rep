@@ -7,6 +7,7 @@ import com.example.medicalrep.data.local.mapper.toLines
 import com.example.medicalrep.data.local.media.MediaFileStorage
 import com.example.medicalrep.data.local.search.normalizeSearch
 import com.example.medicalrep.domain.models.ApprovalStatus
+import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.Visit
 import com.example.medicalrep.domain.models.VisitType
@@ -24,6 +25,16 @@ class VisitRepoImpl @Inject constructor(
 
     override fun visitsFiltered(type: VisitType?, syncStatus: SyncStatus?, repId: String?, fromMillis: Long, toMillis: Long) =
         pagedFlow({ dao.pagedFiltered(type, syncStatus, repId, fromMillis, toMillis) }) { it.toDomain() }
+
+    override fun requiredVisits(shift: Shift?, classCategory: String?) =
+        pagedFlow({ dao.requiredPaged(shift, classCategory) }) { it.toDomain() }
+
+    override fun requiredCount(shift: Shift?, classCategory: String?) = dao.requiredCount(shift, classCategory)
+
+    override fun doneVisits(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?) =
+        pagedFlow({ dao.donePaged(shift, doubleOnly, syncStatus) }) { it.toDomain() }
+
+    override fun doneCount(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?) = dao.doneCount(shift, doubleOnly, syncStatus)
 
     override fun pendingRequests() = pagedFlow({ dao.pendingPaged() }) { it.toDomain() }
 

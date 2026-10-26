@@ -11,6 +11,7 @@ import com.example.medicalrep.data.local.entity.VisitCustodyEntity
 import com.example.medicalrep.data.local.search.normalizeSearch
 import com.example.medicalrep.domain.models.ApprovalStatus
 import com.example.medicalrep.domain.models.ProductType
+import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.VisitType
 
@@ -140,6 +141,24 @@ class VisitDaoTest : DaoTestBase() {
         dao.save(visit("sent", type = VisitType.Planning, approvalStatus = ApprovalStatus.Pending, syncStatus = SyncStatus.Synced), emptyList())
         assertEquals(1, dao.cancelRequest("local"))
         assertEquals(0, dao.cancelRequest("sent"))
+    }
+
+    @Test fun requiredAndDoneListsUseTheCompletedTime() = runBlocking {
+        db.accountDao().save(account("a1", "A", classCategory = "A"))
+        db.accountDao().save(account("a2", "B", classCategory = "B"))
+        dao.save(visit("todo-am", accountId = "a1", type = VisitType.Planned, dateTimeMillis = 100), emptyList())
+        dao.save(visit("todo-pm", accountId = "a2", type = VisitType.Planned, shift = Shift.Pm, dateTimeMillis = 200), emptyList())
+        dao.save(visit("done-planned", accountId = "a1", type = VisitType.Planned, completedAtMillis = 300), emptyList())
+        dao.save(visit("done-double", type = VisitType.Unplanned, double = true, syncStatus = SyncStatus.NotSynced, completedAtMillis = 400), emptyList())
+        assertEquals(listOf("todo-am", "todo-pm"), dao.requiredPaged(null, null).allRows().map { it.visit.id })
+        assertEquals(listOf("todo-pm"), dao.requiredPaged(Shift.Pm, null).allRows().map { it.visit.id })
+        assertEquals(listOf("todo-am"), dao.requiredPaged(null, "A").allRows().map { it.visit.id })
+        assertEquals(2, dao.requiredCount(null, null).first())
+        assertEquals(listOf("done-double", "done-planned"), dao.donePaged(null, false, null).allRows().map { it.visit.id })
+        assertEquals(listOf("done-double"), dao.donePaged(null, true, null).allRows().map { it.visit.id })
+        assertEquals(listOf("done-double"), dao.donePaged(null, false, SyncStatus.NotSynced).allRows().map { it.visit.id })
+        assertEquals(1, dao.doneCount(Shift.Am, true, null).first())
+        assertEquals(listOf("todo-am", "todo-pm"), dao.startablePaged().allRows().map { it.visit.id }.sorted())
     }
 
     @Test fun clearEmptiesTable() = runBlocking {

@@ -24,6 +24,7 @@ data class SeedData(
 
 private const val HOUR = 3_600_000L
 private const val DAY = 24 * HOUR
+private const val MINUTE = 60_000L
 
 /** Builds the debug sample data relative to [nowMillis], so planned visits are always upcoming and done ones past. */
 object SeedDataFactory {
@@ -123,6 +124,7 @@ object SeedDataFactory {
         syncStatus: SyncStatus = SyncStatus.Synced,
         double: Boolean = false,
         durationLabel: String = "",
+        completedAtMillis: Long? = null,
         approvalStatus: ApprovalStatus? = null,
         requestedAtMillis: Long? = null,
         decisionNote: String? = null,
@@ -139,6 +141,7 @@ object SeedDataFactory {
         dateTimeMillis = dateTimeMillis,
         syncStatus = syncStatus,
         durationLabel = durationLabel,
+        completedAtMillis = completedAtMillis,
         approvalStatus = approvalStatus,
         requestedAtMillis = requestedAtMillis,
         decisionNote = decisionNote,
@@ -164,12 +167,12 @@ object SeedDataFactory {
             visit("v-planned-6", acc(3), VisitType.Planned, Shift.Pm, now + 3 * DAY),
         )
         val done = listOf(
-            visit("v-done-1", acc(1), VisitType.Unplanned, Shift.Am, now - 3 * HOUR, SyncStatus.NotSynced, double = true, durationLabel = "04:35 د", gifts = listOf(gift), samples = listOf(sample)),
-            visit("v-done-2", acc(4), VisitType.Unplanned, Shift.Pm, now - DAY, SyncStatus.NotSynced, durationLabel = "12:10 د", gifts = listOf(gift)),
-            visit("v-done-3", acc(8), VisitType.Unplanned, Shift.Am, now - 2 * DAY, SyncStatus.Synced, durationLabel = "06:20 د", samples = listOf(sample)),
-            visit("v-done-4", acc(6), VisitType.Unplanned, Shift.Pm, now - 3 * DAY, SyncStatus.Synced, double = true, durationLabel = "15:00 د"),
-            visit("v-done-5", acc(9), VisitType.Unplanned, Shift.Am, now - 4 * DAY, SyncStatus.Synced, durationLabel = "08:45 د", gifts = listOf(gift)),
-            visit("v-done-6", acc(12), VisitType.Unplanned, Shift.Pm, now - 5 * DAY, SyncStatus.Synced, durationLabel = "05:05 د"),
+            visit("v-done-1", acc(1), VisitType.Unplanned, Shift.Am, now - 3 * HOUR, SyncStatus.NotSynced, double = true, durationLabel = "04:35 د", completedAtMillis = now - 3 * HOUR + 5 * MINUTE, gifts = listOf(gift), samples = listOf(sample)),
+            visit("v-done-2", acc(4), VisitType.Unplanned, Shift.Pm, now - DAY, SyncStatus.NotSynced, durationLabel = "12:10 د", completedAtMillis = now - DAY + 12 * MINUTE, gifts = listOf(gift)),
+            visit("v-done-3", acc(8), VisitType.Unplanned, Shift.Am, now - 2 * DAY, SyncStatus.Synced, durationLabel = "06:20 د", completedAtMillis = now - 2 * DAY + 6 * MINUTE, samples = listOf(sample)),
+            visit("v-done-4", acc(6), VisitType.Planned, Shift.Pm, now - 3 * DAY, SyncStatus.Synced, double = true, durationLabel = "15:00 د", completedAtMillis = now - 3 * DAY + 15 * MINUTE),
+            visit("v-done-5", acc(9), VisitType.Unplanned, Shift.Am, now - 4 * DAY, SyncStatus.Synced, durationLabel = "08:45 د", completedAtMillis = now - 4 * DAY + 9 * MINUTE, gifts = listOf(gift)),
+            visit("v-done-6", acc(12), VisitType.Unplanned, Shift.Pm, now - 5 * DAY, SyncStatus.Synced, durationLabel = "05:05 د", completedAtMillis = now - 5 * DAY + 5 * MINUTE),
         )
         val requests = listOf(
             visit("v-request-1", acc(11), VisitType.Planning, Shift.Am, now + 4 * DAY, SyncStatus.NotSynced, approvalStatus = ApprovalStatus.Pending, requestedAtMillis = now - HOUR),

@@ -27,6 +27,7 @@ import com.example.medicalrep.domain.models.VisitType
         Index("type"),
         Index("syncStatus"),
         Index("approvalStatus"),
+        Index("completedAtMillis"),
     ],
 )
 data class VisitEntity(
@@ -53,6 +54,8 @@ data class VisitEntity(
     val requestedAtMillis: Long?,
     val decidedAtMillis: Long?,
     val decisionNote: String?,
+    /** When the visit was finished; null while it is still to do. */
+    val completedAtMillis: Long?,
     /** Made by the DAO from the account, the supervisor and the date; see [VISIT_SEARCH_TEXT_SQL]. */
     val searchText: String = "",
 )

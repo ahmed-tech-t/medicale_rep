@@ -72,6 +72,15 @@ class VisitRepoTest : RepoTestBase() {
         assertFalse(repo.dismissRejected("p1"))
     }
 
+    @Test fun requiredAndDoneListsAreFilteredInTheDatabase() = runTest {
+        repo.save(Visit(id = "todo", type = VisitType.Planned, shift = Shift.Am))
+        repo.save(Visit(id = "done", type = VisitType.Planned, shift = Shift.Pm, completedAtMillis = 5L))
+        assertEquals(listOf("todo"), repo.requiredVisits().asSnapshot().map { it.id })
+        assertEquals(listOf("done"), repo.doneVisits(shift = Shift.Pm).asSnapshot().map { it.id })
+        assertEquals(0, repo.doneCount(shift = Shift.Am).first())
+        assertEquals(1, repo.requiredCount().first())
+    }
+
     @Test fun cancelOnlyBeforeUploadAndMarkSynced() = runTest {
         repo.save(Visit(id = "v1", type = VisitType.Planning, syncStatus = SyncStatus.NotSynced))
         assertEquals(listOf("v1"), repo.notSynced().map { it.id })

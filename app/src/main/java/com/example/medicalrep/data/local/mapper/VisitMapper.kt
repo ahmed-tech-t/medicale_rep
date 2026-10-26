@@ -53,6 +53,7 @@ fun VisitWithDetails.toDomain(): Visit {
         requestedAtMillis = visit.requestedAtMillis,
         decidedAtMillis = visit.decidedAtMillis,
         decisionNote = visit.decisionNote,
+        completedAtMillis = visit.completedAtMillis,
     )
 }
 
@@ -88,6 +89,7 @@ fun Visit.toEntity() = VisitEntity(
     requestedAtMillis = requestedAtMillis,
     decidedAtMillis = decidedAtMillis,
     decisionNote = decisionNote,
+    completedAtMillis = completedAtMillis,
 )
 
 /** The samples and gifts given in this visit, with their quantities. */

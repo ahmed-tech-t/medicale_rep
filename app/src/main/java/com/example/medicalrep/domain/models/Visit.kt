@@ -42,6 +42,8 @@ data class Visit(
     val requestedAtMillis: Long? = null,
     val decidedAtMillis: Long? = null,
     val decisionNote: String? = null,
+    /** When the visit was finished; null while it is still to do. */
+    val completedAtMillis: Long? = null,
 )
 
 enum class Shift {

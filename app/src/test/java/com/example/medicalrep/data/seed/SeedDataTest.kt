@@ -73,10 +73,11 @@ class SeedDataTest {
 
     @Test
     fun `visits cover the filters of every screen`() {
-        val planned = data.visits.filter { it.type == VisitType.Planned }
+        val planned = data.visits.filter { it.type == VisitType.Planned && it.completedAtMillis == null }
         assertTrue(planned.size >= 4)
         assertEquals(setOf(Shift.Am, Shift.Pm), planned.map { it.shift }.toSet())
-        val done = data.visits.filter { it.type == VisitType.Unplanned }
+        val done = data.visits.filter { it.completedAtMillis != null }
+        assertTrue(done.any { it.type == VisitType.Planned } && done.any { it.type == VisitType.Unplanned })
         assertEquals(setOf(SyncStatus.Synced, SyncStatus.NotSynced), done.map { it.syncStatus }.toSet())
         assertEquals(setOf(Shift.Am, Shift.Pm), done.map { it.shift }.toSet())
         val double = data.visits.filter { it.visitMode == VisitMode.Double }
@@ -89,8 +90,11 @@ class SeedDataTest {
 
     @Test
     fun `done visits are in the past and planned ones are today or later`() {
-        data.visits.filter { it.type == VisitType.Unplanned }.forEach { assertTrue(it.dateTimeMillis!! < now) }
-        data.visits.filter { it.type == VisitType.Planned }.forEach { assertTrue(it.dateTimeMillis!! >= now - 12 * HOUR) }
+        data.visits.filter { it.completedAtMillis != null }.forEach {
+            assertTrue(it.completedAtMillis!! < now && it.completedAtMillis!! >= it.dateTimeMillis!!)
+        }
+        data.visits.filter { it.type == VisitType.Planned && it.completedAtMillis == null }
+            .forEach { assertTrue(it.dateTimeMillis!! >= now - 12 * HOUR) }
     }
 
     private companion object {

@@ -2,6 +2,7 @@ package com.example.medicalrep.domain.repo
 
 import androidx.paging.PagingData
 import com.example.medicalrep.domain.models.ApprovalStatus
+import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.Visit
 import com.example.medicalrep.domain.models.VisitType
@@ -11,6 +12,14 @@ import kotlinx.coroutines.flow.Flow
 interface VisitRepo {
     fun visits(query: String = ""): Flow<PagingData<Visit>>
     fun visitsFiltered(type: VisitType?, syncStatus: SyncStatus?, repId: String?, fromMillis: Long, toMillis: Long): Flow<PagingData<Visit>>
+
+    /** Planned visits still to do. Every filter is optional (null = all); they run in the database. */
+    fun requiredVisits(shift: Shift? = null, classCategory: String? = null): Flow<PagingData<Visit>>
+    fun requiredCount(shift: Shift? = null, classCategory: String? = null): Flow<Int>
+
+    /** Finished visits, newest first; [doubleOnly] keeps only double visits. */
+    fun doneVisits(shift: Shift? = null, doubleOnly: Boolean = false, syncStatus: SyncStatus? = null): Flow<PagingData<Visit>>
+    fun doneCount(shift: Shift? = null, doubleOnly: Boolean = false, syncStatus: SyncStatus? = null): Flow<Int>
 
     /** Plan requests that are Pending or Rejected. */
     fun pendingRequests(): Flow<PagingData<Visit>>

@@ -1,34 +1,69 @@
 package com.example.medicalrep.ui.screens.visitlog.main
 
+import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import androidx.paging.map
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
 import com.appcore.core.ui.utils.BaseViewModel
+import com.example.medicalrep.domain.repo.DraftVisitRepo
+import com.example.medicalrep.domain.repo.VisitRepo
+import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.VisitFilter
+import com.example.medicalrep.ui.models.VisitUi
 import com.example.medicalrep.ui.navigation.model.MainGraph
-import com.example.medicalrep.ui.screens.visitlog.utils.VisitLogFakes
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import com.example.medicalrep.domain.repo.DraftVisitRepo
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/** The tab and filter that decide which visits the repo is asked for. */
+private data class VisitLogQuery(val tab: VisitLogTab, val filter: VisitFilter)
+
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class VisitLogViewModel @Inject constructor(
     appSettingsRepo: AppSettingsRepo,
     private val draftVisitRepo: DraftVisitRepo,
+    private val visitRepo: VisitRepo,
 ) : BaseViewModel(appSettingsRepo) {
 
-    // TODO: load required / done visits from Room.
-    private val _state = MutableStateFlow(VisitLogFakes.state())
+    private val _state = MutableStateFlow(VisitLogState())
     val state: StateFlow<VisitLogState> = _state.asStateFlow()
+
+    private val query = _state.map { VisitLogQuery(it.selectedTab, it.filter) }.distinctUntilChanged()
+
+    /** The visits of the selected tab and filter, loaded page by page from Room. */
+    val visits: Flow<PagingData<VisitUi>> = query
+        .flatMapLatest { (tab, filter) ->
+            when (tab) {
+                VisitLogTab.Required -> visitRepo.requiredVisits(filter.shift, filter.classCategory)
+                VisitLogTab.Done -> visitRepo.doneVisits(filter.shift, filter.doubleOnly, filter.syncStatus)
+            }
+        }
+        .map { page -> page.map { it.toUi() } }
+        .cachedIn(viewModelScope)
 
     init {
         viewModelScope.launch {
             draftVisitRepo.draft().collect { draft -> _state.update { it.copy(hasPendingVisit = draft != null) } }
+        }
+        viewModelScope.launch {
+            query.flatMapLatest { (tab, filter) ->
+                when (tab) {
+                    VisitLogTab.Required -> visitRepo.requiredCount(filter.shift, filter.classCategory)
+                    VisitLogTab.Done -> visitRepo.doneCount(filter.shift, filter.doubleOnly, filter.syncStatus)
+                }
+            }.collect { count -> _state.update { it.copy(resultCount = count) } }
         }
     }
 

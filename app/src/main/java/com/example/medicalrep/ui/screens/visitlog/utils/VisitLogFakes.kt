@@ -37,8 +37,5 @@ object VisitLogFakes {
             ),
     )
 
-    fun state(): VisitLogState = VisitLogState(
-        requiredVisits = requiredVisits(),
-        doneVisits = doneVisits(),
-    )
+    fun state(): VisitLogState = VisitLogState(resultCount = requiredVisits().size)
 }

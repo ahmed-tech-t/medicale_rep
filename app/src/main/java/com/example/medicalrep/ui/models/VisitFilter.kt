@@ -14,4 +14,27 @@ enum class VisitFilter(val matches: (VisitUi) -> Boolean) {
     DoubleVisits({ it.isDoubleVisit }),
     Synced({ it.syncStatus == SyncStatus.Synced }),
     NotSynced({ it.syncStatus == SyncStatus.NotSynced }),
+    ;
+
+    /** The same filter as database parameters (null / false = ignore). */
+    val shift: Shift?
+        get() = when (this) {
+            Morning -> Shift.Am
+            Evening -> Shift.Pm
+            else -> null
+        }
+    val classCategory: String?
+        get() = when (this) {
+            ClassA -> "A"
+            ClassB -> "B"
+            ClassC -> "C"
+            else -> null
+        }
+    val doubleOnly: Boolean get() = this == DoubleVisits
+    val syncStatus: SyncStatus?
+        get() = when (this) {
+            Synced -> SyncStatus.Synced
+            NotSynced -> SyncStatus.NotSynced
+            else -> null
+        }
 }

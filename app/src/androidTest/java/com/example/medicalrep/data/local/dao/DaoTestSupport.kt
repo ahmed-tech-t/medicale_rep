@@ -28,8 +28,8 @@ abstract class DaoTestBase {
 fun user(id: String, name: String = id, role: UserRole = UserRole.Rep, supervisorId: String? = null) =
     User(id = id, displayName = name, roleTitle = "", role = role, supervisorId = supervisorId).toEntity()
 
-fun account(id: String, name: String = id, city: String = "", syncStatus: SyncStatus = SyncStatus.Synced) =
-    Account(id = id, name = name, city = city, syncStatus = syncStatus).toEntity()
+fun account(id: String, name: String = id, city: String = "", syncStatus: SyncStatus = SyncStatus.Synced, classCategory: String = "") =
+    Account(id = id, name = name, city = city, syncStatus = syncStatus, classCategory = classCategory).toEntity()
 
 fun product(id: String, name: String = id) = Product(id = id, name = name).toEntity()
 
@@ -47,9 +47,13 @@ fun visit(
     backendId: String? = null,
     approvalStatus: ApprovalStatus? = null,
     requestedAtMillis: Long? = null,
+    shift: Shift = Shift.Am,
+    double: Boolean = false,
+    completedAtMillis: Long? = null,
 ) = Visit(
     id = id, accountId = accountId, repId = repId, supervisorId = supervisorId, type = type, syncStatus = syncStatus,
     dateTimeMillis = dateTimeMillis, backendId = backendId, approvalStatus = approvalStatus, requestedAtMillis = requestedAtMillis,
+    shift = shift, visitMode = if (double) VisitMode.Double else VisitMode.Single, completedAtMillis = completedAtMillis,
 ).toEntity()
 
 fun point(repId: String, timeMillis: Long, visitId: String? = null, syncStatus: SyncStatus = SyncStatus.NotSynced) =

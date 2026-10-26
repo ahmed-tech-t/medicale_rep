@@ -11,8 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.itemKey
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
+import com.example.medicalrep.ui.preview.pagingItemsOf
 import com.example.medicalrep.ui.components.chrome.AppHeader
 import com.example.medicalrep.ui.components.chrome.NexoraTabs
 import com.example.medicalrep.ui.components.widgets.FilterMenu
@@ -35,6 +38,7 @@ import com.example.medicalrep.ui.ui.theme.Slate50
 @Composable
 fun VisitLogUi(
     state: VisitLogState,
+    visits: LazyPagingItems<VisitUi>,
     onEvent: (VisitLogEvents) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -83,8 +87,8 @@ fun VisitLogUi(
                     },
                 )
             }
-            items(items = state.visibleVisits, key = { it.id }) { visit ->
-                VisitLogItem(state.selectedTab, visit, onEvent)
+            items(count = visits.itemCount, key = visits.itemKey { it.id }) { index ->
+                visits[index]?.let { VisitLogItem(state.selectedTab, it, onEvent) }
             }
         }
     }
@@ -115,13 +119,17 @@ private fun VisitLogItem(tab: VisitLogTab, visit: VisitUi, onEvent: (VisitLogEve
 @Preview(showBackground = true, locale = "ar", heightDp = 800)
 @Composable
 private fun VisitLogUiRequiredPreview() {
-    MedicalRepTheme { VisitLogUi(state = VisitLogFakes.state(), onEvent = {}) }
+    MedicalRepTheme { VisitLogUi(state = VisitLogFakes.state(), visits = pagingItemsOf(VisitLogFakes.requiredVisits()), onEvent = {}) }
 }
 
 @Preview(showBackground = true, locale = "ar", heightDp = 800)
 @Composable
 private fun VisitLogUiDonePreview() {
     MedicalRepTheme {
-        VisitLogUi(state = VisitLogFakes.state().copy(selectedTab = VisitLogTab.Done), onEvent = {})
+        VisitLogUi(
+            state = VisitLogFakes.state().copy(selectedTab = VisitLogTab.Done),
+            visits = pagingItemsOf(VisitLogFakes.doneVisits()),
+            onEvent = {},
+        )
     }
 }
