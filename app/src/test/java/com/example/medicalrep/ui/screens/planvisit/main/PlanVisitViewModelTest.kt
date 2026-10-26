@@ -31,6 +31,7 @@ import kotlinx.coroutines.test.setMain
 import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.Visit
 import com.example.medicalrep.domain.repo.FakeDraftVisitRepo
+import com.appcore.core.ui.utils.document_picker.PickedDocument
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -83,6 +84,22 @@ class PlanVisitViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
+    /** Fills every search field of step 1 (the supervisor too, as the sample visit is a double visit). */
+    private fun fillEntityStep() {
+        viewModel.onEvent(PlanVisitEvents.SelectCity("منوف"))
+        viewModel.onEvent(PlanVisitEvents.SelectDistrict("وسط البلد"))
+        viewModel.onEvent(PlanVisitEvents.SelectEntityType("صيدلية"))
+        viewModel.onEvent(PlanVisitEvents.SelectPlace("مستشفى الجامعة"))
+        viewModel.onEvent(PlanVisitEvents.SelectSpecialty("أطفال"))
+        viewModel.onEvent(PlanVisitEvents.SelectSupervisor("د. سارة أحمد"))
+    }
+
+    private fun addVoiceNote() = viewModel.onEvent(PlanVisitEvents.VoiceNoteRecorded(byteArrayOf(1, 2, 3)))
+
+    private fun addImage() {
+        viewModel.onEvent(PlanVisitEvents.AttachImageResult(PickedDocument(android.net.FakeUri(), "note.png", 10L)))
+    }
+
     private fun createViewModel(savedStateHandle: SavedStateHandle = SavedStateHandle()) =
         PlanVisitViewModel(FakeUnplannedSettingsRepo, savedStateHandle, locationHelper, geocodingRepo, draftRepo)
 
@@ -116,13 +133,13 @@ class PlanVisitViewModelTest {
     @Test
     fun `save stores the draft with the current step, shows a snackbar and leaves`() = runTest(dispatcher) {
         val events = collectEvents()
-        viewModel.onEvent(PlanVisitEvents.SelectCity("Cairo"))
+        fillEntityStep()
         viewModel.onEvent(PlanVisitEvents.Next)
         viewModel.onEvent(PlanVisitEvents.Back)
         viewModel.onEvent(PlanVisitEvents.SaveDraft)
         val saved = draftRepo.current.value!!
         assertEquals(1, saved.step)
-        assertEquals("Cairo", saved.visit.city)
+        assertEquals("منوف", saved.visit.city)
         assertEquals(PlanVisitOverlay.None, state.overlay)
         assertTrue(events[0] is UiEvent.ShowSnackBar)
         assertEquals(UiEvent.NavigationUp, events[1])
@@ -169,11 +186,14 @@ class PlanVisitViewModelTest {
     @Test
     fun `ending the visit also clears any saved draft`() = runTest(dispatcher) {
         draftRepo.current.value = DraftVisit(0, Visit())
+        addVoiceNote()
+        addImage()
         viewModel.onEvent(PlanVisitEvents.EndVisit)
         assertNull(draftRepo.current.value)
     }
 
     private fun openResultStep() {
+        fillEntityStep()
         viewModel.onEvent(PlanVisitEvents.Next)
         viewModel.onEvent(PlanVisitEvents.Next)
     }
@@ -244,16 +264,110 @@ class PlanVisitViewModelTest {
     }
 
     @Test
-    fun `starts on entity step with sample visit`() {
+    fun `a new visit starts on the entity step with the search fields empty`() {
         assertEquals(PlanVisitStep.Entity, state.currentStep)
         assertEquals(PlanVisitOverlay.None, state.overlay)
-        assertEquals("شبين الكوم", state.visit.city)
+        with(state.visit) {
+            listOf(city, region, account, placeName, specialty, supervisorName, classCategory, address)
+                .forEach { assertEquals("", it) }
+        }
+        assertTrue(state.cityOptions.isNotEmpty() && state.placeOptions.isNotEmpty() && state.supervisorOptions.isNotEmpty())
         assertEquals(1, state.giftsCount)
         assertEquals(3, state.productsCount)
+        assertEquals(false, state.isEntityComplete)
+    }
+
+    @Test
+    fun `withEmptyChoices blanks only the search fields`() {
+        val sample = PlanVisitFakes.state()
+        val empty = sample.withEmptyChoices()
+        assertEquals("", empty.visit.city)
+        assertEquals("", empty.visit.placeName)
+        assertEquals(sample.visit.shift, empty.visit.shift)
+        assertEquals(sample.visit.isDoubleVisit, empty.visit.isDoubleVisit)
+        assertEquals(sample.visit.gifts, empty.visit.gifts)
+        assertEquals(sample.cityOptions, empty.cityOptions)
+        assertEquals(true, sample.isEntityComplete)
+    }
+
+    @Test
+    fun `next on step 1 is blocked until every field is filled`() {
+        viewModel.onEvent(PlanVisitEvents.Next)
+        assertEquals(PlanVisitStep.Entity, state.currentStep)
+        val fills = listOf(
+            PlanVisitEvents.SelectCity("منوف"),
+            PlanVisitEvents.SelectDistrict("وسط البلد"),
+            PlanVisitEvents.SelectEntityType("صيدلية"),
+            PlanVisitEvents.SelectPlace("مستشفى الجامعة"),
+            PlanVisitEvents.SelectSpecialty("أطفال"),
+        )
+        fills.forEachIndexed { index, fill ->
+            assertEquals(false, state.canGoNext)
+            viewModel.onEvent(fill)
+            // The supervisor is still missing for the sample double visit.
+            assertEquals(false, state.canGoNext)
+            assertEquals(index == fills.lastIndex, state.visit.specialty.isNotBlank())
+        }
+        viewModel.onEvent(PlanVisitEvents.SelectSupervisor("د. سارة أحمد"))
+        assertEquals(true, state.canGoNext)
+        viewModel.onEvent(PlanVisitEvents.Next)
+        assertEquals(PlanVisitStep.GiftsProducts, state.currentStep)
+    }
+
+    @Test
+    fun `a single visit does not need a supervisor`() {
+        viewModel.onEvent(PlanVisitEvents.SelectDoubleVisit(false))
+        viewModel.onEvent(PlanVisitEvents.SelectCity("منوف"))
+        viewModel.onEvent(PlanVisitEvents.SelectDistrict("وسط البلد"))
+        viewModel.onEvent(PlanVisitEvents.SelectEntityType("صيدلية"))
+        viewModel.onEvent(PlanVisitEvents.SelectPlace("مستشفى الجامعة"))
+        viewModel.onEvent(PlanVisitEvents.SelectSpecialty("أطفال"))
+        assertEquals(true, state.canGoNext)
+        viewModel.onEvent(PlanVisitEvents.SelectDoubleVisit(true))
+        assertEquals(false, state.canGoNext)
+    }
+
+    @Test
+    fun `step 2 is optional and always allows next`() {
+        fillEntityStep()
+        viewModel.onEvent(PlanVisitEvents.Next)
+        assertEquals(true, state.canGoNext)
+        viewModel.onEvent(PlanVisitEvents.Next)
+        assertEquals(PlanVisitStep.Result, state.currentStep)
+    }
+
+    @Test
+    fun `the visit cannot end without both a voice note and an image`() = runTest(dispatcher) {
+        openResultStep()
+        val events = collectEvents()
+        assertEquals(false, state.canEndVisit)
+        viewModel.onEvent(PlanVisitEvents.EndVisit)
+        addVoiceNote()
+        assertEquals(false, state.canEndVisit)
+        viewModel.onEvent(PlanVisitEvents.EndVisit)
+        assertEquals(0, events.size)
+
+        addImage()
+        assertEquals(true, state.canEndVisit)
+        viewModel.onEvent(PlanVisitEvents.EndVisit)
+        assertTrue(events[0] is UiEvent.ShowSnackBar)
+        assertEquals(UiEvent.NavigationUp, events[1])
+    }
+
+    @Test
+    fun `an image alone does not allow ending and deleting the voice note blocks it again`() {
+        openResultStep()
+        addImage()
+        assertEquals(false, state.canEndVisit)
+        addVoiceNote()
+        assertEquals(true, state.canEndVisit)
+        viewModel.onEvent(PlanVisitEvents.VoiceNoteDeleted)
+        assertEquals(false, state.canEndVisit)
     }
 
     @Test
     fun `next and previous move between steps within bounds`() {
+        fillEntityStep()
         viewModel.onEvent(PlanVisitEvents.Previous)
         assertEquals(PlanVisitStep.Entity, state.currentStep)
 
@@ -353,6 +467,8 @@ class PlanVisitViewModelTest {
     fun `back navigates up and end visit shows snackbar then navigates up`() = runTest(dispatcher) {
         val events = collectEvents()
         viewModel.onEvent(PlanVisitEvents.Back)
+        addVoiceNote()
+        addImage()
         viewModel.onEvent(PlanVisitEvents.EndVisit)
         assertEquals(3, events.size)
         assertEquals(UiEvent.NavigationUp, events[0])
@@ -402,6 +518,7 @@ class PlanVisitViewModelTest {
     @Test
     fun `view account location opens the screen with the account details`() = runTest(dispatcher) {
         val events = collectEvents()
+        fillEntityStep()
         viewModel.onEvent(PlanVisitEvents.ViewAccountLocationClick)
         val visit = state.visit
         assertEquals(
@@ -411,7 +528,7 @@ class PlanVisitViewModelTest {
                         accountLatitude = visit.accountLatitude,
                         accountLongitude = visit.accountLongitude,
                         accountName = visit.placeName,
-                        address = "${visit.city} - ${visit.address}",
+                        address = visit.city, // the address is blank for a new visit, so only the city shows
                         classCategory = visit.classCategory,
                         accountType = visit.account,
                         specialty = visit.specialty,

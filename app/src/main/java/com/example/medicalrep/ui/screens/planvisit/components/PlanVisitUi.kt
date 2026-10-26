@@ -76,7 +76,12 @@ fun PlanVisitUi(
             }
         }
 
-        FooterBar(currentStep = state.currentStep, onEvent = onEvent)
+        FooterBar(
+            currentStep = state.currentStep,
+            onEvent = onEvent,
+            nextEnabled = state.canGoNext,
+            endEnabled = state.canEndVisit,
+        )
     }
 
     if (state.overlay == PlanVisitOverlay.SaveDraft) {

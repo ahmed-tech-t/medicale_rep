@@ -26,7 +26,12 @@ import com.example.medicalrep.ui.ui.theme.Slate200
 import com.example.medicalrep.ui.ui.theme.Slate50
 
 @Composable
-internal fun FooterBar(currentStep: PlanVisitStep, onEvent: (PlanVisitEvents) -> Unit) {
+internal fun FooterBar(
+    currentStep: PlanVisitStep,
+    onEvent: (PlanVisitEvents) -> Unit,
+    nextEnabled: Boolean = true,
+    endEnabled: Boolean = true,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -51,6 +56,7 @@ internal fun FooterBar(currentStep: PlanVisitStep, onEvent: (PlanVisitEvents) ->
             NexoraButton(
                 text = stringResource(R.string.unplanned_visit_end),
                 onClick = { onEvent(PlanVisitEvents.EndVisit) },
+                enabled = endEnabled,
                 modifier = Modifier
                     .weight(1f)
                     .height(dim.primaryButtonHeight)
@@ -60,6 +66,7 @@ internal fun FooterBar(currentStep: PlanVisitStep, onEvent: (PlanVisitEvents) ->
             NexoraButton(
                 text = stringResource(R.string.action_next),
                 onClick = { onEvent(PlanVisitEvents.Next) },
+                enabled = nextEnabled,
                 modifier = Modifier
                     .weight(1f)
                     .height(dim.primaryButtonHeight)
@@ -79,6 +86,12 @@ private fun FooterBarEntityPreview() {
 @Composable
 private fun FooterBarGiftsPreview() {
     MedicalRepTheme { FooterBar(currentStep = PlanVisitStep.GiftsProducts, onEvent = {}) }
+}
+
+@Preview(showBackground = true, locale = "ar")
+@Composable
+private fun FooterBarBlockedPreview() {
+    MedicalRepTheme { FooterBar(currentStep = PlanVisitStep.Entity, onEvent = {}, nextEnabled = false) }
 }
 
 @Preview(showBackground = true)

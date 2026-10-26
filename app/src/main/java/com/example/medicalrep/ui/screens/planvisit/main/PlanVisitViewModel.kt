@@ -62,7 +62,7 @@ class PlanVisitViewModel @Inject constructor(
     private fun initialState(): PlanVisitState {
         val sample = PlanVisitFakes.state()
         // Until planned visits load from Room, a planned visit shows the sample visit's data.
-        val state = if (visitId == null) sample
+        val state = if (visitId == null) sample.withEmptyChoices()
         else sample.copy(visit = sample.visit.copy(id = visitId, type = VisitType.Planned))
         return state.copy(initialVisit = state.visit)
     }
@@ -108,7 +108,7 @@ class PlanVisitViewModel @Inject constructor(
             )
 
             is PlanVisitEvents.ToggleClinicOpen -> updateVisit { it.copy(noIssueFound = event.confirmed) }
-            PlanVisitEvents.EndVisit -> viewModelScope.launch {
+            PlanVisitEvents.EndVisit -> if (_state.value.canEndVisit) viewModelScope.launch {
                 draftRepo.discard()
                 sendEvent(ShowSnackBar(StringResource(R.string.unplanned_visit_ended)))
                 sendEvent(UiEvent.NavigationUp)
@@ -204,6 +204,7 @@ class PlanVisitViewModel @Inject constructor(
     }
 
     private fun moveStep(forward: Boolean) {
+        if (forward && !_state.value.canGoNext) return
         val steps = PlanVisitStep.entries
         _state.update { state ->
             val index =

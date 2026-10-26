@@ -16,6 +16,20 @@ sealed interface PlanVisitOverlay {
     data object SaveDraft : PlanVisitOverlay
 }
 
+/** A new visit starts with every search field empty (the options stay), so the rep chooses each one himself. */
+fun PlanVisitState.withEmptyChoices(): PlanVisitState = copy(
+    visit = visit.copy(
+        city = "",
+        region = "",
+        account = "",
+        placeName = "",
+        specialty = "",
+        supervisorName = "",
+        classCategory = "",
+        address = "",
+    ),
+)
+
 /** The form filled with a saved draft, on the step it was left on. */
 fun PlanVisitState.withDraft(draft: DraftVisit): PlanVisitState {
     val visit = draft.visit.toUi()
@@ -48,6 +62,23 @@ data class PlanVisitState(
 ) {
     /** Back asks to save only while a visit in progress was changed; the finished result step just leaves. */
     val asksToSave: Boolean get() = visit != initialVisit && currentStep != PlanVisitStep.Result
+    /** Step 1 is done: every search field is chosen; the supervisor only matters for a double visit. */
+    val isEntityComplete: Boolean
+        get() = with(visit) {
+            city.isNotBlank() && region.isNotBlank() && account.isNotBlank() && placeName.isNotBlank() &&
+                specialty.isNotBlank() && (!isDoubleVisit || supervisorName.isNotBlank())
+        }
+
+    /** Step 1 must be complete; step 2 (gifts and products) is optional. */
+    val canGoNext: Boolean
+        get() = when (currentStep) {
+            PlanVisitStep.Entity -> isEntityComplete
+            PlanVisitStep.GiftsProducts -> true
+            PlanVisitStep.Result -> false
+        }
+
+    /** The visit is proven by a recorded voice note and an attached image. */
+    val canEndVisit: Boolean get() = visit.voiceNote != null && visit.imageNote != null
     val giftsCount: Int get() = visit.gifts.sumOf { it.quantity }
     val productsCount: Int get() = visit.products.sumOf { it.quantity }
 }
