@@ -22,6 +22,7 @@ import com.example.medicalrep.R
 import com.example.medicalrep.domain.models.RoutePoint
 import com.example.medicalrep.domain.models.map.MapCameraTarget
 import com.example.medicalrep.ui.screens.map_rep_tracking.models.TrackUserMapMarker
+import com.example.medicalrep.ui.screens.map_rep_tracking.utils.TravelSegment
 import com.example.medicalrep.ui.screens.map_rep_tracking.utils.MapRepTrackingFakes
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 import com.example.medicalrep.ui.utils.vectorToBitmapDescriptor
@@ -35,6 +36,7 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapType
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerComposable
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
@@ -46,6 +48,7 @@ fun GoogleMapComponent(
     modifier: Modifier = Modifier,
     visitss: List<TrackUserMapMarker>,
     repTrack: List<TrackUserMapMarker>,
+    segments: List<TravelSegment> = emptyList(),
     roadRoute: List<RoutePoint> = emptyList(),
     onMarkerClick: (String) -> Unit,
     selectedVisitId: String? = null,
@@ -111,6 +114,18 @@ fun GoogleMapComponent(
                     pattern = dashedPattern,// Adjust road thickness
                     geodesic = true     // Optional: curves the line to match the earth's surface
                 )
+            }
+
+            segments.forEach { segment ->
+                key(segment.position.id) {
+                    MarkerComposable(
+                        segment,
+                        state = rememberMarkerState(position = LatLng(segment.position.latitude, segment.position.longitude)),
+                        zIndex = 0.5f,
+                    ) {
+                        TravelSegmentBadge(mode = segment.mode, seconds = segment.seconds)
+                    }
+                }
             }
 
             visitss.forEachIndexed { index, marker ->

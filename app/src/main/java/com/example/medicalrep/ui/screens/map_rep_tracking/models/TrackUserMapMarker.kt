@@ -5,4 +5,6 @@ data class TrackUserMapMarker(
     val latitude: Double,
     val longitude: Double,
     val visitId: String,
+    /** When the rep was at this point (epoch millis); not needed for visit markers. */
+    val timeMillis: Long = 0L,
 )

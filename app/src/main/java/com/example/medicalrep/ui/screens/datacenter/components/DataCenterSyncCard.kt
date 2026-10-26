@@ -82,7 +82,7 @@ fun DataCenterSyncCard(
                 color = Slate500,
             )
             NexoraText(
-                text = item.lastUpdatedLabel,
+                text = stringResource(R.string.data_center_last_updated_minutes_format, item.lastUpdatedMinutesAgo),
                 style = MaterialTheme.typography.labelSmall,
                 color = Slate400,
                 modifier = Modifier.padding(top = spacing.spaceExtraExtraSmall),

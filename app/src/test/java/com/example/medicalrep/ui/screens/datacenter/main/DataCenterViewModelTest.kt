@@ -44,8 +44,17 @@ class DataCenterViewModelTest {
     fun `starts with six idle categories and the full update first`() {
         val items = viewModel.state.value.items
         assertEquals(6, items.size)
-        assertEquals(DataCenterSyncItemUi.ID_FULL, items.first().id)
-        assertEquals(DataCenterSyncItemUi.ID_PRODUCTS, items[items.indexOfFirst { it.id == DataCenterSyncItemUi.ID_CLINICS } + 1].id)
+        assertEquals(
+            listOf(
+                DataCenterSyncItemUi.ID_FULL,
+                DataCenterSyncItemUi.ID_DOCTORS,
+                DataCenterSyncItemUi.ID_PRODUCTS,
+                DataCenterSyncItemUi.ID_SAMPLES,
+                DataCenterSyncItemUi.ID_PLANNED,
+                DataCenterSyncItemUi.ID_UNPLANNED,
+            ),
+            items.map { it.id },
+        )
         assertEquals(true, items.all { it.status == DataCenterSyncStatus.Idle })
         assertEquals(items.size, items.map { it.id }.distinct().size)
     }

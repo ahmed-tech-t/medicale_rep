@@ -14,8 +14,18 @@ object MapRepTrackingFakes {
         30.0750 to 31.3300, 30.0910 to 31.3220, 30.0800 to 31.3600,
         30.0600 to 31.4000, 30.0300 to 31.4500, 30.0074 to 31.4913,
     ).mapIndexed { index, (latitude, longitude) ->
-        TrackUserMapMarker(id = index, latitude = latitude, longitude = longitude, visitId = "t$index")
+        TrackUserMapMarker(
+            id = index,
+            latitude = latitude,
+            longitude = longitude,
+            visitId = "t$index",
+            timeMillis = START_MILLIS + MINUTES_AT_POINT[index] * 60_000L,
+        )
     }
+
+    // Visits sit at points 0, 5, 7 and 11: a drive (18 min), a walk (45 min) and a drive (35 min).
+    private const val START_MILLIS = 1_791_000_000_000L
+    private val MINUTES_AT_POINT = listOf(0, 4, 8, 12, 15, 18, 40, 63, 70, 76, 82, 98)
 
     fun state(): MapRepTrackingState {
         val route = route()

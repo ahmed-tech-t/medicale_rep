@@ -70,11 +70,11 @@ class RepTrackingViewModelTest {
     }
 
     @Test
-    fun `date range is stored`() {
-        viewModel.onEvent(RepTrackingEvents.FromDateChanged(10L))
-        viewModel.onEvent(RepTrackingEvents.ToDateChanged(20L))
-        assertEquals(10L, state.fromDateMillis)
-        assertEquals(20L, state.toDateMillis)
+    fun `selected day is stored`() {
+        viewModel.onEvent(RepTrackingEvents.DateChanged(10L))
+        assertEquals(10L, state.dateMillis)
+        viewModel.onEvent(RepTrackingEvents.DateChanged(20L))
+        assertEquals(20L, state.dateMillis)
     }
 
     @Test

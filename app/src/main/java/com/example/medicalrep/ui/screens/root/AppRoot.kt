@@ -1,11 +1,6 @@
 package com.example.medicalrep.ui.screens.root
 
 import android.app.Activity
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -17,7 +12,7 @@ import com.example.medicalrep.ui.common.location.LocationStatusViewModel
 import com.example.medicalrep.ui.common.location.hasLocationPermission
 import com.example.medicalrep.ui.common.location.openLocationSettings
 import com.example.medicalrep.ui.common.location.rememberLocationPermissionLauncher
-import com.example.medicalrep.ui.components.widgets.LocationWarningBanner
+import com.example.medicalrep.ui.components.widgets.LocationRequiredDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -55,7 +50,7 @@ fun AppRoot(
 
     // Location is only needed after login: ask once the main graph opens; the status is re-read on every resume.
     val locationStatus by locationViewModel.status.collectAsStateWithLifecycle()
-    val showLocationWarning = isMain && locationStatus != LocationStatus.Ready
+    val locationRequired = isMain && locationStatus != LocationStatus.Ready
     val permissionLauncher = rememberLocationPermissionLauncher()
     LaunchedEffect(isMain) {
         if (isMain && !context.hasLocationPermission()) permissionLauncher.launch(LOCATION_PERMISSIONS)
@@ -65,10 +60,9 @@ fun AppRoot(
         onPauseOrDispose {}
     }
 
-    LaunchedEffect(isAuth, showLocationWarning) {
+    LaunchedEffect(isAuth) {
         val window = (view.context as Activity).window
-        // The red warning bar needs light icons, whatever screen is shown.
-        WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = isAuth && !showLocationWarning
+        WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = isAuth
     }
 
     rootViewModel.uiEvent.HandleUiEvents(
@@ -90,21 +84,15 @@ fun AppRoot(
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHostState = snackbarHostState
     ) { padding ->
-        Column {
-            if (showLocationWarning) {
-                LocationWarningBanner(
-                    status = locationStatus,
-                    onActionClick = { context.openLocationSettings(locationStatus) },
-                )
-            }
-            AppNavHost(
-                navController = navController,
-                startDestination = startDestination,
-                snackbarHostState = snackbarHostState,
-                // The banner already sits under the status bar, so screens must not pad for it again.
-                modifier = Modifier
-                    .weight(1f)
-                    .then(if (showLocationWarning) Modifier.consumeWindowInsets(WindowInsets.statusBars) else Modifier),
+        AppNavHost(
+            navController = navController,
+            startDestination = startDestination,
+            snackbarHostState = snackbarHostState,
+        )
+        if (locationRequired) {
+            LocationRequiredDialog(
+                status = locationStatus,
+                onActionClick = { context.openLocationSettings(locationStatus) },
             )
         }
     }

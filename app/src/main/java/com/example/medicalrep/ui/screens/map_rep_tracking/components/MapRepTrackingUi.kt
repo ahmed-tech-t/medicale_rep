@@ -18,6 +18,7 @@ import com.example.medicalrep.ui.screens.map_rep_tracking.main.MapRepTrackingEve
 import com.example.medicalrep.ui.screens.map_rep_tracking.main.MapRepTrackingState
 import com.example.medicalrep.ui.screens.map_rep_tracking.models.TrackUserMapMarker
 import com.example.medicalrep.ui.screens.map_rep_tracking.utils.MapRepTrackingFakes
+import com.example.medicalrep.ui.screens.map_rep_tracking.utils.travelSegments
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 
 /** Figma 287:1247: the rep's route on a map, with the tapped visit's card at the bottom. */
@@ -32,6 +33,7 @@ fun MapRepTrackingUi(
             TrackUserMapMarker(index, visit.visitLatitude, visit.visitLongitude, visit.id)
         }
     }
+    val segments = remember(visitMarkers, state.routePoints) { travelSegments(visitMarkers, state.routePoints) }
     Column(modifier = modifier.fillMaxSize()) {
         AppHeader(
             title = stringResource(R.string.map_rep_tracking_title),
@@ -41,6 +43,7 @@ fun MapRepTrackingUi(
             GoogleMapComponent(
                 visitss = visitMarkers,
                 repTrack = state.routePoints,
+                segments = segments,
                 roadRoute = state.route.data?.points.orEmpty(),
                 onMarkerClick = { onEvent(MapRepTrackingEvents.MarkerClicked(it)) },
                 selectedVisitId = state.selectedVisitId,

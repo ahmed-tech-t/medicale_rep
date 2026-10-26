@@ -32,8 +32,7 @@ object RepTrackingFakes {
     fun state(): RepTrackingState = RepTrackingState(
         reps = listOf("أحمد محمد (ميديكال ريب)", "سارة علي (ميديكال ريب)"),
         selectedRep = "أحمد محمد (ميديكال ريب)",
-        fromDateMillis = 1_791_072_000_000L,
-        toDateMillis = 1_791_676_800_000L,
+        dateMillis = 1_791_072_000_000L,
         visits = visits(),
     )
 }

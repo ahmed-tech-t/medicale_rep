@@ -73,20 +73,10 @@ fun RepTrackingUi(
                 showPopup = showPopup,
                 onClick = { showPopup = !showPopup }
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmall)) {
-                DateField(
-                    dateMillis = state.fromDateMillis,
-                    onDateChange = { onEvent(RepTrackingEvents.FromDateChanged(it)) },
-                    prefix = stringResource(R.string.date_from_label),
-                    modifier = Modifier.weight(1f),
-                )
-                DateField(
-                    dateMillis = state.toDateMillis,
-                    onDateChange = { onEvent(RepTrackingEvents.ToDateChanged(it)) },
-                    prefix = stringResource(R.string.date_to_label),
-                    modifier = Modifier.weight(1f),
-                )
-            }
+            DateField(
+                dateMillis = state.dateMillis,
+                onDateChange = { onEvent(RepTrackingEvents.DateChanged(it)) },
+            )
 
             SectionLabel(stringResource(R.string.rep_tracking_period_summary))
             Row(horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmall)) {

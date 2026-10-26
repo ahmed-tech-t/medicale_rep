@@ -8,7 +8,7 @@ data class DataCenterSyncItemUi(
     val id: String,
     @StringRes val titleRes: Int,
     @StringRes val subtitleRes: Int,
-    val lastUpdatedLabel: String,
+    val lastUpdatedMinutesAgo: Int,
     val status: DataCenterSyncStatus = DataCenterSyncStatus.Idle,
 ) {
     /** The full-update card is the primary action and is drawn highlighted. */
@@ -17,8 +17,8 @@ data class DataCenterSyncItemUi(
     companion object {
         const val ID_FULL = "full_master"
         const val ID_DOCTORS = "doctors"
-        const val ID_CLINICS = "clinics"
         const val ID_PRODUCTS = "products"
+        const val ID_SAMPLES = "samples"
         const val ID_PLANNED = "planned_visits"
         const val ID_UNPLANNED = "unplanned_visits"
     }

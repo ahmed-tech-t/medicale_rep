@@ -7,8 +7,8 @@ import com.example.medicalrep.ui.models.VisitUi
 data class RepTrackingState(
     val reps: List<String> = emptyList(),
     val selectedRep: String = "",
-    val fromDateMillis: Long = 0L,
-    val toDateMillis: Long = 0L,
+    /** The day whose visits are shown. */
+    val dateMillis: Long = 0L,
     val visits: List<VisitUi> = emptyList(),
 ) {
     val visitsCount: Int get() = visits.size

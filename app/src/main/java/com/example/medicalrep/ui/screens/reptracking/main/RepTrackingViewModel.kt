@@ -17,7 +17,7 @@ class RepTrackingViewModel @Inject constructor(
     appSettingsRepo: AppSettingsRepo,
 ) : BaseViewModel(appSettingsRepo) {
 
-    // TODO: load the reps and the selected rep's visits for the date range from Room / the backend.
+    // TODO: load the reps and the selected rep's visits for the selected day from Room / the backend.
     private val _state = MutableStateFlow(RepTrackingFakes.state())
     val state: StateFlow<RepTrackingState> = _state.asStateFlow()
 
@@ -27,8 +27,7 @@ class RepTrackingViewModel @Inject constructor(
             is RepTrackingEvents.SelectRep -> if (event.name.isNotBlank()) {
                 _state.update { it.copy(selectedRep = event.name) }
             }
-            is RepTrackingEvents.FromDateChanged -> _state.update { it.copy(fromDateMillis = event.millis) }
-            is RepTrackingEvents.ToDateChanged -> _state.update { it.copy(toDateMillis = event.millis) }
+            is RepTrackingEvents.DateChanged -> _state.update { it.copy(dateMillis = event.millis) }
             is RepTrackingEvents.OpenVisit ->
                 sendEvent(UiEvent.Navigate(MainGraph.VisitDetails(visitId = event.visitId)))
             RepTrackingEvents.ViewRoute -> sendEvent(UiEvent.Navigate(MainGraph.MapRepTracking))

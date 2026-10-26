@@ -117,12 +117,13 @@
     <string name="data_center_section_server">بيانات السيرفر الرئيسية</string>
     <string name="data_center_card_full_title">تحديث شامل للبيانات</string>
     <string name="data_center_card_full_subtitle">تحميل وتحديث كافة السجلات والخطط دفعة واحدة</string>
-    <string name="data_center_card_doctors_title">قوائم الأطباء والتسجيل</string>
-    <string name="data_center_card_doctors_subtitle">تحديث تصنيفات الأطباء، التخصصات، والمناطق</string>
-    <string name="data_center_card_clinics_title">العيادات والمستشفيات</string>
-    <string name="data_center_card_clinics_subtitle">سجلات المراكز الطبية، الصيدليات وبيانات التواصل</string>
+    <string name="data_center_card_doctors_title">الأطباء والحسابات</string>
+    <string name="data_center_card_doctors_subtitle">المدن والمناطق، أنواع الحسابات، العيادات، المستشفيات، الأطباء والتخصصات</string>
     <string name="data_center_card_products_title">المنتجات</string>
-    <string name="data_center_card_products_subtitle">تحديث قائمة المنتجات والعينات والهدايا</string>
+    <string name="data_center_card_products_subtitle">كتالوج المنتجات مع الأسعار والخصومات</string>
+    <string name="data_center_card_samples_title">العينات الطبية</string>
+    <string name="data_center_card_samples_subtitle">العينات الطبية ورصيد عهدتك المتبقي</string>
+    <string name="data_center_last_updated_minutes_format">آخر تحديث: منذ %1$d دقيقة</string>
     <string name="data_center_card_planned_title">الزيارات المخطط لها</string>
     <string name="data_center_card_planned_subtitle">جداول الزيارات المجدولة للدورة الحالية والملاحظات</string>
     <string name="data_center_card_unplanned_title">الزيارات الغير مخطط لها</string>
@@ -198,6 +199,7 @@
     <string name="distance_km_format">%1$d كم</string>
     <string name="distance_m_format">%1$d م</string>
     <string name="cd_expand">توسيع</string>
+    <string name="location_required_title">الموقع مطلوب</string>
     <string name="location_warning">من فضلك قم بتشغيل GPS أو امنح إذن الموقع</string>
     <string name="location_grant_permission">منح الإذن</string>
     <string name="location_turn_on_gps">تشغيل GPS</string>
@@ -329,8 +331,6 @@
     <!-- Rep tracking -->
     <string name="rep_tracking_title">متابعة المندوب</string>
     <string name="rep_tracking_change">تغيير</string>
-    <string name="date_from_label">من:</string>
-    <string name="date_to_label">إلى:</string>
     <string name="rep_tracking_period_summary">ملخص أداء الفترة</string>
     <string name="rep_tracking_total_visits">إجمالي الزيارات</string>
     <string name="rep_tracking_products">المنتجات</string>

@@ -30,13 +30,13 @@ import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.components.widgets.NexoraChip
 import com.example.medicalrep.ui.screens.planvisit.account_directions.main.AccountDirectionsState
 import com.example.medicalrep.ui.screens.planvisit.account_directions.utils.distanceText
-import com.example.medicalrep.ui.screens.planvisit.account_directions.utils.durationText
 import com.example.medicalrep.ui.screens.visitdetails.components.LocationMatchBanner
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 import com.example.medicalrep.ui.ui.theme.Slate100
 import com.example.medicalrep.ui.ui.theme.Slate500
 import com.example.medicalrep.ui.ui.theme.Slate600
 import com.example.medicalrep.ui.ui.theme.Slate900
+import com.example.medicalrep.ui.utils.durationText
 import com.example.medicalrep.ui.utils.formatClockTime
 
 /** Where the rep is, how far the account is and how long it takes; the chevron minimizes the card to its header. */
