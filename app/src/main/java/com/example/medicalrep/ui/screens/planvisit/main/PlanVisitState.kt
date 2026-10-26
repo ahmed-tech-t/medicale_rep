@@ -16,20 +16,6 @@ sealed interface PlanVisitOverlay {
     data object SaveDraft : PlanVisitOverlay
 }
 
-/** A new visit starts with every search field empty (the options stay), so the rep chooses each one himself. */
-fun PlanVisitState.withEmptyChoices(): PlanVisitState = copy(
-    visit = visit.copy(
-        city = "",
-        region = "",
-        account = "",
-        placeName = "",
-        specialty = "",
-        supervisorName = "",
-        classCategory = "",
-        address = "",
-    ),
-)
-
 /** The form filled with a saved draft, on the step it was left on. */
 fun PlanVisitState.withDraft(draft: DraftVisit): PlanVisitState {
     val visit = draft.visit.toUi()

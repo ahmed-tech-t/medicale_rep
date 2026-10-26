@@ -4,6 +4,7 @@ import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
 import com.example.medicalrep.domain.models.Product
+import com.example.medicalrep.domain.repo.FakeOrderRepo
 import com.example.medicalrep.domain.repo.FakeProductRepo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -44,7 +45,7 @@ class ProductsViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
-        viewModel = ProductsViewModel(FakeSettingsRepo, repo)
+        viewModel = ProductsViewModel(FakeSettingsRepo, repo, FakeOrderRepo())
     }
 
     @After

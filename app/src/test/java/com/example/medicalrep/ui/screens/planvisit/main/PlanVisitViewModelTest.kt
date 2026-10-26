@@ -14,7 +14,6 @@ import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.VisitType
 import com.example.medicalrep.ui.navigation.model.MainGraph
-import com.example.medicalrep.ui.screens.planvisit.utils.PlanVisitFakes
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -30,6 +29,14 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.Visit
+import com.example.medicalrep.domain.models.Account
+import com.example.medicalrep.domain.models.Custody
+import com.example.medicalrep.domain.models.User
+import com.example.medicalrep.domain.models.UserRole
+import com.example.medicalrep.domain.repo.FakeAccountRepo
+import com.example.medicalrep.domain.repo.FakeProductRepo
+import com.example.medicalrep.domain.repo.FakeUserRepo
+import com.example.medicalrep.domain.repo.FakeVisitRepo
 import com.example.medicalrep.domain.repo.FakeDraftVisitRepo
 import com.appcore.core.ui.utils.document_picker.PickedDocument
 import org.junit.After
@@ -72,6 +79,24 @@ class PlanVisitViewModelTest {
     private val locationHelper = FakeLocationHelper()
     private val geocodingRepo = FakeGeocodingRepo()
     private val draftRepo = FakeDraftVisitRepo()
+    private val accountRepo = FakeAccountRepo(
+        listOf(
+            Account(
+                "a1", name = "مستشفى الجامعة", city = "منوف", district = "وسط البلد", entityType = "صيدلية", specialty = "أطفال",
+                classCategory = "A", address = "برج الأطباء", latitude = 30.1444, longitude = 31.2357,
+            ),
+            Account("a2", name = "عيادة د. هاني", city = "قويسنا", district = "البر الشرقى", entityType = "عيادة", specialty = "باطنة"),
+        ),
+    )
+    private val userRepo = FakeUserRepo(listOf(User("s1", "د. سارة أحمد", "مشرف", role = UserRole.Supervisor)))
+    private val productRepo = FakeProductRepo(
+        custody = listOf(
+            Custody("gift-mug", "مج حراري", ProductType.Gift, received = 8, dispatched = 3),
+            Custody("gift-notebook", "دفتر ملاحظات", ProductType.Gift, received = 12),
+            Custody("sample-1", "GastroCure", ProductType.Product, received = 20),
+        ),
+    )
+    private val visitRepo = FakeVisitRepo()
 
     private val state get() = viewModel.state.value
 
@@ -84,7 +109,7 @@ class PlanVisitViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
-    /** Fills every search field of step 1 (the supervisor too, as the sample visit is a double visit). */
+    /** Fills every search field of step 1; the place's account also sets the class, address and coordinates. */
     private fun fillEntityStep() {
         viewModel.onEvent(PlanVisitEvents.SelectCity("منوف"))
         viewModel.onEvent(PlanVisitEvents.SelectDistrict("وسط البلد"))
@@ -101,7 +126,9 @@ class PlanVisitViewModelTest {
     }
 
     private fun createViewModel(savedStateHandle: SavedStateHandle = SavedStateHandle()) =
-        PlanVisitViewModel(FakeUnplannedSettingsRepo, savedStateHandle, locationHelper, geocodingRepo, draftRepo)
+        PlanVisitViewModel(
+            FakeUnplannedSettingsRepo, savedStateHandle, locationHelper, geocodingRepo, draftRepo, accountRepo, userRepo, productRepo, visitRepo,
+        )
 
     @Test
     fun `back with no changes leaves at once`() = runTest(dispatcher) {
@@ -264,30 +291,52 @@ class PlanVisitViewModelTest {
     }
 
     @Test
-    fun `a new visit starts on the entity step with the search fields empty`() {
+    fun `a new visit starts on the entity step with the search fields empty and the options from Room`() {
         assertEquals(PlanVisitStep.Entity, state.currentStep)
         assertEquals(PlanVisitOverlay.None, state.overlay)
         with(state.visit) {
             listOf(city, region, account, placeName, specialty, supervisorName, classCategory, address)
                 .forEach { assertEquals("", it) }
+            assertEquals(VisitType.Unplanned, type)
+            assertTrue(date.isNotBlank() && time.isNotBlank())
         }
-        assertTrue(state.cityOptions.isNotEmpty() && state.placeOptions.isNotEmpty() && state.supervisorOptions.isNotEmpty())
-        assertEquals(1, state.giftsCount)
-        assertEquals(3, state.productsCount)
+        assertEquals(listOf("منوف", "قويسنا"), state.cityOptions)
+        assertEquals(listOf("وسط البلد", "البر الشرقى"), state.districtOptions)
+        assertEquals(listOf("صيدلية", "عيادة"), state.entityTypeOptions)
+        assertEquals(listOf("أطفال", "باطنة"), state.specialtyOptions)
+        assertEquals(listOf("د. سارة أحمد"), state.supervisorOptions)
+        assertEquals(listOf("gift-mug", "gift-notebook"), state.giftCatalog.map { it.id })
+        assertEquals(listOf("sample-1"), state.productCatalog.map { it.id })
+        assertEquals(5, state.giftCatalog.first().remaining)
+        assertEquals(0, state.giftsCount)
+        assertEquals(0, state.productsCount)
         assertEquals(false, state.isEntityComplete)
     }
 
     @Test
-    fun `withEmptyChoices blanks only the search fields`() {
-        val sample = PlanVisitFakes.state()
-        val empty = sample.withEmptyChoices()
-        assertEquals("", empty.visit.city)
-        assertEquals("", empty.visit.placeName)
-        assertEquals(sample.visit.shift, empty.visit.shift)
-        assertEquals(sample.visit.isDoubleVisit, empty.visit.isDoubleVisit)
-        assertEquals(sample.visit.gifts, empty.visit.gifts)
-        assertEquals(sample.cityOptions, empty.cityOptions)
-        assertEquals(true, sample.isEntityComplete)
+    fun `places are the accounts at the chosen city, district and type`() {
+        assertEquals(listOf("مستشفى الجامعة", "عيادة د. هاني"), state.placeOptions)
+        viewModel.onEvent(PlanVisitEvents.SelectCity("منوف"))
+        assertEquals(listOf("مستشفى الجامعة"), state.placeOptions)
+        viewModel.onEvent(PlanVisitEvents.SelectEntityType("عيادة"))
+        assertEquals(emptyList<String>(), state.placeOptions)
+    }
+
+    @Test
+    fun `choosing a place fills its class, address and coordinates`() {
+        viewModel.onEvent(PlanVisitEvents.SelectPlace("مستشفى الجامعة"))
+        assertEquals("A", state.visit.classCategory)
+        assertEquals("برج الأطباء", state.visit.address)
+        assertEquals(30.1444, state.visit.accountLatitude, 0.0)
+        assertEquals(31.2357, state.visit.accountLongitude, 0.0)
+    }
+
+    @Test
+    fun `options follow the stored data`() {
+        accountRepo.current.value = accountRepo.current.value + Account("a3", name = "مركز", city = "الباجور", district = "x", entityType = "مركز طبي", specialty = "عظام")
+        assertTrue("الباجور" in state.cityOptions)
+        userRepo.current.value = userRepo.current.value + User("s2", "د. وائل", "مشرف", role = UserRole.Supervisor)
+        assertEquals(listOf("د. سارة أحمد", "د. وائل"), state.supervisorOptions)
     }
 
     @Test
@@ -301,12 +350,12 @@ class PlanVisitViewModelTest {
             PlanVisitEvents.SelectPlace("مستشفى الجامعة"),
             PlanVisitEvents.SelectSpecialty("أطفال"),
         )
-        fills.forEachIndexed { index, fill ->
+        viewModel.onEvent(PlanVisitEvents.SelectDoubleVisit(true))
+        fills.forEach { fill ->
             assertEquals(false, state.canGoNext)
             viewModel.onEvent(fill)
-            // The supervisor is still missing for the sample double visit.
+            // The supervisor is still missing for a double visit.
             assertEquals(false, state.canGoNext)
-            assertEquals(index == fills.lastIndex, state.visit.specialty.isNotBlank())
         }
         viewModel.onEvent(PlanVisitEvents.SelectSupervisor("د. سارة أحمد"))
         assertEquals(true, state.canGoNext)
@@ -415,8 +464,10 @@ class PlanVisitViewModelTest {
 
     @Test
     fun `confirm appends new items and merges existing ones`() {
-        val notebook = PlanVisitFakes.giftCatalog[1].copy(quantity = 2)
-        val mug = PlanVisitFakes.giftCatalog[0].copy(quantity = 1)
+        val notebook = state.giftCatalog[1].copy(quantity = 2)
+        val mug = state.giftCatalog[0].copy(quantity = 1)
+        viewModel.onEvent(PlanVisitEvents.OpenAddItem(ProductType.Gift))
+        viewModel.onEvent(PlanVisitEvents.ConfirmAddItems(listOf(mug)))
 
         viewModel.onEvent(PlanVisitEvents.OpenAddItem(ProductType.Gift))
         viewModel.onEvent(PlanVisitEvents.ConfirmAddItems(listOf(notebook, mug)))
@@ -439,20 +490,25 @@ class PlanVisitViewModelTest {
     @Test
     fun `confirm without open sheet is ignored`() {
         val before = state
-        viewModel.onEvent(PlanVisitEvents.ConfirmAddItems(PlanVisitFakes.giftCatalog))
+        viewModel.onEvent(PlanVisitEvents.ConfirmAddItems(state.giftCatalog))
         assertEquals(before, state)
     }
 
     @Test
     fun `quantity is capped at remaining custody`() {
+        viewModel.onEvent(PlanVisitEvents.OpenAddItem(ProductType.Gift))
+        viewModel.onEvent(PlanVisitEvents.ConfirmAddItems(listOf(state.giftCatalog.first { it.id == "gift-mug" })))
         repeat(10) { viewModel.onEvent(PlanVisitEvents.ChangeQuantity(ProductType.Gift, "gift-mug", +1)) }
         assertEquals(5, state.visit.gifts.single().quantity)
     }
 
     @Test
     fun `decreasing to zero removes the row`() {
-        viewModel.onEvent(PlanVisitEvents.ChangeQuantity(ProductType.Product, "product-pediamol", -1))
-        assertEquals(listOf("product-gastro"), state.visit.products.map { it.id })
+        viewModel.onEvent(PlanVisitEvents.OpenAddItem(ProductType.Product))
+        viewModel.onEvent(PlanVisitEvents.ConfirmAddItems(state.productCatalog))
+        assertEquals(listOf("sample-1"), state.visit.products.map { it.id })
+        viewModel.onEvent(PlanVisitEvents.ChangeQuantity(ProductType.Product, "sample-1", -1))
+        assertEquals(emptyList<String>(), state.visit.products.map { it.id })
     }
 
     @Test
@@ -478,6 +534,7 @@ class PlanVisitViewModelTest {
 
     @Test
     fun `view location opens the map with the visit coordinates`() = runTest(dispatcher) {
+        openResultStep()
         val events = collectEvents()
         viewModel.onEvent(PlanVisitEvents.ViewLocationClick)
         assertEquals(
@@ -500,6 +557,7 @@ class PlanVisitViewModelTest {
     @Test
     fun `view account directions opens the screen with the account coordinates and name`() = runTest(dispatcher) {
         val events = collectEvents()
+        fillEntityStep()
         viewModel.onEvent(PlanVisitEvents.ViewAccountDirectionsClick)
         assertEquals(
             listOf<UiEvent>(
@@ -528,7 +586,7 @@ class PlanVisitViewModelTest {
                         accountLatitude = visit.accountLatitude,
                         accountLongitude = visit.accountLongitude,
                         accountName = visit.placeName,
-                        address = visit.city, // the address is blank for a new visit, so only the city shows
+                        address = "منوف - برج الأطباء",
                         classCategory = visit.classCategory,
                         accountType = visit.account,
                         specialty = visit.specialty,
