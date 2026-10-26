@@ -22,10 +22,10 @@ fun Context.hasLocationPermission(): Boolean = LOCATION_PERMISSIONS.any {
     ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
 }
 
-/** The result is not needed here: the screen re-checks the status when it resumes. */
+/** [onAnswered] runs when the user has answered the system prompt (also at once when it cannot be shown again). */
 @Composable
-fun rememberLocationPermissionLauncher(): ManagedActivityResultLauncher<Array<String>, Map<String, Boolean>> =
-    rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {}
+fun rememberLocationPermissionLauncher(onAnswered: () -> Unit = {}): ManagedActivityResultLauncher<Array<String>, Map<String, Boolean>> =
+    rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { onAnswered() }
 
 /** Opens the screen where the user can fix [status]: app permissions or the GPS switch. */
 fun Context.openLocationSettings(status: LocationStatus) {

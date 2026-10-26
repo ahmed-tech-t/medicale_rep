@@ -6,7 +6,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.medicalrep.ui.common.location.LOCATION_PERMISSIONS
-import com.example.medicalrep.ui.common.location.LocationStatus
+import com.example.medicalrep.ui.common.location.locationDialogNeeded
 import com.example.medicalrep.ui.common.location.LocationStatusEvents
 import com.example.medicalrep.ui.common.location.LocationStatusViewModel
 import com.example.medicalrep.ui.common.location.hasLocationPermission
@@ -18,6 +18,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -50,8 +53,12 @@ fun AppRoot(
 
     // Location is only needed after login: ask once the main graph opens; the status is re-read on every resume.
     val locationStatus by locationViewModel.status.collectAsStateWithLifecycle()
-    val locationRequired = isMain && locationStatus != LocationStatus.Ready
-    val permissionLauncher = rememberLocationPermissionLauncher()
+    var permissionPrompted by rememberSaveable { mutableStateOf(false) }
+    val locationRequired = locationDialogNeeded(isMain, locationStatus, permissionPrompted)
+    val permissionLauncher = rememberLocationPermissionLauncher(onAnswered = {
+        locationViewModel.onEvent(LocationStatusEvents.Refresh)
+        permissionPrompted = true
+    })
     LaunchedEffect(isMain) {
         if (isMain && !context.hasLocationPermission()) permissionLauncher.launch(LOCATION_PERMISSIONS)
     }
