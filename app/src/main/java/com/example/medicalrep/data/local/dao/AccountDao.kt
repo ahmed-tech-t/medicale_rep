@@ -30,6 +30,13 @@ abstract class AccountDao : BaseDao<AccountEntity> {
     @Query("SELECT COUNT(*) FROM accounts WHERE (:type IS NULL OR accountType = :type) AND searchText LIKE '%' || :query || '%'")
     abstract fun count(type: AccountType?, query: String): Flow<Int>
 
+    /** Accounts at a place; a blank city, district or type means any. */
+    @Query(
+        "SELECT * FROM accounts WHERE (:city = '' OR city = :city) AND (:district = '' OR district = :district)" +
+            " AND (:entityType = '' OR entityType = :entityType) ORDER BY name",
+    )
+    abstract fun places(city: String, district: String, entityType: String): Flow<List<AccountEntity>>
+
     @Query("DELETE FROM accounts WHERE id = :id")
     abstract suspend fun deleteById(id: String): Int
 

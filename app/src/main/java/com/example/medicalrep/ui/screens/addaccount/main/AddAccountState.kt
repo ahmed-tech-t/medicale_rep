@@ -13,14 +13,15 @@ data class AddAccountState(
     val classCategory: String = "",
     val specialty: String = "",
     val name: TextFieldState = TextFieldState(),
-    val userLocation: MapCameraTarget = MapCameraTarget(0.0, 0.0),
+    /** Where the map starts: the rep's location once known, the work area until then. */
+    val userLocation: MapCameraTarget = MapCameraTarget(30.5589, 31.0112),
     val pin: MapCameraTarget? = null,
     val signPhoto: Uri? = null,
     val capturedAtMillis: Long = 0L,
     val cityOptions: List<String> = emptyList(),
     val districtOptions: List<String> = emptyList(),
     val entityTypeOptions: List<String> = emptyList(),
-    val classOptions: List<String> = emptyList(),
+    val classOptions: List<String> = listOf("A", "B", "C"),
     val specialtyOptions: List<String> = emptyList(),
 ) {
     val nameBlank: Boolean get() = name.text.isBlank()

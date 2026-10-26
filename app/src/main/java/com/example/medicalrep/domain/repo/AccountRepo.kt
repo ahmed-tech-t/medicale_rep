@@ -18,6 +18,9 @@ interface AccountRepo {
     /** A download never overwrites an account that has changes waiting to be uploaded. */
     suspend fun saveFromServer(accounts: List<Account>)
 
+    /** Accounts at a place; a blank [city], [district] or [entityType] means any. */
+    fun places(city: String = "", district: String = "", entityType: String = ""): Flow<List<Account>>
+
     fun cities(): Flow<List<String>>
     fun districts(): Flow<List<String>>
     fun specialties(): Flow<List<String>>

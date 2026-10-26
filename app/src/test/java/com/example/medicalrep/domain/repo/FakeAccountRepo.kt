@@ -41,6 +41,10 @@ class FakeAccountRepo(initial: List<Account> = emptyList()) : AccountRepo {
         accounts.forEach { save(it) }
     }
 
+    override fun places(city: String, district: String, entityType: String): Flow<List<Account>> = current.map { list ->
+        list.filter { (city.isBlank() || it.city == city) && (district.isBlank() || it.district == district) && (entityType.isBlank() || it.entityType == entityType) }
+    }
+
     override fun cities(): Flow<List<String>> = current.map { list -> list.map { it.city }.filter { it.isNotBlank() }.distinct() }
     override fun districts(): Flow<List<String>> = current.map { list -> list.map { it.district }.filter { it.isNotBlank() }.distinct() }
     override fun specialties(): Flow<List<String>> = current.map { list -> list.map { it.specialty }.filter { it.isNotBlank() }.distinct() }

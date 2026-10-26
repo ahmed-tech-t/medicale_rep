@@ -7,6 +7,8 @@ import com.example.medicalrep.data.local.search.normalizeSearch
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.AccountType
 import com.example.medicalrep.domain.repo.AccountRepo
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class AccountRepoImpl @Inject constructor(private val dao: AccountDao) : AccountRepo {
@@ -30,6 +32,9 @@ class AccountRepoImpl @Inject constructor(private val dao: AccountDao) : Account
     }
 
     override suspend fun saveFromServer(accounts: List<Account>) = dao.upsertFromServer(accounts.map { it.toEntity() })
+
+    override fun places(city: String, district: String, entityType: String): Flow<List<Account>> =
+        dao.places(city, district, entityType).map { list -> list.map { it.toDomain() } }
 
     override fun cities() = dao.distinctCities()
     override fun districts() = dao.distinctDistricts()

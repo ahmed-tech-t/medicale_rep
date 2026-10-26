@@ -31,6 +31,9 @@ interface CustodyDao : BaseDao<CustodyEntity> {
     fun paged(): PagingSource<Int, CustodyWithPending>
 
     @Query("$WITH_PENDING WHERE c.kind = :kind ORDER BY c.name")
+    fun getByKind(kind: ProductType): Flow<List<CustodyWithPending>>
+
+    @Query("$WITH_PENDING WHERE c.kind = :kind ORDER BY c.name")
     fun pagedByKind(kind: ProductType): PagingSource<Int, CustodyWithPending>
 
     @Query("$WITH_PENDING WHERE c.searchText LIKE '%' || :query || '%' ORDER BY c.name")

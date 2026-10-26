@@ -9,6 +9,8 @@ import com.example.medicalrep.domain.models.Custody
 import com.example.medicalrep.domain.models.Product
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.repo.ProductRepo
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class ProductRepoImpl @Inject constructor(
@@ -35,6 +37,9 @@ class ProductRepoImpl @Inject constructor(
         },
         toDomain = { it.toDomain() },
     )
+
+    override fun custodyList(kind: ProductType): Flow<List<Custody>> =
+        custodyDao.getByKind(kind).map { list -> list.map { it.toDomain() } }
 
     override suspend fun getCustody(id: String): Custody? = custodyDao.getWithPending(id)?.toDomain()
 

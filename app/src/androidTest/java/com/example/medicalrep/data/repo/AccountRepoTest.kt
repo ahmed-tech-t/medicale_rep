@@ -41,6 +41,16 @@ class AccountRepoTest : RepoTestBase() {
         assertEquals(0, repo.accountCount(type = AccountType.Pharmacy).first())
     }
 
+    @Test fun placesAreFilteredByCityDistrictAndTypeWithBlankMeaningAny() = runTest {
+        repo.save(Account("1", name = "أ", city = "منوف", district = "وسط البلد", entityType = "عيادة"))
+        repo.save(Account("2", name = "ب", city = "منوف", district = "البر الشرقى", entityType = "صيدلية"))
+        repo.save(Account("3", name = "ج", city = "قويسنا", district = "وسط البلد", entityType = "عيادة"))
+        assertEquals(3, repo.places().first().size)
+        assertEquals(listOf("أ", "ب"), repo.places(city = "منوف").first().map { it.name })
+        assertEquals(listOf("أ"), repo.places("منوف", "وسط البلد", "عيادة").first().map { it.name })
+        assertEquals(emptyList<String>(), repo.places("قويسنا", "", "صيدلية").first().map { it.name })
+    }
+
     @Test fun distinctValues() = runTest {
         repo.save(Account("1", name = "a", city = "Cairo", specialty = "Cardio"))
         repo.save(Account("2", name = "b", city = "Cairo"))

@@ -44,6 +44,8 @@ class FakeProductRepo(
         }
     }
 
+    override fun custodyList(kind: ProductType): Flow<List<Custody>> = custodyList.map { list -> list.filter { it.kind == kind } }
+
     override suspend fun getCustody(id: String): Custody? = custodyList.value.firstOrNull { it.id == id }
 
     override suspend fun saveCustody(custody: List<Custody>) {

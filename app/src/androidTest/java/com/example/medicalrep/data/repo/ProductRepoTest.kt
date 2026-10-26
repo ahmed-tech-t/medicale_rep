@@ -35,6 +35,12 @@ class ProductRepoTest : RepoTestBase() {
         assertEquals(listOf("3"), repo.custody("قلم ازرق").asSnapshot().map { it.id })
     }
 
+    @Test fun custodyListGivesOneKindWithRemaining() = runTest {
+        repo.saveCustody(listOf(Custody("1", "Pen", ProductType.Gift, received = 10, dispatched = 4), Custody("2", "Drug", ProductType.Product, received = 5)))
+        assertEquals(listOf("1"), repo.custodyList(ProductType.Gift).first().map { it.id })
+        assertEquals(6, repo.custodyList(ProductType.Gift).first().single().remaining)
+    }
+
     @Test fun custodyRemainingSubtractsVisitsNotUploadedYet() = runTest {
         repo.saveCustody(listOf(Custody("c1", "Pen", ProductType.Gift, received = 10, dispatched = 2)))
         val visits = VisitRepoImpl(db.visitDao(), media)

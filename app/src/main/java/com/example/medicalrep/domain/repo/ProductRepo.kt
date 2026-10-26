@@ -15,6 +15,9 @@ interface ProductRepo {
 
     /** [kind] null means both samples and gifts. `remaining` already subtracts what visits not uploaded yet gave. */
     fun custody(query: String = "", kind: ProductType? = null): Flow<PagingData<Custody>>
+    /** All custody of one kind (for pickers); `remaining` already subtracts what visits not uploaded yet gave. */
+    fun custodyList(kind: ProductType): Flow<List<Custody>>
+
     suspend fun getCustody(id: String): Custody?
     suspend fun saveCustody(custody: List<Custody>)
 }
