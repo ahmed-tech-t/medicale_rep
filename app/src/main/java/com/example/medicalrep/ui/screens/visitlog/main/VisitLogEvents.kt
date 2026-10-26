@@ -8,6 +8,7 @@ sealed interface VisitLogEvents {
     data class StartVisit(val visitId: String) : VisitLogEvents
     data class OpenVisit(val visitId: String) : VisitLogEvents
     data object OpenFilter : VisitLogEvents
-    data object CloseFilter : VisitLogEvents
+    data object DismissOverlay : VisitLogEvents
+    data object ConfirmPending : VisitLogEvents
     data class SelectFilter(val filter: VisitFilter) : VisitLogEvents
 }

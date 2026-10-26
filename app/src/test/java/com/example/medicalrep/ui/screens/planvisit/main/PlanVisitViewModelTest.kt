@@ -28,6 +28,9 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import com.example.medicalrep.domain.models.DraftVisit
+import com.example.medicalrep.domain.models.Visit
+import com.example.medicalrep.domain.repo.FakeDraftVisitRepo
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -67,6 +70,7 @@ class PlanVisitViewModelTest {
     private lateinit var viewModel: PlanVisitViewModel
     private val locationHelper = FakeLocationHelper()
     private val geocodingRepo = FakeGeocodingRepo()
+    private val draftRepo = FakeDraftVisitRepo()
 
     private val state get() = viewModel.state.value
 
@@ -80,7 +84,94 @@ class PlanVisitViewModelTest {
     fun tearDown() = Dispatchers.resetMain()
 
     private fun createViewModel(savedStateHandle: SavedStateHandle = SavedStateHandle()) =
-        PlanVisitViewModel(FakeUnplannedSettingsRepo, savedStateHandle, locationHelper, geocodingRepo)
+        PlanVisitViewModel(FakeUnplannedSettingsRepo, savedStateHandle, locationHelper, geocodingRepo, draftRepo)
+
+    @Test
+    fun `back with no changes leaves at once`() = runTest(dispatcher) {
+        val events = collectEvents()
+        viewModel.onEvent(PlanVisitEvents.Back)
+        assertEquals(listOf<UiEvent>(UiEvent.NavigationUp), events)
+        assertEquals(PlanVisitOverlay.None, state.overlay)
+    }
+
+    @Test
+    fun `back with changes asks to save and does not leave`() = runTest(dispatcher) {
+        val events = collectEvents()
+        viewModel.onEvent(PlanVisitEvents.SelectCity("Cairo"))
+        viewModel.onEvent(PlanVisitEvents.Back)
+        assertEquals(PlanVisitOverlay.SaveDraft, state.overlay)
+        assertEquals(0, events.size)
+    }
+
+    @Test
+    fun `back on the result step leaves without asking even with changes`() = runTest(dispatcher) {
+        val events = collectEvents()
+        viewModel.onEvent(PlanVisitEvents.SelectCity("Cairo"))
+        openResultStep()
+        viewModel.onEvent(PlanVisitEvents.Back)
+        assertEquals(PlanVisitOverlay.None, state.overlay)
+        assertEquals(listOf<UiEvent>(UiEvent.NavigationUp), events)
+    }
+
+    @Test
+    fun `save stores the draft with the current step, shows a snackbar and leaves`() = runTest(dispatcher) {
+        val events = collectEvents()
+        viewModel.onEvent(PlanVisitEvents.SelectCity("Cairo"))
+        viewModel.onEvent(PlanVisitEvents.Next)
+        viewModel.onEvent(PlanVisitEvents.Back)
+        viewModel.onEvent(PlanVisitEvents.SaveDraft)
+        val saved = draftRepo.current.value!!
+        assertEquals(1, saved.step)
+        assertEquals("Cairo", saved.visit.city)
+        assertEquals(PlanVisitOverlay.None, state.overlay)
+        assertTrue(events[0] is UiEvent.ShowSnackBar)
+        assertEquals(UiEvent.NavigationUp, events[1])
+    }
+
+    @Test
+    fun `dont save discards the draft and leaves`() = runTest(dispatcher) {
+        val events = collectEvents()
+        viewModel.onEvent(PlanVisitEvents.SelectCity("Cairo"))
+        viewModel.onEvent(PlanVisitEvents.Back)
+        viewModel.onEvent(PlanVisitEvents.DiscardDraft)
+        assertEquals(1, draftRepo.discardCount)
+        assertNull(draftRepo.current.value)
+        assertEquals(listOf<UiEvent>(UiEvent.NavigationUp), events)
+    }
+
+    @Test
+    fun `cancel closes the dialog and stays in the form`() = runTest(dispatcher) {
+        val events = collectEvents()
+        viewModel.onEvent(PlanVisitEvents.SelectCity("Cairo"))
+        viewModel.onEvent(PlanVisitEvents.Back)
+        viewModel.onEvent(PlanVisitEvents.DismissOverlay)
+        assertEquals(PlanVisitOverlay.None, state.overlay)
+        assertEquals(0, events.size)
+        assertEquals("Cairo", state.visit.city)
+    }
+
+    @Test
+    fun `a saved draft fills the form at its step and counts as unchanged`() {
+        val resumed = PlanVisitState().withDraft(DraftVisit(step = 1, visit = Visit(city = "Giza", placeName = "د. سامي")))
+        assertEquals(PlanVisitStep.GiftsProducts, resumed.currentStep)
+        assertEquals("Giza", resumed.visit.city)
+        assertEquals("د. سامي", resumed.visit.placeName)
+        assertEquals(resumed.visit, resumed.initialVisit)
+        assertEquals(false, resumed.asksToSave)
+    }
+
+    @Test
+    fun `a draft step outside the form is clamped`() {
+        assertEquals(PlanVisitStep.Result, PlanVisitState().withDraft(DraftVisit(step = 9, visit = Visit())).currentStep)
+        assertEquals(PlanVisitStep.Entity, PlanVisitState().withDraft(DraftVisit(step = -3, visit = Visit())).currentStep)
+    }
+
+    @Test
+    fun `ending the visit also clears any saved draft`() = runTest(dispatcher) {
+        draftRepo.current.value = DraftVisit(0, Visit())
+        viewModel.onEvent(PlanVisitEvents.EndVisit)
+        assertNull(draftRepo.current.value)
+    }
 
     private fun openResultStep() {
         viewModel.onEvent(PlanVisitEvents.Next)

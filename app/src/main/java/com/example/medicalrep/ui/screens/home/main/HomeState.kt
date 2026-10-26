@@ -7,6 +7,15 @@ import com.example.medicalrep.ui.models.StaticsMetricUi
 import com.example.medicalrep.ui.models.UserUi
 import com.example.medicalrep.ui.models.VisitUi
 
+/** A question over Home: starting a visit while one is pending, or cancelling the pending one. */
+sealed interface HomeOverlay {
+    data object None : HomeOverlay
+
+    /** [next] is what the rep asked for and will happen once the pending visit is cancelled. */
+    data class PendingVisit(val next: HomeEvents) : HomeOverlay
+    data object DiscardPending : HomeOverlay
+}
+
 @Immutable
 data class HomeState(
     val user: UserUi = UserUi(),
@@ -18,6 +27,7 @@ data class HomeState(
     val custodySummary: List<StaticsGiftsItemUi> = listOf(),
     val language: String = "ar",
     val isDrawerOpen: Boolean = false,
+    val overlay: HomeOverlay = HomeOverlay.None,
 ) {
 
     val shouldSync: Boolean = connection == ConnectionState.Online && toSyncVisits.isNotEmpty()

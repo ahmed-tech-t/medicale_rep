@@ -9,6 +9,8 @@ import com.appcore.core.domain.utils.UiText
 import com.appcore.core.ui.utils.BaseViewModel
 import com.example.medicalrep.R
 import com.example.medicalrep.domain.models.ConnectionState
+import com.example.medicalrep.domain.repo.DraftVisitRepo
+import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.common.connectivity.ConnectivityObserver
 import com.example.medicalrep.ui.navigation.model.MainGraph
 import com.example.medicalrep.ui.preview.HomeSamples
@@ -27,15 +29,20 @@ class HomeViewModel @Inject constructor(
     private val appSettingsManager: AppSettingsManager,
     private val localeHelper: LocaleHelper,
     connectivityObserver: ConnectivityObserver,
+    private val draftVisitRepo: DraftVisitRepo,
 ) : BaseViewModel(appSettingsRepo) {
 
     // Offline until the observer reports the real network state.
     private val _state = MutableStateFlow(
-        HomeSamples.homeState(language = appSettingsManager.getLanguageSync()).copy(connection = ConnectionState.Offline),
+        HomeSamples.homeState(language = appSettingsManager.getLanguageSync())
+            .copy(connection = ConnectionState.Offline, activeVisit = null),
     )
     val state: StateFlow<HomeState> = _state.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            draftVisitRepo.draft().collect { draft -> _state.update { it.copy(activeVisit = draft?.visit?.toUi()) } }
+        }
         viewModelScope.launch {
             connectivityObserver.connection.collect { connection -> _state.update { it.copy(connection = connection) } }
         }
@@ -49,7 +56,7 @@ class HomeViewModel @Inject constructor(
                 _state.update { it.copy(isDrawerOpen = false) }
                 when (event.item) {
                     NavDrawerItem.Language -> switchLanguage()
-                    NavDrawerItem.AddVisit -> openPlanVisit()
+                    NavDrawerItem.AddVisit -> requestStart(HomeEvents.OnAddVisitClick)
                     NavDrawerItem.Products -> sendEvent(UiEvent.Navigate(MainGraph.Products))
                     NavDrawerItem.Accounts -> sendEvent(UiEvent.Navigate(MainGraph.Accounts))
                     NavDrawerItem.PlanVisit -> sendEvent(UiEvent.Navigate(MainGraph.VisitPlanning))
@@ -61,12 +68,39 @@ class HomeViewModel @Inject constructor(
                     NavDrawerItem.InfoCenter -> sendEvent(UiEvent.Navigate(MainGraph.DataCenter))
                 }
             }
-            HomeEvents.OnAddVisitClick -> openPlanVisit()
-            is HomeEvents.OnStartVisit -> sendEvent(UiEvent.Navigate(MainGraph.PlanVisit(visitId = event.visitId)))
+            HomeEvents.OnAddVisitClick, is HomeEvents.OnStartVisit -> requestStart(event)
+            HomeEvents.OnActiveContinue -> sendEvent(UiEvent.Navigate(MainGraph.PlanVisit(resumeDraft = true)))
+            HomeEvents.OnActiveCancel -> _state.update { it.copy(overlay = HomeOverlay.DiscardPending) }
+            HomeEvents.OnPendingVisitConfirm -> confirmPending()
+            HomeEvents.OnDiscardPendingConfirm -> viewModelScope.launch {
+                draftVisitRepo.discard()
+                _state.update { it.copy(overlay = HomeOverlay.None) }
+            }
+            HomeEvents.OnOverlayDismiss -> _state.update { it.copy(overlay = HomeOverlay.None) }
             HomeEvents.OnSyncClick,
-            HomeEvents.OnActiveContinue,
-            HomeEvents.OnActiveCancel,
             HomeEvents.OnTodayMoreClick -> showComingSoon()
+        }
+    }
+
+    /** Starting a visit while one is pending asks first; otherwise it starts at once. */
+    private fun requestStart(event: HomeEvents) {
+        if (_state.value.activeVisit != null) _state.update { it.copy(overlay = HomeOverlay.PendingVisit(event)) }
+        else startVisit(event)
+    }
+
+    private fun startVisit(event: HomeEvents) {
+        when (event) {
+            is HomeEvents.OnStartVisit -> sendEvent(UiEvent.Navigate(MainGraph.PlanVisit(visitId = event.visitId)))
+            else -> openPlanVisit()
+        }
+    }
+
+    private fun confirmPending() {
+        val next = (_state.value.overlay as? HomeOverlay.PendingVisit)?.next ?: return
+        viewModelScope.launch {
+            draftVisitRepo.discard()
+            _state.update { it.copy(overlay = HomeOverlay.None) }
+            startVisit(next)
         }
     }
 

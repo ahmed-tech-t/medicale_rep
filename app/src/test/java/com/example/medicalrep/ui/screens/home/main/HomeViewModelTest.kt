@@ -22,10 +22,14 @@ import kotlinx.coroutines.test.setMain
 import com.example.medicalrep.domain.models.ConnectionState
 import com.example.medicalrep.ui.common.connectivity.ConnectivityObserver
 import kotlinx.coroutines.flow.MutableStateFlow
+import com.example.medicalrep.domain.models.DraftVisit
+import com.example.medicalrep.domain.models.Visit
+import com.example.medicalrep.domain.repo.FakeDraftVisitRepo
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -55,6 +59,8 @@ class HomeViewModelTest {
     private lateinit var settingsManager: AppSettingsManager
     private lateinit var viewModel: HomeViewModel
     private val connectivity = MutableStateFlow<ConnectionState>(ConnectionState.Offline)
+    private val draftRepo = FakeDraftVisitRepo()
+    private val draft = DraftVisit(step = 1, visit = Visit(id = "draft", placeName = "عيادة د. محمود"))
 
     @Before
     fun setUp() {
@@ -63,13 +69,71 @@ class HomeViewModelTest {
             FakeHomeSettingsRepo,
             CoreConfig(baseUrl = "", isDebug = false, cryptoKeyAlias = "", defaultLanguage = "ar"),
         )
-        viewModel = HomeViewModel(FakeHomeSettingsRepo, settingsManager, LocaleHelper(settingsManager), FakeConnectivityObserver(connectivity))
+        viewModel = HomeViewModel(FakeHomeSettingsRepo, settingsManager, LocaleHelper(settingsManager), FakeConnectivityObserver(connectivity), draftRepo)
     }
 
     @After
     fun tearDown() = Dispatchers.resetMain()
 
     private val state get() = viewModel.state.value
+
+    @Test
+    fun `the pending card follows the saved draft`() {
+        assertNull(state.activeVisit)
+        draftRepo.current.value = draft
+        assertEquals("عيادة د. محمود", state.activeVisit?.placeName)
+        draftRepo.current.value = null
+        assertNull(state.activeVisit)
+    }
+
+    @Test
+    fun `continue opens the plan visit screen on the saved draft`() = runTest(dispatcher) {
+        draftRepo.current.value = draft
+        val events = collectEvents()
+        viewModel.onEvent(HomeEvents.OnActiveContinue)
+        assertEquals(listOf<UiEvent>(UiEvent.Navigate(MainGraph.PlanVisit(resumeDraft = true))), events)
+    }
+
+    @Test
+    fun `starting a visit with a pending one asks first and does not navigate`() = runTest(dispatcher) {
+        draftRepo.current.value = draft
+        val events = collectEvents()
+        viewModel.onEvent(HomeEvents.OnAddVisitClick)
+        assertEquals(HomeOverlay.PendingVisit(HomeEvents.OnAddVisitClick), state.overlay)
+        viewModel.onEvent(HomeEvents.OnOverlayDismiss)
+        assertEquals(HomeOverlay.None, state.overlay)
+        viewModel.onEvent(HomeEvents.OnDrawerItem(NavDrawerItem.AddVisit))
+        viewModel.onEvent(HomeEvents.OnStartVisit("p1"))
+        assertEquals(HomeOverlay.PendingVisit(HomeEvents.OnStartVisit("p1")), state.overlay)
+        assertEquals(0, events.size)
+        assertEquals(0, draftRepo.discardCount)
+    }
+
+    @Test
+    fun `confirming cancels the pending visit and continues to what was asked`() = runTest(dispatcher) {
+        draftRepo.current.value = draft
+        val events = collectEvents()
+        viewModel.onEvent(HomeEvents.OnStartVisit("p1"))
+        viewModel.onEvent(HomeEvents.OnPendingVisitConfirm)
+        assertEquals(1, draftRepo.discardCount)
+        assertEquals(HomeOverlay.None, state.overlay)
+        assertNull(state.activeVisit)
+        assertEquals(listOf<UiEvent>(UiEvent.Navigate(MainGraph.PlanVisit(visitId = "p1"))), events)
+    }
+
+    @Test
+    fun `cancel on the pending card asks, and confirming deletes the draft`() {
+        draftRepo.current.value = draft
+        viewModel.onEvent(HomeEvents.OnActiveCancel)
+        assertEquals(HomeOverlay.DiscardPending, state.overlay)
+        viewModel.onEvent(HomeEvents.OnOverlayDismiss)
+        assertEquals(0, draftRepo.discardCount)
+        viewModel.onEvent(HomeEvents.OnActiveCancel)
+        viewModel.onEvent(HomeEvents.OnDiscardPendingConfirm)
+        assertEquals(1, draftRepo.discardCount)
+        assertEquals(HomeOverlay.None, state.overlay)
+        assertNull(state.activeVisit)
+    }
 
     @Test
     fun `connection starts offline and follows the network`() {
@@ -88,7 +152,7 @@ class HomeViewModelTest {
     @Test
     fun `initial state matches the design sections`() {
         assertEquals("أحمد محمد", state.user.displayName)
-        assertNotNull(state.activeVisit)
+        assertNull(state.activeVisit)
         assertEquals(2, state.todayVisits.size)
         assertEquals(
             listOf(
@@ -150,8 +214,6 @@ class HomeViewModelTest {
         val events = collectEvents()
         val actions = listOf(
             HomeEvents.OnSyncClick,
-            HomeEvents.OnActiveContinue,
-            HomeEvents.OnActiveCancel,
             HomeEvents.OnTodayMoreClick,
         )
         actions.forEach(viewModel::onEvent)

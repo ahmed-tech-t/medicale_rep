@@ -10,7 +10,7 @@ open class MainGraph {
     data object Home : MainGraph()
 
     @Serializable
-    data class PlanVisit(val visitId: String? = null,val isNew: Boolean = true) : MainGraph()
+    data class PlanVisit(val visitId: String? = null, val isNew: Boolean = true, val resumeDraft: Boolean = false) : MainGraph()
 
     @Serializable
     data object DataCenter : MainGraph()

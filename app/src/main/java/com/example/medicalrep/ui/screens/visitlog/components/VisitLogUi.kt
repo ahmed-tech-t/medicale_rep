@@ -16,6 +16,7 @@ import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.chrome.AppHeader
 import com.example.medicalrep.ui.components.chrome.NexoraTabs
 import com.example.medicalrep.ui.components.widgets.FilterMenu
+import com.example.medicalrep.ui.components.widgets.PendingVisitDialog
 import com.example.medicalrep.ui.components.widgets.doneVisitFilterOptions
 import com.example.medicalrep.ui.components.widgets.plannedVisitFilterOptions
 import com.example.medicalrep.ui.components.widgets.ResultsFilterRow
@@ -77,7 +78,7 @@ fun VisitLogUi(
                             },
                             selected = state.filter,
                             onSelect = { onEvent(VisitLogEvents.SelectFilter(it)) },
-                            onDismiss = { onEvent(VisitLogEvents.CloseFilter) },
+                            onDismiss = { onEvent(VisitLogEvents.DismissOverlay) },
                         )
                     },
                 )
@@ -86,6 +87,13 @@ fun VisitLogUi(
                 VisitLogItem(state.selectedTab, visit, onEvent)
             }
         }
+    }
+
+    if (state.overlay is VisitLogOverlay.PendingVisit) {
+        PendingVisitDialog(
+            onConfirm = { onEvent(VisitLogEvents.ConfirmPending) },
+            onDismiss = { onEvent(VisitLogEvents.DismissOverlay) },
+        )
     }
 }
 

@@ -39,6 +39,8 @@ import com.example.medicalrep.R
 import com.example.medicalrep.domain.models.ConnectionState
 import com.example.medicalrep.ui.components.primitives.NexoraIcon
 import com.example.medicalrep.ui.components.primitives.NexoraText
+import com.example.medicalrep.ui.components.widgets.DiscardPendingDialog
+import com.example.medicalrep.ui.components.widgets.PendingVisitDialog
 import com.example.medicalrep.ui.components.widgets.visit.PlannedVisitCard
 import com.example.medicalrep.ui.models.StaticsMetricUi
 import com.example.medicalrep.ui.preview.HomeSamples
@@ -67,6 +69,18 @@ fun HomeUi(
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val currentOnEvent by rememberUpdatedState(onEvent)
+
+    when (val overlay = state.overlay) {
+        HomeOverlay.None -> Unit
+        is HomeOverlay.PendingVisit -> PendingVisitDialog(
+            onConfirm = { onEvent(HomeEvents.OnPendingVisitConfirm) },
+            onDismiss = { onEvent(HomeEvents.OnOverlayDismiss) },
+        )
+        HomeOverlay.DiscardPending -> DiscardPendingDialog(
+            onConfirm = { onEvent(HomeEvents.OnDiscardPendingConfirm) },
+            onDismiss = { onEvent(HomeEvents.OnOverlayDismiss) },
+        )
+    }
 
     LaunchedEffect(state.isDrawerOpen) {
         if (state.isDrawerOpen) drawerState.open() else drawerState.close()

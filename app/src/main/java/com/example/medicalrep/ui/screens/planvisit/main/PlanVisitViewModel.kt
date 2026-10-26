@@ -11,11 +11,14 @@ import com.appcore.core.domain.utils.UiText
 import com.appcore.core.domain.utils.UiText.*
 import com.appcore.core.ui.utils.BaseViewModel
 import com.example.medicalrep.R
+import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.RoutePoint
 import com.example.medicalrep.domain.models.VisitType
+import com.example.medicalrep.domain.repo.DraftVisitRepo
 import com.example.medicalrep.domain.repo.GeocodingRepo
 import com.example.medicalrep.ui.common.location.LocationHelper
+import com.example.medicalrep.ui.mapper.toDomain
 import com.example.medicalrep.ui.models.ProductUi
 import com.example.medicalrep.ui.models.VisitUi
 import com.example.medicalrep.ui.navigation.model.MainGraph
@@ -29,6 +32,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -39,24 +43,36 @@ class PlanVisitViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val locationHelper: LocationHelper,
     private val geocodingRepo: GeocodingRepo,
+    private val draftRepo: DraftVisitRepo,
 ) : BaseViewModel(appSettingsRepo) {
 
     /** Null means an unplanned visit: every field stays editable. */
     private val visitId: String? = savedStateHandle.toRoute<MainGraph.PlanVisit>().visitId
     private val isNewVisit: Boolean = savedStateHandle.toRoute<MainGraph.PlanVisit>().isNew
+    private val resumeDraft: Boolean = savedStateHandle.toRoute<MainGraph.PlanVisit>().resumeDraft
 
     private val _state = MutableStateFlow(initialState())
     val state: StateFlow<PlanVisitState> = _state.asStateFlow()
 
     init {
         visitId?.let(::loadPlannedVisit)
+        if (resumeDraft) loadDraft()
     }
 
     private fun initialState(): PlanVisitState {
         val sample = PlanVisitFakes.state()
         // Until planned visits load from Room, a planned visit shows the sample visit's data.
-        return if (visitId == null) sample
+        val state = if (visitId == null) sample
         else sample.copy(visit = sample.visit.copy(id = visitId, type = VisitType.Planned))
+        return state.copy(initialVisit = state.visit)
+    }
+
+    /** Fills the form with the saved draft and puts it back on the step it was left on. */
+    private fun loadDraft() {
+        viewModelScope.launch {
+            val draft = draftRepo.draft().first() ?: return@launch
+            _state.update { it.withDraft(draft) }
+        }
     }
 
     // TODO: load the planned visit from Room by [visitId] and assign it to `visit` (keep type = Planned).
@@ -64,7 +80,12 @@ class PlanVisitViewModel @Inject constructor(
 
     fun onEvent(event: PlanVisitEvents) {
         when (event) {
-            PlanVisitEvents.Back -> sendEvent(UiEvent.NavigationUp)
+            PlanVisitEvents.Back ->
+                if (_state.value.asksToSave) _state.update { it.copy(overlay = PlanVisitOverlay.SaveDraft) }
+                else sendEvent(UiEvent.NavigationUp)
+
+            PlanVisitEvents.SaveDraft -> saveDraft()
+            PlanVisitEvents.DiscardDraft -> discardDraftAndLeave()
             PlanVisitEvents.Next -> moveStep(forward = true)
             PlanVisitEvents.Previous -> moveStep(forward = false)
             is PlanVisitEvents.SelectCity -> updateVisit { it.copy(city = event.value) }
@@ -87,7 +108,8 @@ class PlanVisitViewModel @Inject constructor(
             )
 
             is PlanVisitEvents.ToggleClinicOpen -> updateVisit { it.copy(noIssueFound = event.confirmed) }
-            PlanVisitEvents.EndVisit -> {
+            PlanVisitEvents.EndVisit -> viewModelScope.launch {
+                draftRepo.discard()
                 sendEvent(ShowSnackBar(StringResource(R.string.unplanned_visit_ended)))
                 sendEvent(UiEvent.NavigationUp)
             }
@@ -111,6 +133,24 @@ class PlanVisitViewModel @Inject constructor(
             PlanVisitEvents.RefreshLocation -> captureLocation()
 
             is PlanVisitEvents.AttachImageResult -> updateVisit { it.copy(imageNote = event.document.uri) }
+        }
+    }
+
+    private fun saveDraft() {
+        val state = _state.value
+        _state.update { it.copy(overlay = PlanVisitOverlay.None) }
+        viewModelScope.launch {
+            draftRepo.save(DraftVisit(step = state.currentStep.ordinal, visit = state.visit.toDomain()))
+            sendEvent(ShowSnackBar(StringResource(R.string.draft_saved)))
+            sendEvent(UiEvent.NavigationUp)
+        }
+    }
+
+    private fun discardDraftAndLeave() {
+        _state.update { it.copy(overlay = PlanVisitOverlay.None) }
+        viewModelScope.launch {
+            draftRepo.discard()
+            sendEvent(UiEvent.NavigationUp)
         }
     }
 

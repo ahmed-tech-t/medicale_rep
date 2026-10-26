@@ -21,7 +21,9 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
+import com.example.medicalrep.ui.components.widgets.SaveDraftDialog
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitEvents
+import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitOverlay
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitState
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitStep
 import com.example.medicalrep.ui.screens.planvisit.utils.PlanVisitFakes
@@ -75,6 +77,14 @@ fun PlanVisitUi(
         }
 
         FooterBar(currentStep = state.currentStep, onEvent = onEvent)
+    }
+
+    if (state.overlay == PlanVisitOverlay.SaveDraft) {
+        SaveDraftDialog(
+            onSave = { onEvent(PlanVisitEvents.SaveDraft) },
+            onDiscard = { onEvent(PlanVisitEvents.DiscardDraft) },
+            onCancel = { onEvent(PlanVisitEvents.DismissOverlay) },
+        )
     }
 }
 

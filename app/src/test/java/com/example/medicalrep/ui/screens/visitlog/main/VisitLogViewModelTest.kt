@@ -16,6 +16,9 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import com.example.medicalrep.ui.models.VisitFilter
+import com.example.medicalrep.domain.models.DraftVisit
+import com.example.medicalrep.domain.models.Visit
+import com.example.medicalrep.domain.repo.FakeDraftVisitRepo
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -33,13 +36,14 @@ import org.junit.Test
 class VisitLogViewModelTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
+    private val draftRepo = FakeDraftVisitRepo()
     private lateinit var viewModel: VisitLogViewModel
     private val state get() = viewModel.state.value
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
-        viewModel = VisitLogViewModel(FakeSettingsRepo)
+        viewModel = VisitLogViewModel(FakeSettingsRepo, draftRepo)
     }
 
     @After
@@ -77,6 +81,29 @@ class VisitLogViewModelTest {
     }
 
     @Test
+    fun `starting a visit with a pending one asks first`() = runTest(dispatcher) {
+        draftRepo.current.value = DraftVisit(0, Visit())
+        val events = collectEvents()
+        viewModel.onEvent(VisitLogEvents.StartVisit("required-1"))
+        assertEquals(VisitLogOverlay.PendingVisit("required-1"), viewModel.state.value.overlay)
+        assertEquals(0, events.size)
+        viewModel.onEvent(VisitLogEvents.DismissOverlay)
+        assertEquals(VisitLogOverlay.None, viewModel.state.value.overlay)
+        assertEquals(0, draftRepo.discardCount)
+    }
+
+    @Test
+    fun `confirming cancels the pending visit then starts the chosen one`() = runTest(dispatcher) {
+        draftRepo.current.value = DraftVisit(0, Visit())
+        val events = collectEvents()
+        viewModel.onEvent(VisitLogEvents.StartVisit("required-1"))
+        viewModel.onEvent(VisitLogEvents.ConfirmPending)
+        assertEquals(1, draftRepo.discardCount)
+        assertEquals(VisitLogOverlay.None, viewModel.state.value.overlay)
+        assertEquals(listOf<UiEvent>(UiEvent.Navigate(MainGraph.PlanVisit(visitId = "required-1"))), events)
+    }
+
+    @Test
     fun `open visit navigates to the visit details`() = runTest(dispatcher) {
         val events = collectEvents()
         viewModel.onEvent(VisitLogEvents.OpenVisit("done-1"))
@@ -94,7 +121,7 @@ class VisitLogViewModelTest {
     fun `filter icon opens the popup and dismiss closes it`() {
         viewModel.onEvent(VisitLogEvents.OpenFilter)
         assertEquals(VisitLogOverlay.Filter, viewModel.state.value.overlay)
-        viewModel.onEvent(VisitLogEvents.CloseFilter)
+        viewModel.onEvent(VisitLogEvents.DismissOverlay)
         assertEquals(VisitLogOverlay.None, viewModel.state.value.overlay)
     }
 

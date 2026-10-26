@@ -7,6 +7,8 @@ import com.example.medicalrep.ui.models.ProductUi
 
 sealed interface PlanVisitEvents {
     data object Back : PlanVisitEvents
+    data object SaveDraft : PlanVisitEvents
+    data object DiscardDraft : PlanVisitEvents
     data object Next : PlanVisitEvents
     data object Previous : PlanVisitEvents
 

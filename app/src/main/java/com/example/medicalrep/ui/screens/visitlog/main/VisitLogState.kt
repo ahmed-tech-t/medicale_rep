@@ -9,6 +9,9 @@ enum class VisitLogTab { Required, Done }
 sealed interface VisitLogOverlay {
     data object None : VisitLogOverlay
     data object Filter : VisitLogOverlay
+
+    /** Starting [visitId] while another visit is pending: waits for the rep's answer. */
+    data class PendingVisit(val visitId: String) : VisitLogOverlay
 }
 
 @Immutable
@@ -19,6 +22,7 @@ data class VisitLogState(
     /** Belongs to the selected tab: switching tab resets it to All. */
     val filter: VisitFilter = VisitFilter.All,
     val overlay: VisitLogOverlay = VisitLogOverlay.None,
+    val hasPendingVisit: Boolean = false,
 ) {
     val visibleVisits: List<VisitUi>
         get() = when (selectedTab) {

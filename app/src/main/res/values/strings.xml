@@ -358,4 +358,17 @@
     <string name="filter_class_a">Class A</string>
     <string name="filter_class_b">Class B</string>
     <string name="filter_class_c">Class C</string>
+    <string name="draft_save_title">Save visit?</string>
+    <string name="draft_save_message">Do you want to save this visit and finish it later?</string>
+    <string name="draft_save">Save</string>
+    <string name="draft_dont_save">Don\'t save</string>
+    <string name="draft_cancel">Cancel</string>
+    <string name="draft_saved">Visit saved. Continue it from Home.</string>
+    <string name="pending_visit_title">Visit in progress</string>
+    <string name="pending_visit_message">You have a pending visit. Cancel it and start a new one?</string>
+    <string name="pending_visit_cancel_continue">Cancel pending visit and continue</string>
+    <string name="discard_pending_title">Cancel pending visit?</string>
+    <string name="discard_pending_message">The saved data of this visit will be deleted.</string>
+    <string name="discard_pending_confirm">Cancel pending visit</string>
+    <string name="discard_pending_keep">Keep</string>
 </resources>

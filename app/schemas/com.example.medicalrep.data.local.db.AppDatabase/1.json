@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "227fc7bc658bc46cd81cf5e40ca74fbc",
+    "identityHash": "620083b31274782ef4096d2ff0bca1f1",
     "entities": [
       {
         "tableName": "users",
@@ -667,6 +667,36 @@
         ]
       },
       {
+        "tableName": "visit_draft",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `step` INTEGER NOT NULL, `json` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "step",
+            "columnName": "step",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "json",
+            "columnName": "json",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
         "tableName": "orders",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `backendId` TEXT, `repId` TEXT, `accountId` TEXT, `createdAtMillis` INTEGER NOT NULL, `syncStatus` TEXT NOT NULL, `searchText` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`repId`) REFERENCES `users`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`accountId`) REFERENCES `accounts`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
         "fields": [
@@ -991,7 +1021,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '227fc7bc658bc46cd81cf5e40ca74fbc')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '620083b31274782ef4096d2ff0bca1f1')"
     ]
   }
 }

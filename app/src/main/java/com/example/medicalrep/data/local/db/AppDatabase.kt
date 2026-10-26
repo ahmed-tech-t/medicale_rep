@@ -5,6 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.medicalrep.data.local.dao.AccountDao
 import com.example.medicalrep.data.local.dao.CustodyDao
+import com.example.medicalrep.data.local.dao.DraftVisitDao
 import com.example.medicalrep.data.local.dao.OrderDao
 import com.example.medicalrep.data.local.dao.ProductDao
 import com.example.medicalrep.data.local.dao.SyncInfoDao
@@ -13,6 +14,7 @@ import com.example.medicalrep.data.local.dao.UserDao
 import com.example.medicalrep.data.local.dao.VisitDao
 import com.example.medicalrep.data.local.entity.AccountEntity
 import com.example.medicalrep.data.local.entity.CustodyEntity
+import com.example.medicalrep.data.local.entity.DraftVisitEntity
 import com.example.medicalrep.data.local.entity.OrderEntity
 import com.example.medicalrep.data.local.entity.OrderItemEntity
 import com.example.medicalrep.data.local.entity.ProductEntity
@@ -30,6 +32,7 @@ import com.example.medicalrep.data.local.entity.VisitEntity
         CustodyEntity::class,
         VisitEntity::class,
         VisitCustodyEntity::class,
+        DraftVisitEntity::class,
         OrderEntity::class,
         OrderItemEntity::class,
         TrackPointEntity::class,
@@ -46,6 +49,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun custodyDao(): CustodyDao
     abstract fun visitDao(): VisitDao
     abstract fun orderDao(): OrderDao
+    abstract fun draftVisitDao(): DraftVisitDao
     abstract fun trackPointDao(): TrackPointDao
     abstract fun syncInfoDao(): SyncInfoDao
 }

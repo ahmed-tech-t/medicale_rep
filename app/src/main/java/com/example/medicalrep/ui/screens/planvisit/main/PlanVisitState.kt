@@ -1,7 +1,9 @@
 package com.example.medicalrep.ui.screens.planvisit.main
 
 import androidx.compose.runtime.Immutable
+import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.ProductType
+import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.ProductUi
 import com.example.medicalrep.ui.models.VisitUi
 import java.util.Collections.emptyList
@@ -11,12 +13,25 @@ enum class PlanVisitStep { Entity, GiftsProducts, Result }
 sealed interface PlanVisitOverlay {
     data object None : PlanVisitOverlay
     data class AddItem(val kind: ProductType) : PlanVisitOverlay
+    data object SaveDraft : PlanVisitOverlay
+}
+
+/** The form filled with a saved draft, on the step it was left on. */
+fun PlanVisitState.withDraft(draft: DraftVisit): PlanVisitState {
+    val visit = draft.visit.toUi()
+    return copy(
+        visit = visit,
+        initialVisit = visit,
+        currentStep = PlanVisitStep.entries[draft.step.coerceIn(0, PlanVisitStep.entries.lastIndex)],
+    )
 }
 
 @Immutable
 data class PlanVisitState(
     val currentStep: PlanVisitStep = PlanVisitStep.Entity,
     val visit: VisitUi = VisitUi(),
+    /** The visit as it was when the screen opened (or the saved draft was loaded): used to tell if anything changed. */
+    val initialVisit: VisitUi = VisitUi(),
     val overlay: PlanVisitOverlay = PlanVisitOverlay.None,
     val isRecordingVoice: Boolean = false,
     val capturedAtMillis: Long? = null,
@@ -31,6 +46,8 @@ data class PlanVisitState(
     val specialtyOptions: List<String> = emptyList(),
     val supervisorOptions: List<String> = emptyList(),
 ) {
+    /** Back asks to save only while a visit in progress was changed; the finished result step just leaves. */
+    val asksToSave: Boolean get() = visit != initialVisit && currentStep != PlanVisitStep.Result
     val giftsCount: Int get() = visit.gifts.sumOf { it.quantity }
     val productsCount: Int get() = visit.products.sumOf { it.quantity }
 }

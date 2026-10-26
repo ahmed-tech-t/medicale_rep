@@ -357,4 +357,17 @@
     <string name="filter_class_a">تصنيف A</string>
     <string name="filter_class_b">تصنيف B</string>
     <string name="filter_class_c">تصنيف C</string>
+    <string name="draft_save_title">حفظ الزيارة؟</string>
+    <string name="draft_save_message">هل تريد حفظ هذه الزيارة واستكمالها لاحقاً؟</string>
+    <string name="draft_save">حفظ</string>
+    <string name="draft_dont_save">عدم الحفظ</string>
+    <string name="draft_cancel">إلغاء</string>
+    <string name="draft_saved">تم حفظ الزيارة. يمكنك استكمالها من الرئيسية.</string>
+    <string name="pending_visit_title">زيارة قيد التنفيذ</string>
+    <string name="pending_visit_message">لديك زيارة معلقة. هل تريد إلغاءها وبدء زيارة جديدة؟</string>
+    <string name="pending_visit_cancel_continue">إلغاء الزيارة المعلقة والمتابعة</string>
+    <string name="discard_pending_title">إلغاء الزيارة المعلقة؟</string>
+    <string name="discard_pending_message">سيتم حذف بيانات هذه الزيارة المحفوظة.</string>
+    <string name="discard_pending_confirm">إلغاء الزيارة المعلقة</string>
+    <string name="discard_pending_keep">إبقاء</string>
 </resources>
