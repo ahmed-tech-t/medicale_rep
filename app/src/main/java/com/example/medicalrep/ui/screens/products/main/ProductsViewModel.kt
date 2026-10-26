@@ -68,7 +68,10 @@ class ProductsViewModel @Inject constructor(
             }
             ProductsEvents.DismissOverlay -> _state.update { it.copy(overlay = ProductsOverlay.None) }
             is ProductsEvents.AccountQueryChanged -> _state.update { it.copy(accountQuery = event.query) }
-            is ProductsEvents.SelectAccount -> saveOrder(event.account)
+            is ProductsEvents.SelectAccount -> _state.update {
+                if (it.hasSelection) it.copy(overlay = ProductsOverlay.ConfirmOrder(event.account)) else it.copy(overlay = ProductsOverlay.None)
+            }
+            ProductsEvents.ConfirmOrder -> saveOrder()
         }
     }
 
@@ -83,9 +86,11 @@ class ProductsViewModel @Inject constructor(
         }
     }
 
-    /** One order for [account]: a line per selected product with its name, price and discount copied; uploaded later. */
-    private fun saveOrder(account: AccountUi) {
-        val selected = _state.value.selected.values
+    /** One order for the confirmed account: a line per selected product with its name, price and discount copied; uploaded later. */
+    private fun saveOrder() {
+        val state = _state.value
+        val account = (state.overlay as? ProductsOverlay.ConfirmOrder)?.account ?: return
+        val selected = state.selected.values
         if (selected.isEmpty()) return
         viewModelScope.launch {
             orderRepo.save(

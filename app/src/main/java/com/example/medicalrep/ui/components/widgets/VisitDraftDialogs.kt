@@ -48,6 +48,20 @@ fun DiscardPendingDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     )
 }
 
+/** Asks to confirm before an order is saved. */
+@Composable
+fun ConfirmOrderDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    ActionDialog(
+        titleRes = R.string.products_confirm_order_title,
+        messageRes = R.string.products_confirm_order_message,
+        actions = listOf(
+            DialogAction(R.string.products_confirm_order_action, onConfirm),
+            DialogAction(R.string.draft_cancel, onDismiss),
+        ),
+        onDismiss = onDismiss,
+    )
+}
+
 @Preview(showBackground = true, locale = "ar")
 @Composable
 private fun PendingVisitDialogPreview() {

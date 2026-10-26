@@ -13,4 +13,5 @@ sealed interface ProductsEvents {
     data object DismissOverlay : ProductsEvents
     data class AccountQueryChanged(val query: String) : ProductsEvents
     data class SelectAccount(val account: AccountUi) : ProductsEvents
+    data object ConfirmOrder : ProductsEvents
 }

@@ -291,6 +291,9 @@
     <string name="products_action_add">Add</string>
     <string name="products_action_order">Order</string>
     <string name="products_order_saved">Order saved. It will be uploaded with your other data.</string>
+    <string name="products_confirm_order_title">Confirm order?</string>
+    <string name="products_confirm_order_message">The order will be saved for the account you chose.</string>
+    <string name="products_confirm_order_action">Confirm order</string>
     <string name="products_pick_account_title">Choose the account for this order</string>
     <!-- Visit planning -->
     <string name="visit_planning_title">Visit planning</string>

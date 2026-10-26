@@ -1,11 +1,15 @@
 package com.example.medicalrep.ui.screens.products.main
 
 import androidx.compose.runtime.Immutable
+import com.example.medicalrep.ui.models.AccountUi
 import com.example.medicalrep.ui.models.ProductUi
 
 sealed interface ProductsOverlay {
     data object None : ProductsOverlay
     data object PickAccount : ProductsOverlay
+
+    /** The account is chosen; the order is saved once the rep confirms. */
+    data class ConfirmOrder(val account: AccountUi) : ProductsOverlay
 }
 
 /**

@@ -17,6 +17,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
+import com.example.medicalrep.ui.components.widgets.ConfirmOrderDialog
 import com.example.medicalrep.ui.models.AccountUi
 import com.example.medicalrep.ui.models.ProductUi
 import com.example.medicalrep.ui.screens.accounts.utils.AccountsFakes
@@ -76,6 +77,12 @@ fun ProductsUi(
         )
     }
 
+    if (state.overlay is ProductsOverlay.ConfirmOrder) {
+        ConfirmOrderDialog(
+            onConfirm = { onEvent(ProductsEvents.ConfirmOrder) },
+            onDismiss = { onEvent(ProductsEvents.DismissOverlay) },
+        )
+    }
     if (state.overlay == ProductsOverlay.PickAccount) {
         AccountPickerSheet(
             accounts = accounts,

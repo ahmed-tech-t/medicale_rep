@@ -40,7 +40,7 @@ import org.junit.Test
  * 4. Selected products stay while the search text changes.
  * 5. Order with nothing selected does nothing; with a selection it opens the account picker.
  * 6. The picker searches accounts through the repo; dismissing closes it and keeps the selection.
- * 7. Choosing an account saves one order for that account: a line per selected product (name, price, discount, quantity
+ * 7. Choosing an account asks to confirm (nothing saved yet; Cancel closes it and keeps the selection). Confirming saves one order for that account: a line per selected product (name, price, discount, quantity
  *    copied), not uploaded, with the time; the selection and picker clear and one snackbar shows.
  * 8. Choosing an account with nothing selected saves nothing. When Back, Then NavigationUp.
  */
@@ -171,7 +171,12 @@ class ProductsViewModelTest {
         viewModel.onEvent(ProductsEvents.ChangeQuantity(panadol, 2))
         viewModel.onEvent(ProductsEvents.ChangeQuantity(concor, 1))
         viewModel.onEvent(ProductsEvents.Order)
-        viewModel.onEvent(ProductsEvents.SelectAccount(AccountUi(id = "a1", name = "عيادة د. محمود")))
+        val account = AccountUi(id = "a1", name = "عيادة د. محمود")
+        viewModel.onEvent(ProductsEvents.SelectAccount(account))
+        runCurrent()
+        assertEquals(ProductsOverlay.ConfirmOrder(account), state.overlay)
+        assertTrue(orderRepo.current.value.isEmpty())
+        viewModel.onEvent(ProductsEvents.ConfirmOrder)
         runCurrent()
 
         val order = orderRepo.current.value.single()
@@ -190,10 +195,27 @@ class ProductsViewModelTest {
     }
 
     @Test
+    fun `cancelling the confirmation saves nothing and keeps the selection`() = runTest(dispatcher) {
+        val events = collectEvents()
+        viewModel.onEvent(ProductsEvents.ChangeQuantity(panadol, 1))
+        viewModel.onEvent(ProductsEvents.Order)
+        viewModel.onEvent(ProductsEvents.SelectAccount(AccountUi(id = "a1", name = "x")))
+        viewModel.onEvent(ProductsEvents.DismissOverlay)
+        viewModel.onEvent(ProductsEvents.ConfirmOrder)
+        runCurrent()
+        assertEquals(ProductsOverlay.None, state.overlay)
+        assertEquals(1, quantityOf("p1"))
+        assertTrue(orderRepo.current.value.isEmpty())
+        assertEquals(0, events.size)
+    }
+
+    @Test
     fun `choosing an account with nothing selected saves nothing`() = runTest(dispatcher) {
         val events = collectEvents()
         viewModel.onEvent(ProductsEvents.SelectAccount(AccountUi(id = "a1", name = "x")))
+        viewModel.onEvent(ProductsEvents.ConfirmOrder)
         runCurrent()
+        assertEquals(ProductsOverlay.None, state.overlay)
         assertTrue(orderRepo.current.value.isEmpty())
         assertEquals(0, events.size)
     }
