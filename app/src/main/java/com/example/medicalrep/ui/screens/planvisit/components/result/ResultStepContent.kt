@@ -54,7 +54,7 @@ fun ResultStepContent(
         )
         VoiceNoteCard(
             isRecording = state.isRecordingVoice,
-            hasRecording = state.visit.voiceNote != null,
+            voiceNote = state.visit.voiceNote,
             onRecordingStarted = { onEvent(PlanVisitEvents.VoiceNoteRecordingStarted) },
             onRecorded = { onEvent(PlanVisitEvents.VoiceNoteRecorded(it)) },
             onPermissionDenied = { onEvent(PlanVisitEvents.VoiceNotePermissionDenied) },

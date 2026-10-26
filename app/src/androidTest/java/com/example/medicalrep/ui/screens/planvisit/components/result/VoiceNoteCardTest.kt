@@ -11,7 +11,7 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * Given the card idle / recording / tapped. Long-press recording needs a real microphone and the
+ * Given the card idle / recording / recorded. Tapping to record needs a real microphone and the
  * runtime permission, so that path is verified manually.
  */
 class VoiceNoteCardTest {
@@ -21,16 +21,15 @@ class VoiceNoteCardTest {
 
     private fun setCard(
         isRecording: Boolean,
-        hasRecording: Boolean = false,
-        onStarted: () -> Unit = {},
+        voiceNote: ByteArray? = null,
         onDelete: () -> Unit = {},
     ) {
         composeRule.setContent {
             MedicalRepTheme {
                 VoiceNoteCard(
                     isRecording = isRecording,
-                    hasRecording = hasRecording,
-                    onRecordingStarted = onStarted,
+                    voiceNote = voiceNote,
+                    onRecordingStarted = {},
                     onRecorded = {},
                     onPermissionDenied = {},
                     onDelete = onDelete,
@@ -52,19 +51,11 @@ class VoiceNoteCardTest {
     }
 
     @Test
-    fun shortTap_doesNotStartRecording() {
-        var started = 0
-        setCard(isRecording = false, onStarted = { started++ })
-        composeRule.onNodeWithTag(VoiceNoteTags.RecordButton).performClick()
-        composeRule.waitForIdle()
-        assertEquals(0, started)
-    }
-
-    @Test
     fun recorded_showsNoteAndDeleteCallsBack() {
         var deleted = 0
-        setCard(isRecording = false, hasRecording = true, onDelete = { deleted++ })
+        setCard(isRecording = false, voiceNote = ByteArray(1), onDelete = { deleted++ })
         composeRule.onNodeWithTag(VoiceNoteTags.Recorded).assertIsDisplayed()
+        composeRule.onNodeWithTag(VoiceNoteTags.Play).assertIsDisplayed()
         composeRule.onNodeWithTag(VoiceNoteTags.RecordButton).assertDoesNotExist()
         composeRule.onNodeWithTag(VoiceNoteTags.Delete).performClick()
         assertEquals(1, deleted)

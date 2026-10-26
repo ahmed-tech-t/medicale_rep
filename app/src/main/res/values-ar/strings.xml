@@ -208,7 +208,6 @@
     <string name="unplanned_notes_label">ملاحظات إضافية على نتيجة الزيارة:</string>
     <string name="unplanned_voice_note">تسجيل صوتي</string>
     <string name="unplanned_voice_recording">جارٍ التسجيل...</string>
-    <string name="unplanned_voice_recorded">تم تسجيل الملاحظة الصوتية</string>
     <string name="cd_delete_voice_note">حذف الملاحظة الصوتية</string>
     <string name="unplanned_voice_permission_denied">يلزم السماح باستخدام الميكروفون لتسجيل ملاحظة صوتية</string>
     <string name="unplanned_voice_prompt">سجل النتيجة بالصوت (Voice Note)</string>

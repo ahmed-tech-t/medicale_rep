@@ -208,7 +208,6 @@
     <string name="unplanned_notes_label">Additional notes on visit result:</string>
     <string name="unplanned_voice_note">Voice recording</string>
     <string name="unplanned_voice_recording">Recording...</string>
-    <string name="unplanned_voice_recorded">Voice note recorded</string>
     <string name="cd_delete_voice_note">Delete voice note</string>
     <string name="unplanned_voice_permission_denied">Microphone permission is required to record a voice note</string>
     <string name="unplanned_voice_prompt">Record the result with voice (Voice Note)</string>
