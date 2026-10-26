@@ -26,10 +26,12 @@ fun ProductsScreen(
     )
     val state by viewModel.state.collectAsStateWithLifecycle()
     val products = viewModel.products.collectAsLazyPagingItems()
+    val accounts = viewModel.accounts.collectAsLazyPagingItems()
 
     ProductsUi(
         state = state,
         products = products,
+        accounts = accounts,
         onEvent = viewModel::onEvent,
         modifier = modifier,
     )

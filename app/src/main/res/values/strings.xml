@@ -290,6 +290,8 @@
     <string name="product_discount_format">Discount: %1$d%%</string>
     <string name="products_action_add">Add</string>
     <string name="products_action_order">Order</string>
+    <string name="products_order_saved">Order saved. It will be uploaded with your other data.</string>
+    <string name="products_pick_account_title">Choose the account for this order</string>
     <!-- Visit planning -->
     <string name="visit_planning_title">Visit planning</string>
     <string name="visit_planning_tab_pending">Pending approval</string>

@@ -16,12 +16,16 @@ class FakeAccountRepo(initial: List<Account> = emptyList()) : AccountRepo {
     /** The type asked for by every `accounts` call, in order (null = All): tells which filter reached the repo. */
     val requestedTypes = mutableListOf<AccountType?>()
 
+    /** The search text of every `accounts` call, in order. */
+    val requestedQueries = mutableListOf<String>()
+
     private fun filtered(query: String, type: AccountType?): Flow<List<Account>> = current.map { list ->
         list.filter { (type == null || AccountType.fromEntityType(it.entityType) == type) && it.name.contains(query, ignoreCase = true) }
     }
 
     override fun accounts(query: String, type: AccountType?): Flow<PagingData<Account>> {
         requestedTypes += type
+        requestedQueries += query
         return filtered(query, type).map { PagingData.from(it) }
     }
 

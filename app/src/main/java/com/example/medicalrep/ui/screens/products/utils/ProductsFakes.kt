@@ -26,5 +26,5 @@ object ProductsFakes {
         product(id = "p5", name = "كونكور 5 مجم", price = 150, discountPercent = 20),
     )
 
-    fun state(): ProductsState = ProductsState(quantities = products().filter { it.quantity > 0 }.associate { it.id to it.quantity })
+    fun state(): ProductsState = ProductsState(selected = products().filter { it.quantity > 0 }.associateBy { it.id })
 }

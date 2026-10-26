@@ -288,6 +288,8 @@
     <string name="product_price_format">السعر : %1$d</string>
     <string name="product_discount_format">الخصم : %1$d%%</string>
     <string name="products_action_add">اضافة</string>
+    <string name="products_order_saved">تم حفظ الطلب وسيتم رفعه مع بقية بياناتك.</string>
+    <string name="products_pick_account_title">اختر الحساب الخاص بهذا الطلب</string>
     <string name="products_action_order">طلب</string>
     <!-- Visit planning -->
     <string name="visit_planning_title">تخطيط الزيارات</string>

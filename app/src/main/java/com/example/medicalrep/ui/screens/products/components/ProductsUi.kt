@@ -17,7 +17,10 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
+import com.example.medicalrep.ui.models.AccountUi
 import com.example.medicalrep.ui.models.ProductUi
+import com.example.medicalrep.ui.screens.accounts.utils.AccountsFakes
+import com.example.medicalrep.ui.screens.products.main.ProductsOverlay
 import com.example.medicalrep.ui.preview.pagingItemsOf
 import com.example.medicalrep.ui.components.chrome.AppHeader
 import com.example.medicalrep.ui.components.primitives.NexoraButton
@@ -33,6 +36,7 @@ import com.example.medicalrep.ui.ui.theme.Slate50
 fun ProductsUi(
     state: ProductsState,
     products: LazyPagingItems<ProductUi>,
+    accounts: LazyPagingItems<AccountUi>,
     onEvent: (ProductsEvents) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -56,8 +60,8 @@ fun ProductsUi(
             items(count = products.itemCount, key = products.itemKey { it.id }) { index ->
                 products[index]?.let { product ->
                     ProductItemCard(
-                        product = product.copy(quantity = state.quantities[product.id] ?: 0),
-                        onChangeQuantity = { onEvent(ProductsEvents.ChangeQuantity(product.id, it)) },
+                        product = state.selected[product.id] ?: product,
+                        onChangeQuantity = { onEvent(ProductsEvents.ChangeQuantity(product, it)) },
                     )
                 }
             }
@@ -71,16 +75,26 @@ fun ProductsUi(
                 .padding(spacing.spaceSmallPlus),
         )
     }
+
+    if (state.overlay == ProductsOverlay.PickAccount) {
+        AccountPickerSheet(
+            accounts = accounts,
+            query = state.accountQuery,
+            onQueryChange = { onEvent(ProductsEvents.AccountQueryChanged(it)) },
+            onSelect = { onEvent(ProductsEvents.SelectAccount(it)) },
+            onDismiss = { onEvent(ProductsEvents.DismissOverlay) },
+        )
+    }
 }
 
 @Preview(showBackground = true, locale = "ar", heightDp = 760)
 @Composable
 private fun ProductsUiArabicPreview() {
-    MedicalRepTheme { ProductsUi(state = ProductsFakes.state(), products = pagingItemsOf(ProductsFakes.products()), onEvent = {}) }
+    MedicalRepTheme { ProductsUi(state = ProductsFakes.state(), products = pagingItemsOf(ProductsFakes.products()), accounts = pagingItemsOf(AccountsFakes.accounts()), onEvent = {}) }
 }
 
 @Preview(showBackground = true, heightDp = 760)
 @Composable
 private fun ProductsUiNoSelectionPreview() {
-    MedicalRepTheme { ProductsUi(state = ProductsState(), products = pagingItemsOf(ProductsFakes.products()), onEvent = {}) }
+    MedicalRepTheme { ProductsUi(state = ProductsState(), products = pagingItemsOf(ProductsFakes.products()), accounts = pagingItemsOf(AccountsFakes.accounts()), onEvent = {}) }
 }

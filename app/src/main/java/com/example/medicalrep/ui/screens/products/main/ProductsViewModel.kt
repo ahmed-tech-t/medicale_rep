@@ -9,8 +9,14 @@ import com.appcore.core.domain.utils.UiEvent
 import com.appcore.core.domain.utils.UiText
 import com.appcore.core.ui.utils.BaseViewModel
 import com.example.medicalrep.R
+import com.example.medicalrep.domain.models.Order
+import com.example.medicalrep.domain.models.OrderItem
+import com.example.medicalrep.domain.repo.AccountRepo
+import com.example.medicalrep.domain.repo.OrderRepo
 import com.example.medicalrep.domain.repo.ProductRepo
 import com.example.medicalrep.ui.mapper.toProductUi
+import com.example.medicalrep.ui.mapper.toUi
+import com.example.medicalrep.ui.models.AccountUi
 import com.example.medicalrep.ui.models.ProductUi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -22,6 +28,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -29,6 +37,8 @@ import javax.inject.Inject
 class ProductsViewModel @Inject constructor(
     appSettingsRepo: AppSettingsRepo,
     productRepo: ProductRepo,
+    private val orderRepo: OrderRepo,
+    accountRepo: AccountRepo,
 ) : BaseViewModel(appSettingsRepo) {
 
     private val _state = MutableStateFlow(ProductsState())
@@ -41,22 +51,53 @@ class ProductsViewModel @Inject constructor(
         .map { page -> page.map { it.toProductUi() } }
         .cachedIn(viewModelScope)
 
+    /** The accounts an order can be made for (the picker's list), matching its search text. */
+    val accounts: Flow<PagingData<AccountUi>> = _state.map { it.accountQuery }
+        .distinctUntilChanged()
+        .flatMapLatest { query -> accountRepo.accounts(query = query) }
+        .map { page -> page.map { it.toUi() } }
+        .cachedIn(viewModelScope)
+
     fun onEvent(event: ProductsEvents) {
         when (event) {
             ProductsEvents.Back -> sendEvent(UiEvent.NavigationUp)
             is ProductsEvents.SearchChanged -> _state.update { it.copy(query = event.query) }
-            is ProductsEvents.ChangeQuantity -> changeQuantity(event.id, event.delta)
-            ProductsEvents.Order -> if (_state.value.hasSelection) {
-                sendEvent(UiEvent.ShowSnackBar(UiText.StringResource(R.string.placeholder_coming_soon)))
+            is ProductsEvents.ChangeQuantity -> changeQuantity(event.product, event.delta)
+            ProductsEvents.Order -> _state.update {
+                if (it.hasSelection) it.copy(overlay = ProductsOverlay.PickAccount, accountQuery = "") else it
             }
+            ProductsEvents.DismissOverlay -> _state.update { it.copy(overlay = ProductsOverlay.None) }
+            is ProductsEvents.AccountQueryChanged -> _state.update { it.copy(accountQuery = event.query) }
+            is ProductsEvents.SelectAccount -> saveOrder(event.account)
         }
     }
 
     /** Quantity never goes below 0; reaching 0 puts the product back to its "Add" state. */
-    private fun changeQuantity(id: String, delta: Int) {
+    private fun changeQuantity(product: ProductUi, delta: Int) {
         _state.update { state ->
-            val quantity = ((state.quantities[id] ?: 0) + delta).coerceAtLeast(0)
-            state.copy(quantities = if (quantity == 0) state.quantities - id else state.quantities + (id to quantity))
+            val quantity = ((state.selected[product.id]?.quantity ?: 0) + delta).coerceAtLeast(0)
+            state.copy(
+                selected = if (quantity == 0) state.selected - product.id
+                else state.selected + (product.id to product.copy(quantity = quantity)),
+            )
+        }
+    }
+
+    /** One order for [account]: a line per selected product with its name, price and discount copied; uploaded later. */
+    private fun saveOrder(account: AccountUi) {
+        val selected = _state.value.selected.values
+        if (selected.isEmpty()) return
+        viewModelScope.launch {
+            orderRepo.save(
+                Order(
+                    id = UUID.randomUUID().toString(),
+                    accountId = account.id,
+                    createdAtMillis = System.currentTimeMillis(),
+                    items = selected.map { OrderItem(it.id, it.name, it.price, it.discountPercent, it.quantity) },
+                ),
+            )
+            _state.update { it.copy(selected = emptyMap(), overlay = ProductsOverlay.None) }
+            sendEvent(UiEvent.ShowSnackBar(UiText.StringResource(R.string.products_order_saved)))
         }
     }
 }
