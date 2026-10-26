@@ -28,7 +28,7 @@ fun NexoraCard(
     onClick: (() -> Unit)? = null,
     borderColor: Color = MaterialTheme.colorScheme.outline,
     containerColor: Color = MaterialTheme.colorScheme.surface,
-    contentPadding: PaddingValues = PaddingValues(spacing.spaceSmallPlus),
+    contentPadding: PaddingValues = PaddingValues(spacing.spaceMedium),
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val shape = RoundedCornerShape(radii.extraLarge)

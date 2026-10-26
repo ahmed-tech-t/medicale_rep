@@ -51,24 +51,11 @@ import com.example.medicalrep.ui.ui.theme.WarningTint
 internal fun SummaryCard(state: PlanVisitState, onViewLocation: () -> Unit) {
     val visit = state.visit
     StepCard {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            NexoraText(
-                text = stringResource(R.string.unplanned_summary_title),
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                color = Slate400,
-            )
-            NexoraChip(
-                text = stringResource(R.string.unplanned_view_location),
-                container = ErrorBright,
-                content = Slate50,
-                shape = RoundedCornerShape(radii.small),
-                modifier = Modifier.clickable(role = Role.Button, onClick = onViewLocation),
-            )
-        }
+        NexoraText(
+            text = stringResource(R.string.unplanned_summary_title),
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+            color = Slate400,
+        )
         Column(
             modifier = Modifier
                 .fillMaxWidth()

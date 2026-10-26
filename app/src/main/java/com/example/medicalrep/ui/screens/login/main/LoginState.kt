@@ -17,7 +17,5 @@ data class LoginState(
     val usernameBlank: Boolean get() = username.text.isBlank()
     val passwordBlank: Boolean get() = password.text.isBlank()
 
-    val buttonEnabled: Boolean get() = !companyCodeBlank && !usernameBlank && !passwordBlank
+    val buttonEnabled: Boolean get() = true//!companyCodeBlank && !usernameBlank && !passwordBlank
 }
-
-

@@ -22,7 +22,7 @@ import com.example.medicalrep.ui.ui.theme.Slate50
 @Composable
 fun StepCard(
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(spacing.spaceSmall),
+    contentPadding: PaddingValues = PaddingValues(spacing.spaceMedium),
     content: @Composable ColumnScope.() -> Unit,
 
 ) {

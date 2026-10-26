@@ -157,7 +157,7 @@ private fun NexoraButtonLabel(
         horizontalArrangement = Arrangement.spacedBy(spacing.spaceExtraSmall, Alignment.CenterHorizontally),
     ) {
         leadingIcon()
-        NexoraText(text = text, style = style, color = color)
+        NexoraText(text = text, style = style, color = color, maxLines = 1)
     }
 }
 
