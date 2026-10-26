@@ -1,8 +1,8 @@
 package com.example.medicalrep.ui.screens.addaccount.utils
 
+import com.example.medicalrep.domain.models.map.MapCameraTarget
 import com.example.medicalrep.ui.screens.addaccount.main.AddAccountState
 import com.example.medicalrep.ui.screens.planvisit.utils.PlanVisitFakes
-import com.example.medicalrep.ui.screens.visit_location_map.utils.VisitLocationMapFakes
 
 /** Sample options and the fake user location, shown until the real data sources exist. */
 object AddAccountFakes {
@@ -10,7 +10,7 @@ object AddAccountFakes {
     fun state(): AddAccountState {
         val options = PlanVisitFakes.state()
         return AddAccountState(
-            userLocation = VisitLocationMapFakes.userLocation,
+            userLocation = MapCameraTarget(latitude = 30.0450, longitude = 31.2365),
             cityOptions = options.cityOptions,
             districtOptions = options.districtOptions,
             entityTypeOptions = options.entityTypeOptions,

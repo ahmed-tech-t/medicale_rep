@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.screens.map_rep_tracking.utils
 
+import com.example.medicalrep.ui.common.travel.TravelMode
 import com.example.medicalrep.ui.screens.map_rep_tracking.models.TrackUserMapMarker
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

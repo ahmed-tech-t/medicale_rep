@@ -1,4 +1,4 @@
-package com.example.medicalrep.ui.screens.map_rep_tracking.components
+package com.example.medicalrep.ui.components.widgets
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
-import com.example.medicalrep.ui.screens.map_rep_tracking.utils.TravelMode
+import com.example.medicalrep.ui.common.travel.TravelMode
 import com.example.medicalrep.ui.components.primitives.NexoraIcon
 import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.ui.theme.Brand

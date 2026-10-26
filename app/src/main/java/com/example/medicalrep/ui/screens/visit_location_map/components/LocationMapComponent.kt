@@ -17,7 +17,6 @@ import com.example.medicalrep.domain.models.map.MapCameraTarget
 import com.example.medicalrep.ui.common.location.hasLocationPermission
 import com.example.medicalrep.ui.utils.vectorToBitmapDescriptor
 import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.Dash
 import com.google.android.gms.maps.model.Gap
 import com.google.android.gms.maps.model.LatLng
@@ -26,6 +25,7 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerComposable
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
@@ -42,6 +42,7 @@ fun LocationMapComponent(
     routePoints: List<RoutePoint> = emptyList(),
     showMyLocationDot: Boolean = false,
     destinationTitle: String = stringResource(R.string.visit_details_visit_location),
+    badge: (@Composable () -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val cameraPositionState = rememberCameraPositionState()
@@ -49,7 +50,7 @@ fun LocationMapComponent(
     val userPosition = remember(userLocation) { userLocation?.let { LatLng(it.latitude, it.longitude) } }
     val visitPosition = remember(visitLocation) { LatLng(visitLocation.latitude, visitLocation.longitude) }
     val routeLine = remember(routePoints) { routePoints.map { LatLng(it.latitude, it.longitude) } }
-    val userIcon = remember { BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE) }
+    val userIcon = remember(context) { context.vectorToBitmapDescriptor(R.drawable.ic_user_map_marker) }
     val visitIcon = remember(context) { context.vectorToBitmapDescriptor(R.drawable.ic_map_marker) }
 
     LaunchedEffect(isMapReady, userPosition, visitPosition) {
@@ -87,6 +88,10 @@ fun LocationMapComponent(
             title = destinationTitle,
             icon = visitIcon,
         )
+        if (badge != null && userPosition != null && routeLine.size > 1) {
+            val middle = LatLng((userPosition.latitude + visitPosition.latitude) / 2, (userPosition.longitude + visitPosition.longitude) / 2)
+            MarkerComposable(state = rememberMarkerState(position = middle), zIndex = 0.5f) { badge() }
+        }
         if (routeLine.size > 1) {
             Polyline(
                 points = routeLine,

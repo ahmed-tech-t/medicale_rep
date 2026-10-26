@@ -21,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.medicalrep.R
 import com.example.medicalrep.domain.models.RoutePoint
 import com.example.medicalrep.domain.models.map.MapCameraTarget
+import com.example.medicalrep.ui.components.widgets.TravelSegmentBadge
 import com.example.medicalrep.ui.screens.map_rep_tracking.models.TrackUserMapMarker
 import com.example.medicalrep.ui.screens.map_rep_tracking.utils.TravelSegment
 import com.example.medicalrep.ui.screens.map_rep_tracking.utils.MapRepTrackingFakes

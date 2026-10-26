@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.screens.visitdetails.components
 
+import com.example.medicalrep.ui.components.widgets.LocationMatchBanner
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

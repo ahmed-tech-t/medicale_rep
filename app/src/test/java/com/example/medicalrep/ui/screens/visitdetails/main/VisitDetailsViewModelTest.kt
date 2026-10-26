@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
+import com.example.medicalrep.ui.navigation.model.MainGraph
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -48,10 +49,22 @@ class VisitDetailsViewModelTest {
     @Test
     fun `view on map does nothing yet`() = runTest(dispatcher) {
         val events = collectEvents()
-        val before = viewModel.state.value
         viewModel.onEvent(VisitDetailsEvents.ViewOnMap)
-        assertEquals(before, viewModel.state.value)
-        assertEquals(emptyList<UiEvent>(), events)
+        val visit = viewModel.state.value.visit
+        assertEquals(
+            listOf<UiEvent>(
+                UiEvent.Navigate(
+                    MainGraph.VisitLocationMap(
+                        visitLatitude = visit.visitLatitude,
+                        visitLongitude = visit.visitLongitude,
+                        accountLatitude = visit.accountLatitude,
+                        accountLongitude = visit.accountLongitude,
+                        travelSeconds = visit.travelSeconds,
+                    )
+                )
+            ),
+            events,
+        )
     }
 
     @Test

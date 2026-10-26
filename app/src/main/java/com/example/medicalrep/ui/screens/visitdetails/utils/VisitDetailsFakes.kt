@@ -21,6 +21,7 @@ object VisitDetailsFakes {
         visitLongitude = 31.018593,
         accountLatitude = 30.547956,
         accountLongitude = 31.133557,
+        travelSeconds = 25 * 60,
     )
 
     fun state(id: String = "visit-1"): VisitDetailsState = VisitDetailsState(visit = visit(id))

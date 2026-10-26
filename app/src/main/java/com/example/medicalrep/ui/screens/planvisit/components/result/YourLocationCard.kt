@@ -30,7 +30,7 @@ import com.example.medicalrep.ui.screens.planvisit.components.StepCard
 import com.example.medicalrep.ui.screens.planvisit.components.StepCardTitle
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitState
 import com.example.medicalrep.ui.screens.planvisit.utils.PlanVisitFakes
-import com.example.medicalrep.ui.screens.visitdetails.components.LocationMatchBanner
+import com.example.medicalrep.ui.components.widgets.LocationMatchBanner
 import com.example.medicalrep.ui.screens.visitdetails.utils.distanceFromAccountMeters
 import com.example.medicalrep.ui.screens.visitdetails.utils.hasLocations
 import com.example.medicalrep.ui.screens.visitdetails.utils.hasVisitLocation

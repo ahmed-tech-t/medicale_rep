@@ -28,6 +28,8 @@ data class VisitUi(
     val shift: Shift = Shift.Am,
     val visitLatitude: Double = 0.0,
     val visitLongitude: Double = 0.0,
+    /** How long the rep took to reach the visit (from the GPS track); 0 when unknown. */
+    val travelSeconds: Int = 0,
     val accountLatitude: Double = 0.0,
     val accountLongitude: Double = 0.0,
     val isDoubleVisit: Boolean = false,

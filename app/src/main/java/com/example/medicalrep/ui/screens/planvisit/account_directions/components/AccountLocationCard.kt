@@ -30,7 +30,7 @@ import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.components.widgets.NexoraChip
 import com.example.medicalrep.ui.screens.planvisit.account_directions.main.AccountDirectionsState
 import com.example.medicalrep.ui.screens.planvisit.account_directions.utils.distanceText
-import com.example.medicalrep.ui.screens.visitdetails.components.LocationMatchBanner
+import com.example.medicalrep.ui.components.widgets.LocationMatchBanner
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 import com.example.medicalrep.ui.ui.theme.Slate100
 import com.example.medicalrep.ui.ui.theme.Slate500

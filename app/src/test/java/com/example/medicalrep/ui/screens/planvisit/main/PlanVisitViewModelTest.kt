@@ -275,7 +275,15 @@ class PlanVisitViewModelTest {
         viewModel.onEvent(PlanVisitEvents.ViewLocationClick)
         assertEquals(
             listOf<UiEvent>(
-                UiEvent.Navigate(MainGraph.VisitLocationMap(state.visit.visitLatitude, state.visit.visitLongitude))
+                UiEvent.Navigate(
+                    MainGraph.VisitLocationMap(
+                        visitLatitude = state.visit.visitLatitude,
+                        visitLongitude = state.visit.visitLongitude,
+                        accountLatitude = state.visit.accountLatitude,
+                        accountLongitude = state.visit.accountLongitude,
+                        travelSeconds = state.visit.travelSeconds,
+                    )
+                )
             ),
             events,
         )

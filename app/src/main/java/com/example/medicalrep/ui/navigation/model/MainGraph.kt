@@ -43,7 +43,13 @@ open class MainGraph {
     data object AddAccount : MainGraph()
 
     @Serializable
-    data class VisitLocationMap(val visitLatitude: Double, val visitLongitude: Double) : MainGraph()
+    data class VisitLocationMap(
+        val visitLatitude: Double,
+        val visitLongitude: Double,
+        val accountLatitude: Double,
+        val accountLongitude: Double,
+        val travelSeconds: Int,
+    ) : MainGraph()
 
     @Serializable
     data class AccountLocation(

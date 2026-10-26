@@ -1,4 +1,4 @@
-package com.example.medicalrep.ui.screens.visitdetails.components
+package com.example.medicalrep.ui.components.widgets
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +28,7 @@ import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.screens.visitdetails.utils.isAtAccountLocation
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 import com.example.medicalrep.ui.ui.theme.OnSuccessContainer
+import com.example.medicalrep.ui.utils.METERS_PER_KM
 import com.example.medicalrep.ui.ui.theme.OnWarningContainer
 import com.example.medicalrep.ui.ui.theme.Slate800
 import com.example.medicalrep.ui.ui.theme.Success
@@ -35,8 +36,6 @@ import com.example.medicalrep.ui.ui.theme.SuccessContainer
 import com.example.medicalrep.ui.ui.theme.Warning
 import com.example.medicalrep.ui.ui.theme.WarningBorder
 import com.example.medicalrep.ui.ui.theme.WarningContainer
-
-private const val METERS_PER_KM = 1000
 
 /** Green when the visit was recorded at the account (within 50 m), amber warning otherwise. */
 @Composable
