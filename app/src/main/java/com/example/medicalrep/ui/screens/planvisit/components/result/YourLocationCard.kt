@@ -5,17 +5,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import com.appcore.core.ui.theme.dim
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.primitives.NexoraButton
@@ -31,15 +34,12 @@ import com.example.medicalrep.ui.screens.visitdetails.components.LocationMatchBa
 import com.example.medicalrep.ui.screens.visitdetails.utils.distanceFromAccountMeters
 import com.example.medicalrep.ui.screens.visitdetails.utils.hasLocations
 import com.example.medicalrep.ui.screens.visitdetails.utils.hasVisitLocation
-import com.example.medicalrep.ui.ui.theme.Brand
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
+import com.example.medicalrep.ui.utils.formatClockTime
 import com.example.medicalrep.ui.ui.theme.Slate100
 import com.example.medicalrep.ui.ui.theme.Slate500
 import com.example.medicalrep.ui.ui.theme.Slate600
 import com.example.medicalrep.ui.ui.theme.Slate800
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /** Where the rep captured the visit: address, coordinates, distance from the account, map and refresh. */
 @Composable
@@ -58,36 +58,35 @@ fun YourLocationCard(
         ) {
             StepCardTitle(stringResource(R.string.plan_visit_your_location))
             state.capturedAtMillis?.let { millis ->
-                val time = remember(millis) { SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date(millis)) }
+                val time = remember(millis) { formatClockTime(millis) }
                 NexoraChip(
-                    text = stringResource(R.string.plan_visit_location_captured, time),
+                    text = time,
                     container = Slate100,
                     content = Slate600,
                 )
             }
         }
         if (visit.hasVisitLocation) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    state.locationAddress?.let {
-                        NexoraText(
-                            text = it,
-                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                            color = Slate800,
-                        )
-                    }
+
+            Column {
+                state.locationAddress?.let {
                     NexoraText(
-                        text = stringResource(R.string.plan_visit_coordinates, visit.visitLatitude, visit.visitLongitude),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Slate500,
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                        color = Slate800,
                     )
                 }
-                NexoraIcon(painter = painterResource(R.drawable.ic_location_pin), tint = Brand)
+                NexoraText(
+                    text = stringResource(
+                        R.string.plan_visit_coordinates,
+                        visit.visitLatitude,
+                        visit.visitLongitude
+                    ),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Slate500,
+                )
             }
+
         }
         if (visit.hasLocations) LocationMatchBanner(distanceMeters = visit.distanceFromAccountMeters)
         Row(horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus)) {
@@ -95,7 +94,13 @@ fun YourLocationCard(
                 text = stringResource(R.string.plan_visit_view_on_map),
                 onClick = onViewOnMap,
                 fillMaxWidth = false,
-                modifier = Modifier.weight(1.5f),
+                modifier = Modifier.weight(2f),
+                leadingIcon = {
+                    NexoraIcon(
+                        imageVector = Icons.Outlined.Map,
+                        modifier = Modifier.size(dim.smallIconSize)
+                    )
+                },
             )
             NexoraButton(
                 text = stringResource(R.string.plan_visit_refresh_location),
@@ -104,7 +109,12 @@ fun YourLocationCard(
                 enabled = !state.isLocating,
                 fillMaxWidth = false,
                 modifier = Modifier.weight(1f),
-                leadingIcon = { NexoraIcon(imageVector = Icons.Filled.Refresh) },
+                leadingIcon = {
+                    NexoraIcon(
+                        imageVector = Icons.Filled.Refresh,
+                        modifier = Modifier.size(dim.smallIconSize)
+                    )
+                },
             )
         }
     }
@@ -114,7 +124,7 @@ private fun sampleState() = PlanVisitFakes.state().let {
     it.copy(
         visit = it.visit.copy(visitLatitude = 30.547864, visitLongitude = 31.133548),
         capturedAtMillis = 1_791_000_000_000L,
-        locationAddress = "Al Geish Street, Quesna",
+        locationAddress = "Al Geish Street",
     )
 }
 

@@ -8,7 +8,7 @@ data class OsrmRouteDto(
     val routes: List<OsrmRoute> = emptyList(),
 ) {
     @Serializable
-    data class OsrmRoute(val geometry: Geometry)
+    data class OsrmRoute(val geometry: Geometry, val distance: Double = 0.0, val duration: Double = 0.0)
 
     /** GeoJSON line: each coordinate is `[longitude, latitude]`. */
     @Serializable

@@ -21,6 +21,7 @@ import com.example.medicalrep.ui.models.VisitUi
 import com.example.medicalrep.ui.navigation.model.MainGraph
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitOverlay.*
 import com.example.medicalrep.ui.screens.planvisit.utils.PlanVisitFakes
+import com.example.medicalrep.ui.screens.visitdetails.utils.hasAccountLocation
 import com.example.medicalrep.ui.screens.visitdetails.utils.hasVisitLocation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -102,6 +103,7 @@ class PlanVisitViewModel @Inject constructor(
                 sendEvent(ShowSnackBar(StringResource(R.string.unplanned_voice_permission_denied)))
 
             PlanVisitEvents.ViewLocationClick -> openVisitLocation()
+            PlanVisitEvents.ViewAccountDirectionsClick -> openAccountDirections()
             PlanVisitEvents.RefreshLocation -> captureLocation()
 
             is PlanVisitEvents.AttachImageResult -> updateVisit { it.copy(imageNote = event.document.uri) }
@@ -112,6 +114,15 @@ class PlanVisitViewModel @Inject constructor(
         val visit = _state.value.visit
         if (visit.hasVisitLocation) {
             sendEvent(Navigate(MainGraph.VisitLocationMap(visit.visitLatitude, visit.visitLongitude)))
+        } else {
+            sendEvent(ShowSnackBar(StringResource(R.string.visit_location_unavailable)))
+        }
+    }
+
+    private fun openAccountDirections() {
+        val visit = _state.value.visit
+        if (visit.hasAccountLocation) {
+            sendEvent(Navigate(MainGraph.AccountDirections(visit.accountLatitude, visit.accountLongitude, visit.placeName)))
         } else {
             sendEvent(ShowSnackBar(StringResource(R.string.visit_location_unavailable)))
         }

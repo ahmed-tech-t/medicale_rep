@@ -44,4 +44,11 @@ open class MainGraph {
 
     @Serializable
     data class VisitLocationMap(val visitLatitude: Double, val visitLongitude: Double) : MainGraph()
+
+    @Serializable
+    data class AccountDirections(
+        val accountLatitude: Double,
+        val accountLongitude: Double,
+        val accountName: String,
+    ) : MainGraph()
 }

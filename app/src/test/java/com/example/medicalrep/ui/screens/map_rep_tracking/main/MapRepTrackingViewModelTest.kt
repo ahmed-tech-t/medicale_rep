@@ -5,6 +5,7 @@ import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.Resource
 import com.appcore.core.domain.utils.UiEvent
 import com.example.medicalrep.domain.models.RoutePoint
+import com.example.medicalrep.domain.models.RouteResult
 import com.example.medicalrep.domain.repo.RouteRepo
 import com.example.medicalrep.ui.navigation.model.MainGraph
 import kotlinx.coroutines.Dispatchers
@@ -71,7 +72,7 @@ class MapRepTrackingViewModelTest {
         val track = state.routePoints.map { RoutePoint(it.latitude, it.longitude) }
         assertTrue(track.size > 2)
         assertEquals(track, routeRepo.lastWaypoints)
-        assertEquals(routeRepo.points, state.route.data)
+        assertEquals(routeRepo.route, state.route.data)
     }
 
     @Test
@@ -80,9 +81,9 @@ class MapRepTrackingViewModelTest {
         viewModel = MapRepTrackingViewModel(FakeSettingsRepo, routeRepo)
         assertTrue(state.route is Resource.Error)
 
-        routeRepo.result = Resource.Success(routeRepo.points)
+        routeRepo.result = Resource.Success(routeRepo.route)
         viewModel.onEvent(MapRepTrackingEvents.RetryRoute)
-        assertEquals(routeRepo.points, state.route.data)
+        assertEquals(routeRepo.route, state.route.data)
     }
 
     @Test
@@ -118,10 +119,11 @@ private object FakeSettingsRepo : AppSettingsRepo {
 
 private class FakeRouteRepo : RouteRepo {
     val points = listOf(RoutePoint(30.0, 31.0), RoutePoint(30.1, 31.1))
-    var result: Resource<List<RoutePoint>> = Resource.Success(points)
+    val route = RouteResult(points, distanceMeters = 1000, durationSeconds = 600)
+    var result: Resource<RouteResult> = Resource.Success(route)
     var lastWaypoints: List<RoutePoint>? = null
 
-    override fun getRoute(waypoints: List<RoutePoint>): Flow<Resource<List<RoutePoint>>> {
+    override fun getRoute(waypoints: List<RoutePoint>): Flow<Resource<RouteResult>> {
         lastWaypoints = waypoints
         return flowOf(result)
     }

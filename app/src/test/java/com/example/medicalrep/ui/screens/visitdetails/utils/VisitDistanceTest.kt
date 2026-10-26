@@ -52,6 +52,12 @@ class VisitDistanceTest {
         assertFalse(VisitUi().hasVisitLocation)
     }
 
+    @Test
+    fun `account location is known unless it is zero zero`() {
+        assertTrue(VisitUi(accountLatitude = 30.1, accountLongitude = 31.1).hasAccountLocation)
+        assertFalse(VisitUi().hasAccountLocation)
+    }
+
     private fun assertEquals(expected: Int, actual: Int, delta: Int) =
         assertTrue("expected $expected ± $delta but was $actual", kotlin.math.abs(expected - actual) <= delta)
 }

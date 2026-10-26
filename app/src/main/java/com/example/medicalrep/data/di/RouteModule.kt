@@ -18,9 +18,6 @@ import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
-/** OSRM routing server; 10.0.2.2 is the host machine as seen from the Android emulator. */
-private const val OSRM_BASE_URL = "http://10.0.2.2:5000/"
-
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RouteModule {
@@ -39,7 +36,7 @@ abstract class RouteModule {
                 .apply { if (BuildConfig.DEBUG) addInterceptor(loggingInterceptor) }
                 .build()
             return Retrofit.Builder()
-                .baseUrl(OSRM_BASE_URL)
+                .baseUrl(BuildConfig.OSRM_BASE_URL)
                 .client(client)
                 .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
                 .build()

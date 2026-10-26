@@ -188,6 +188,16 @@
     <string name="unplanned_view_location">View location</string>
     <string name="visit_location_map_title">Visit location</string>
     <string name="map_my_location">My location</string>
+    <string name="cd_collapse">Collapse</string>
+    <string name="account_directions_to_account">To the account</string>
+    <string name="account_directions_by_car">by car</string>
+    <string name="account_directions_on_foot">on foot</string>
+    <string name="account_directions_refresh">Refresh location</string>
+    <string name="duration_hours_minutes">%1$d h %2$d min</string>
+    <string name="duration_minutes">%1$d min</string>
+    <string name="distance_km_format">%1$d km</string>
+    <string name="distance_m_format">%1$d m</string>
+    <string name="cd_expand">Expand</string>
     <string name="location_warning">Please turn on GPS or grant location permission</string>
     <string name="location_grant_permission">Grant permission</string>
     <string name="location_turn_on_gps">Turn on GPS</string>

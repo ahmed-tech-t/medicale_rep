@@ -283,6 +283,24 @@ class PlanVisitViewModelTest {
 
 
     @Test
+    fun `view account directions opens the screen with the account coordinates and name`() = runTest(dispatcher) {
+        val events = collectEvents()
+        viewModel.onEvent(PlanVisitEvents.ViewAccountDirectionsClick)
+        assertEquals(
+            listOf<UiEvent>(
+                UiEvent.Navigate(
+                    MainGraph.AccountDirections(
+                        state.visit.accountLatitude,
+                        state.visit.accountLongitude,
+                        state.visit.placeName,
+                    )
+                )
+            ),
+            events,
+        )
+    }
+
+    @Test
     fun `recording started sets the recording flag`() {
         viewModel.onEvent(PlanVisitEvents.VoiceNoteRecordingStarted)
         viewModel.onEvent(PlanVisitEvents.VoiceNoteRecordingStarted)

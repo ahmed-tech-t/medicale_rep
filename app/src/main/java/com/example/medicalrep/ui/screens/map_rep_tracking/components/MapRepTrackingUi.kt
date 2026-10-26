@@ -41,7 +41,7 @@ fun MapRepTrackingUi(
             GoogleMapComponent(
                 visitss = visitMarkers,
                 repTrack = state.routePoints,
-                roadRoute = state.route.data.orEmpty(),
+                roadRoute = state.route.data?.points.orEmpty(),
                 onMarkerClick = { onEvent(MapRepTrackingEvents.MarkerClicked(it)) },
                 selectedVisitId = state.selectedVisitId,
             )

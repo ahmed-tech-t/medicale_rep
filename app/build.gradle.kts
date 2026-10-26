@@ -25,6 +25,9 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders["MAPS_API_KEY"] = localProperties.getProperty("MAPS_API_KEY")
+        // OSRM routing server; 10.0.2.2 reaches the PC from the emulator, a phone needs the PC's LAN address.
+        val osrmBaseUrl = localProperties.getProperty("OSRM_BASE_URL") ?: "http://10.0.2.2:5000/"
+        buildConfigField("String", "OSRM_BASE_URL", "\"$osrmBaseUrl\"")
     }
 
     buildTypes {

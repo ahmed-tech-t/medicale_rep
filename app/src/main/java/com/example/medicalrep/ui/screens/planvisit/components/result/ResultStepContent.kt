@@ -49,7 +49,7 @@ fun ResultStepContent(
         )
         YourLocationCard(
             state = state,
-            onViewOnMap = { onEvent(PlanVisitEvents.ViewLocationClick) },
+            onViewOnMap = { onEvent(PlanVisitEvents.ViewAccountDirectionsClick) },
             onRefresh = { onEvent(PlanVisitEvents.RefreshLocation) },
         )
         VoiceNoteCard(

@@ -13,7 +13,7 @@ import org.junit.Test
 import java.io.IOException
 
 /**
- * 1. Given OSRM returns Ok with a line, Then Loading then Success with points as (lat, lon) from [lon, lat].
+ * 1. Given OSRM returns Ok with a line, Then Loading then Success with points as (lat, lon) from [lon, lat], plus the rounded distance (m) and duration (s).
  * 2. The request uses "lon,lat;lon,lat;..." for every waypoint, in order.
  * 3. Given code != Ok, or no routes, or an empty line, Then Error.
  * 4. Given the call throws, Then Error.
@@ -28,7 +28,7 @@ class RouteRepoImplTest {
     private fun dto(code: String = "Ok", line: List<List<Double>>? = listOf(listOf(31.0, 30.0), listOf(31.5, 30.5))) =
         OsrmRouteDto(
             code = code,
-            routes = line?.let { listOf(OsrmRouteDto.OsrmRoute(OsrmRouteDto.Geometry(it))) } ?: emptyList(),
+            routes = line?.let { listOf(OsrmRouteDto.OsrmRoute(OsrmRouteDto.Geometry(it), distance = 1234.4, duration = 567.8)) } ?: emptyList(),
         )
 
     private class FakeApi(private val result: () -> OsrmRouteDto) : OsrmApi {
@@ -47,8 +47,10 @@ class RouteRepoImplTest {
         assertTrue(emissions[0] is Resource.Loading)
         assertEquals(
             listOf(RoutePoint(30.0, 31.0), RoutePoint(30.5, 31.5)),
-            (emissions[1] as Resource.Success).data,
+            (emissions[1] as Resource.Success).data?.points,
         )
+        assertEquals(1234, (emissions[1] as Resource.Success).data?.distanceMeters)
+        assertEquals(568, (emissions[1] as Resource.Success).data?.durationSeconds)
         assertEquals("31.0,30.0;31.5,30.5", api.lastCoordinates)
     }
 
