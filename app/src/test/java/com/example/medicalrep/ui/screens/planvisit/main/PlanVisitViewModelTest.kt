@@ -301,6 +301,29 @@ class PlanVisitViewModelTest {
     }
 
     @Test
+    fun `view account location opens the screen with the account details`() = runTest(dispatcher) {
+        val events = collectEvents()
+        viewModel.onEvent(PlanVisitEvents.ViewAccountLocationClick)
+        val visit = state.visit
+        assertEquals(
+            listOf<UiEvent>(
+                UiEvent.Navigate(
+                    MainGraph.AccountLocation(
+                        accountLatitude = visit.accountLatitude,
+                        accountLongitude = visit.accountLongitude,
+                        accountName = visit.placeName,
+                        address = "${visit.city} - ${visit.address}",
+                        classCategory = visit.classCategory,
+                        accountType = visit.account,
+                        specialty = visit.specialty,
+                    )
+                )
+            ),
+            events,
+        )
+    }
+
+    @Test
     fun `recording started sets the recording flag`() {
         viewModel.onEvent(PlanVisitEvents.VoiceNoteRecordingStarted)
         viewModel.onEvent(PlanVisitEvents.VoiceNoteRecordingStarted)

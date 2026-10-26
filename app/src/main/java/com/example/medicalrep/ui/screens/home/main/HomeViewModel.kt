@@ -49,10 +49,10 @@ class HomeViewModel @Inject constructor(
                 }
             }
             HomeEvents.OnAddVisitClick -> openPlanVisit()
+            is HomeEvents.OnStartVisit -> sendEvent(UiEvent.Navigate(MainGraph.PlanVisit(visitId = event.visitId)))
             HomeEvents.OnSyncClick,
             HomeEvents.OnActiveContinue,
             HomeEvents.OnActiveCancel,
-            is HomeEvents.OnStartVisit,
             HomeEvents.OnTodayMoreClick -> showComingSoon()
         }
     }

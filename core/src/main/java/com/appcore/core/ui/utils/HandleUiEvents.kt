@@ -1,5 +1,7 @@
 package com.appcore.core.ui.utils
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -7,6 +9,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.core.net.toUri
 import com.appcore.core.domain.utils.UiEvent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -38,6 +41,11 @@ fun <T : UiEvent> Flow<T>.HandleUiEvents(
                     focusManager.clearFocus()
                 }
                 UiEvent.FinishActivity -> finishActivity()
+                is UiEvent.OpenUrl -> try {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, event.url.toUri()))
+                } catch (_: ActivityNotFoundException) {
+                    // Nothing on the device can open the link.
+                }
                 else -> onCustomEvent(event)
             }
         }

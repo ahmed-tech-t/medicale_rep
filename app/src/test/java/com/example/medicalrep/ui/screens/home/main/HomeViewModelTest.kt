@@ -37,8 +37,9 @@ import org.junit.Test
  *    and the add account screen opens.
  * 5. Given Arabic, When the language row is tapped, Then language becomes "en", the drawer closes
  *    and the settings manager publishes "en". Tapping again returns to "ar".
- * 6. Given Home, When sync / continue / cancel / start visit / more is tapped,
+ * 6. Given Home, When sync / continue / cancel / more is tapped,
  *    Then each sends exactly one "coming soon" snackbar.
+ * 6b. Given Home, When a today's visit is started, Then it opens the visit screen with that visit id.
  * 7. Given Home, When the add-visit FAB or the drawer "Add visit" row is tapped,
  *    Then it navigates to the unplanned visit screen (drawer closes).
  */
@@ -131,12 +132,18 @@ class HomeViewModelTest {
             HomeEvents.OnSyncClick,
             HomeEvents.OnActiveContinue,
             HomeEvents.OnActiveCancel,
-            HomeEvents.OnStartVisit("today-1"),
             HomeEvents.OnTodayMoreClick,
         )
         actions.forEach(viewModel::onEvent)
         assertEquals(actions.size, events.size)
         assertTrue(events.all { it is UiEvent.ShowSnackBar })
+    }
+
+    @Test
+    fun `starting a visit opens the visit screen with its id`() = runTest(dispatcher) {
+        val events = collectEvents()
+        viewModel.onEvent(HomeEvents.OnStartVisit("today-1"))
+        assertEquals(listOf<UiEvent>(UiEvent.Navigate(MainGraph.PlanVisit(visitId = "today-1"))), events)
     }
 
     @Test

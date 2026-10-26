@@ -1,6 +1,7 @@
 package com.example.medicalrep.ui.components.primitives
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import com.appcore.core.ui.theme.dim
 import com.appcore.core.ui.theme.spacing
 import com.appcore.core.ui.theme.radii
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
@@ -37,6 +39,7 @@ fun NexoraCard(
     val body: @Composable () -> Unit = {
         Column(
             modifier = Modifier.padding(contentPadding),
+            verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
             content = content,
         )
     }

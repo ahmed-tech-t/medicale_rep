@@ -34,5 +34,6 @@ sealed interface PlanVisitEvents {
     data object VoiceNoteDeleted : PlanVisitEvents
     data object ViewLocationClick : PlanVisitEvents
     data object ViewAccountDirectionsClick : PlanVisitEvents
+    data object ViewAccountLocationClick : PlanVisitEvents
     data object RefreshLocation : PlanVisitEvents
 }

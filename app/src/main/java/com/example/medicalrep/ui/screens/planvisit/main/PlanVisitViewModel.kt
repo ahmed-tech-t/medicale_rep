@@ -21,6 +21,7 @@ import com.example.medicalrep.ui.models.VisitUi
 import com.example.medicalrep.ui.navigation.model.MainGraph
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitOverlay.*
 import com.example.medicalrep.ui.screens.planvisit.utils.PlanVisitFakes
+import com.example.medicalrep.ui.screens.planvisit.utils.accountAddressLine
 import com.example.medicalrep.ui.screens.visitdetails.utils.hasAccountLocation
 import com.example.medicalrep.ui.screens.visitdetails.utils.hasVisitLocation
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -52,8 +53,9 @@ class PlanVisitViewModel @Inject constructor(
 
     private fun initialState(): PlanVisitState {
         val sample = PlanVisitFakes.state()
+        // Until planned visits load from Room, a planned visit shows the sample visit's data.
         return if (visitId == null) sample
-        else sample.copy(visit = VisitUi(id = visitId, type = VisitType.Planned))
+        else sample.copy(visit = sample.visit.copy(id = visitId, type = VisitType.Planned))
     }
 
     // TODO: load the planned visit from Room by [visitId] and assign it to `visit` (keep type = Planned).
@@ -104,6 +106,7 @@ class PlanVisitViewModel @Inject constructor(
 
             PlanVisitEvents.ViewLocationClick -> openVisitLocation()
             PlanVisitEvents.ViewAccountDirectionsClick -> openAccountDirections()
+            PlanVisitEvents.ViewAccountLocationClick -> openAccountLocation()
             PlanVisitEvents.RefreshLocation -> captureLocation()
 
             is PlanVisitEvents.AttachImageResult -> updateVisit { it.copy(imageNote = event.document.uri) }
@@ -114,6 +117,27 @@ class PlanVisitViewModel @Inject constructor(
         val visit = _state.value.visit
         if (visit.hasVisitLocation) {
             sendEvent(Navigate(MainGraph.VisitLocationMap(visit.visitLatitude, visit.visitLongitude)))
+        } else {
+            sendEvent(ShowSnackBar(StringResource(R.string.visit_location_unavailable)))
+        }
+    }
+
+    private fun openAccountLocation() {
+        val visit = _state.value.visit
+        if (visit.hasAccountLocation) {
+            sendEvent(
+                Navigate(
+                    MainGraph.AccountLocation(
+                        accountLatitude = visit.accountLatitude,
+                        accountLongitude = visit.accountLongitude,
+                        accountName = visit.placeName,
+                        address = visit.accountAddressLine(),
+                        classCategory = visit.classCategory,
+                        accountType = visit.account,
+                        specialty = visit.specialty,
+                    )
+                )
+            )
         } else {
             sendEvent(ShowSnackBar(StringResource(R.string.visit_location_unavailable)))
         }

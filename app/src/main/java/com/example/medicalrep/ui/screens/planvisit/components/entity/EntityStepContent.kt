@@ -36,6 +36,7 @@ import com.example.medicalrep.ui.components.widgets.toSearchItems
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitEvents
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitState
 import com.example.medicalrep.ui.screens.planvisit.utils.PlanVisitFakes
+import com.example.medicalrep.ui.screens.planvisit.utils.accountAddressLine
 import com.example.medicalrep.ui.ui.theme.Info
 import com.example.medicalrep.ui.ui.theme.InfoContainer
 import com.example.medicalrep.ui.ui.theme.Ink
@@ -198,6 +199,12 @@ fun EntityStepContent(
                         }
                     },
                     placeholder = stringResource(R.string.enter_place_name),
+                )
+            }
+            if (visit.type == VisitType.Planned && visit.placeName.isNotBlank()) {
+                AccountLocationRow(
+                    addressLine = visit.accountAddressLine(),
+                    onViewMap = { onEvent(PlanVisitEvents.ViewAccountLocationClick) },
                 )
             }
 
