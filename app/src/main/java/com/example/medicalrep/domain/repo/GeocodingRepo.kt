@@ -5,6 +5,6 @@ import com.example.medicalrep.domain.models.RoutePoint
 import kotlinx.coroutines.flow.Flow
 
 interface GeocodingRepo {
-    /** Emits Loading, then the readable address of [point], or an Error. */
+    /** Emits Loading, then the street name of [point], or an Error when it is unknown. */
     fun getAddress(point: RoutePoint): Flow<Resource<String>>
 }

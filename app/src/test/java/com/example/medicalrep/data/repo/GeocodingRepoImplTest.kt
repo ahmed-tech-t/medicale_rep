@@ -19,7 +19,7 @@ import org.junit.Test
 import java.io.IOException
 
 /**
- * 1. Given Nominatim returns an address, Then Loading then Success with display_name.
+ * 1. Given Nominatim returns an address, Then Loading then Success with its street name.
  * 2. The request carries the point's latitude and longitude.
  * 3. Given Nominatim returns an error body or a blank address, Then Error.
  * 4. Given the call throws, Then Error.
@@ -50,11 +50,11 @@ class GeocodingRepoImplTest {
 
     @Test
     fun `success returns display name and sends lat lon`() = runTest {
-        val api = FakeApi { NominatimReverseDto(displayName = "Tahrir Square, Cairo, Egypt") }
+        val api = FakeApi { NominatimReverseDto(address = NominatimReverseDto.Address(road = "Tahrir Square")) }
         val emissions = repo(api).getAddress(point).toList()
 
         assertTrue(emissions[0] is Resource.Loading)
-        assertEquals("Tahrir Square, Cairo, Egypt", (emissions[1] as Resource.Success).data)
+        assertEquals("Tahrir Square", (emissions[1] as Resource.Success).data)
         assertEquals(30.0444, api.lastLat)
         assertEquals(31.2357, api.lastLon)
         assertEquals("ar", api.lastLanguage)
@@ -65,7 +65,8 @@ class GeocodingRepoImplTest {
         listOf(
             NominatimReverseDto(error = "Unable to geocode"),
             NominatimReverseDto(),
-            NominatimReverseDto(displayName = "  "),
+            NominatimReverseDto(address = NominatimReverseDto.Address(road = "  ")),
+            NominatimReverseDto(address = NominatimReverseDto.Address()),
         ).forEach { response ->
             val last = repo(FakeApi { response }).getAddress(point).toList().last()
             assertTrue(last is Resource.Error)

@@ -20,15 +20,15 @@ class GeocodingRepoImpl @Inject constructor(
     override fun getAddress(point: RoutePoint): Flow<Resource<String>> = flow {
         emit(Resource.Loading())
         try {
-            val address = api.reverse(
+            val street = api.reverse(
                 lat = point.latitude,
                 lon = point.longitude,
                 language = appSettingsManager.getLanguageSync(),
-            ).displayName
-            if (address.isNullOrBlank()) {
-                emit(Resource.Error("No address found"))
+            ).address?.road
+            if (street.isNullOrBlank()) {
+                emit(Resource.Error("No street found"))
             } else {
-                emit(Resource.Success(address))
+                emit(Resource.Success(street))
             }
         } catch (e: Exception) {
             emit(Resource.Error(e.toApiErrorMessage(json)))
