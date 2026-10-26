@@ -8,9 +8,14 @@ import com.appcore.core.domain.utils.UiText
 import com.appcore.core.ui.utils.BaseViewModel
 import com.example.medicalrep.R
 import com.example.medicalrep.ui.navigation.model.MainGraph
-import com.example.medicalrep.ui.screens.visitdetails.utils.VisitDetailsFakes
 import com.example.medicalrep.ui.screens.visitdetails.utils.hasLocations
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.update
+import com.example.medicalrep.ui.models.VisitUi
+import com.example.medicalrep.ui.mapper.toUi
+import com.example.medicalrep.domain.repo.VisitRepo
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,13 +25,19 @@ import javax.inject.Inject
 class VisitDetailsViewModel @Inject constructor(
     appSettingsRepo: AppSettingsRepo,
     savedStateHandle: SavedStateHandle,
+    visitRepo: VisitRepo,
 ) : BaseViewModel(appSettingsRepo) {
 
     private val visitId: String = savedStateHandle.toRoute<MainGraph.VisitDetails>().visitId
 
-    // TODO: load the visit with [visitId] from Room.
-    private val _state = MutableStateFlow(VisitDetailsState(visit = VisitDetailsFakes.visit(visitId)))
+    private val _state = MutableStateFlow(VisitDetailsState(visit = VisitUi(id = visitId)))
     val state: StateFlow<VisitDetailsState> = _state.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            visitRepo.get(visitId)?.let { visit -> _state.update { it.copy(visit = visit.toUi()) } }
+        }
+    }
 
     fun onEvent(event: VisitDetailsEvents) {
         when (event) {

@@ -16,14 +16,16 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import com.example.medicalrep.domain.repo.FakeVisitRepo
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
 /**
- * 1. Given a route with a visit id, Then the state holds that visit.
- * 2. When View on map, Then nothing happens yet (the map is implemented later).
+ * 1. Given a route with a visit id, Then the state starts with that id and the stored visit is loaded into it
+ *    (loading itself is covered by VisitRepoTest.get; the route id cannot be decoded in a JVM test).
+ * 2. When View on map and the visit has no locations, Then one snackbar says so (with locations the map opens).
  * 3. When Back, Then NavigationUp.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -35,7 +37,7 @@ class VisitDetailsViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
-        viewModel = VisitDetailsViewModel(FakeSettingsRepo, SavedStateHandle(mapOf("visitId" to "visit-7")))
+        viewModel = VisitDetailsViewModel(FakeSettingsRepo, SavedStateHandle(mapOf("visitId" to "visit-7")), FakeVisitRepo())
     }
 
     @After
@@ -47,24 +49,11 @@ class VisitDetailsViewModelTest {
     }
 
     @Test
-    fun `view on map does nothing yet`() = runTest(dispatcher) {
+    fun `view on map without locations shows the unavailable snackbar`() = runTest(dispatcher) {
         val events = collectEvents()
         viewModel.onEvent(VisitDetailsEvents.ViewOnMap)
-        val visit = viewModel.state.value.visit
-        assertEquals(
-            listOf<UiEvent>(
-                UiEvent.Navigate(
-                    MainGraph.VisitLocationMap(
-                        visitLatitude = visit.visitLatitude,
-                        visitLongitude = visit.visitLongitude,
-                        accountLatitude = visit.accountLatitude,
-                        accountLongitude = visit.accountLongitude,
-                        travelSeconds = visit.travelSeconds,
-                    )
-                )
-            ),
-            events,
-        )
+        assertEquals(1, events.size)
+        assertEquals(true, events[0] is UiEvent.ShowSnackBar)
     }
 
     @Test
