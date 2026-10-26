@@ -56,7 +56,7 @@ class AccountsUiTest {
     fun popupListsFiveOptionsAndSendsTheChosenType() {
         setUi(AccountsFakes.state().copy(overlay = AccountsOverlay.TypeFilter))
         listOf(
-            R.string.accounts_filter_all,
+            R.string.filter_all,
             R.string.accounts_filter_clinics,
             R.string.accounts_filter_hospitals,
             R.string.accounts_filter_pharmacies,
@@ -64,7 +64,7 @@ class AccountsUiTest {
         ).forEach { composeRule.onNodeWithText(text(it)).assertIsDisplayed() }
         composeRule.onNodeWithText(text(R.string.accounts_filter_hospitals)).performClick()
         assertEquals(AccountsEvents.SelectType(AccountType.Hospital), events.last())
-        composeRule.onNodeWithText(text(R.string.accounts_filter_all)).performClick()
+        composeRule.onNodeWithText(text(R.string.filter_all)).performClick()
         assertEquals(AccountsEvents.SelectType(null), events.last())
     }
 

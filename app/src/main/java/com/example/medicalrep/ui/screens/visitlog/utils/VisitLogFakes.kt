@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.screens.visitlog.utils
 
+import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.VisitUi
@@ -14,7 +15,11 @@ object VisitLogFakes {
             id = "required-$index",
             placeName = "د. طارق عز الدين",
             specialty = "باطنة",
-        ).toUi().copy(address = "شارع الجلاء - برج الأطباء")
+        ).toUi().copy(
+            address = "شارع الجلاء - برج الأطباء",
+            shift = if (index % 2 == 0) Shift.Am else Shift.Pm,
+            classCategory = listOf("A", "B", "C")[index % 3],
+        )
     }
 
     fun doneVisits(): List<VisitUi> = listOf(

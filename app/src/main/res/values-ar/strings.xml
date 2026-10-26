@@ -343,10 +343,18 @@
     <string name="visit_status_completed">مكتملة</string>
     <string name="no_result">لا توجد نتائج</string>
     <string name="accounts">الأطباء والحسابات</string>
-    <string name="accounts_filter_all">الكل</string>
+    <string name="filter_all">الكل</string>
     <string name="accounts_filter_clinics">العيادات</string>
     <string name="accounts_filter_hospitals">المستشفيات</string>
     <string name="accounts_filter_pharmacies">الصيدليات</string>
     <string name="accounts_filter_medical_centers">المراكز الطبية</string>
     <string name="account_type_medical_center">مركز طبي</string>
+    <string name="filter_morning">الفترة الصباحية</string>
+    <string name="filter_evening">الفترة المسائية</string>
+    <string name="filter_double_visits">زيارات مزدوجة</string>
+    <string name="filter_not_synced">غير متزامنة</string>
+    <string name="filter_synced">متزامنة</string>
+    <string name="filter_class_a">تصنيف A</string>
+    <string name="filter_class_b">تصنيف B</string>
+    <string name="filter_class_c">تصنيف C</string>
 </resources>

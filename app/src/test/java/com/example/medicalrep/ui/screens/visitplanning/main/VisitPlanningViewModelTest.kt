@@ -14,6 +14,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import com.example.medicalrep.ui.models.VisitFilter
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -101,13 +102,47 @@ class VisitPlanningViewModelTest {
     }
 
     @Test
-    fun `filter shows one snackbar and back navigates up`() = runTest(dispatcher) {
+    fun `back navigates up`() = runTest(dispatcher) {
         val events = collectEvents()
-        viewModel.onEvent(VisitPlanningEvents.FilterClick)
         viewModel.onEvent(VisitPlanningEvents.Back)
-        assertEquals(2, events.size)
-        assertTrue(events[0] is UiEvent.ShowSnackBar)
-        assertEquals(UiEvent.NavigationUp, events[1])
+        assertEquals(listOf<UiEvent>(UiEvent.NavigationUp), events)
+    }
+
+    @Test
+    fun `filter icon opens the popup and dismiss closes it`() {
+        viewModel.onEvent(VisitPlanningEvents.OpenFilter)
+        assertEquals(VisitPlanningOverlay.Filter, state.overlay)
+        viewModel.onEvent(VisitPlanningEvents.DismissOverlay)
+        assertEquals(VisitPlanningOverlay.None, state.overlay)
+    }
+
+    @Test
+    fun `selecting a filter narrows the tab list, closes the popup and turns the icon on`() {
+        assertEquals(false, state.isFiltered)
+        viewModel.onEvent(VisitPlanningEvents.OpenFilter)
+        viewModel.onEvent(VisitPlanningEvents.SelectFilter(VisitFilter.Morning))
+        assertEquals(listOf("visit-0", "visit-2"), state.visibleVisits.map { it.id })
+        assertEquals(VisitPlanningOverlay.None, state.overlay)
+        assertEquals(true, state.isFiltered)
+    }
+
+    @Test
+    fun `class filter works on both tabs and All restores`() {
+        viewModel.onEvent(VisitPlanningEvents.SelectFilter(VisitFilter.ClassB))
+        assertEquals(listOf("visit-1"), state.visibleVisits.map { it.id })
+        viewModel.onEvent(VisitPlanningEvents.SelectTab(VisitPlanningTab.Pending))
+        assertEquals(listOf("pending-1", "pending-4"), state.visibleVisits.map { it.id })
+        viewModel.onEvent(VisitPlanningEvents.SelectFilter(VisitFilter.All))
+        assertEquals(state.pendingVisits.size, state.resultCount)
+        assertEquals(false, state.isFiltered)
+    }
+
+    @Test
+    fun `evening and class C pick the matching visits`() {
+        viewModel.onEvent(VisitPlanningEvents.SelectFilter(VisitFilter.Evening))
+        assertEquals(listOf("visit-1", "visit-3"), state.visibleVisits.map { it.id })
+        viewModel.onEvent(VisitPlanningEvents.SelectFilter(VisitFilter.ClassC))
+        assertEquals(listOf("visit-2"), state.visibleVisits.map { it.id })
     }
 
     private fun TestScope.collectEvents(): MutableList<UiEvent> {

@@ -27,8 +27,8 @@ import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.components.widgets.NexoraChip
 import com.example.medicalrep.ui.models.AccountUi
 import com.example.medicalrep.ui.screens.accounts.utils.AccountsFakes
-import com.example.medicalrep.ui.screens.accounts.utils.iconRes
-import com.example.medicalrep.ui.screens.accounts.utils.labelRes
+import com.example.medicalrep.ui.components.widgets.iconRes
+import com.example.medicalrep.ui.components.widgets.labelRes
 import com.example.medicalrep.ui.ui.theme.Brand
 import com.example.medicalrep.ui.ui.theme.BrandBorder
 import com.example.medicalrep.ui.ui.theme.BrandTint

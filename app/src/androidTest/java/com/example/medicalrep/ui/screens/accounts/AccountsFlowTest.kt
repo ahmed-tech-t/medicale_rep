@@ -48,7 +48,7 @@ class AccountsFlowTest {
         composeRule.onNodeWithText(hospitals.first().name).assertIsDisplayed()
 
         composeRule.onNodeWithContentDescription(text(R.string.cd_filter)).performClick()
-        composeRule.onNodeWithText(text(R.string.accounts_filter_all)).performClick()
+        composeRule.onNodeWithText(text(R.string.filter_all)).performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithText(text(R.string.visit_log_results_format, all.size)).assertIsDisplayed()
     }

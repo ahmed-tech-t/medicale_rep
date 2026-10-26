@@ -1,4 +1,4 @@
-package com.example.medicalrep.ui.screens.accounts.utils
+package com.example.medicalrep.ui.components.widgets
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -33,3 +33,8 @@ val AccountType.iconRes: Int
         AccountType.Pharmacy -> R.drawable.ic_statics_pharmacy
         AccountType.MedicalCenter -> R.drawable.ic_statics_health_unit
     }
+
+/** All, then every [AccountType] with its icon; null stands for All. */
+val accountTypeFilterOptions: List<FilterOption<AccountType?>> =
+    listOf(FilterOption<AccountType?>(null, R.string.filter_all, R.drawable.ic_grid_all)) +
+        AccountType.entries.map { FilterOption<AccountType?>(it, it.filterLabelRes, it.iconRes) }

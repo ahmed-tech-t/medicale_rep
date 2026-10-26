@@ -15,6 +15,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import com.example.medicalrep.ui.models.VisitFilter
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -83,13 +84,71 @@ class VisitLogViewModelTest {
     }
 
     @Test
-    fun `filter shows one snackbar and back navigates up`() = runTest(dispatcher) {
+    fun `back navigates up`() = runTest(dispatcher) {
         val events = collectEvents()
-        viewModel.onEvent(VisitLogEvents.FilterClick)
         viewModel.onEvent(VisitLogEvents.Back)
-        assertEquals(2, events.size)
-        assertTrue(events[0] is UiEvent.ShowSnackBar)
-        assertEquals(UiEvent.NavigationUp, events[1])
+        assertEquals(listOf<UiEvent>(UiEvent.NavigationUp), events)
+    }
+
+    @Test
+    fun `filter icon opens the popup and dismiss closes it`() {
+        viewModel.onEvent(VisitLogEvents.OpenFilter)
+        assertEquals(VisitLogOverlay.Filter, viewModel.state.value.overlay)
+        viewModel.onEvent(VisitLogEvents.CloseFilter)
+        assertEquals(VisitLogOverlay.None, viewModel.state.value.overlay)
+    }
+
+    @Test
+    fun `selecting a filter narrows the tab list, closes the popup and turns the icon on`() {
+        assertEquals(false, viewModel.state.value.isFiltered)
+        viewModel.onEvent(VisitLogEvents.OpenFilter)
+        viewModel.onEvent(VisitLogEvents.SelectFilter(VisitFilter.Morning))
+        assertEquals(listOf("required-0", "required-2"), viewModel.state.value.visibleVisits.map { it.id })
+        assertEquals(2, viewModel.state.value.resultCount)
+        assertEquals(VisitLogOverlay.None, viewModel.state.value.overlay)
+        assertEquals(true, viewModel.state.value.isFiltered)
+    }
+
+    @Test
+    fun `required tab filters by shift and class`() {
+        viewModel.onEvent(VisitLogEvents.SelectFilter(VisitFilter.Evening))
+        assertEquals(listOf("required-1", "required-3"), viewModel.state.value.visibleVisits.map { it.id })
+        viewModel.onEvent(VisitLogEvents.SelectFilter(VisitFilter.ClassA))
+        assertEquals(listOf("required-0", "required-3"), viewModel.state.value.visibleVisits.map { it.id })
+        viewModel.onEvent(VisitLogEvents.SelectFilter(VisitFilter.ClassB))
+        assertEquals(listOf("required-1"), viewModel.state.value.visibleVisits.map { it.id })
+    }
+
+    @Test
+    fun `done tab filters by shift, double visit and sync status`() {
+        viewModel.onEvent(VisitLogEvents.SelectTab(VisitLogTab.Done))
+        viewModel.onEvent(VisitLogEvents.SelectFilter(VisitFilter.Morning))
+        assertEquals(listOf("done-1"), viewModel.state.value.visibleVisits.map { it.id })
+        viewModel.onEvent(VisitLogEvents.SelectFilter(VisitFilter.Evening))
+        assertEquals(listOf("done-2"), viewModel.state.value.visibleVisits.map { it.id })
+        viewModel.onEvent(VisitLogEvents.SelectFilter(VisitFilter.DoubleVisits))
+        assertEquals(listOf("done-1", "done-2"), viewModel.state.value.visibleVisits.map { it.id })
+        viewModel.onEvent(VisitLogEvents.SelectFilter(VisitFilter.Synced))
+        assertEquals(listOf("done-2"), viewModel.state.value.visibleVisits.map { it.id })
+        viewModel.onEvent(VisitLogEvents.SelectFilter(VisitFilter.NotSynced))
+        assertEquals(listOf("done-1"), viewModel.state.value.visibleVisits.map { it.id })
+    }
+
+    @Test
+    fun `switching tab resets the filter to All and closes the popup`() {
+        viewModel.onEvent(VisitLogEvents.SelectFilter(VisitFilter.Morning))
+        viewModel.onEvent(VisitLogEvents.OpenFilter)
+        viewModel.onEvent(VisitLogEvents.SelectTab(VisitLogTab.Done))
+        assertEquals(VisitFilter.All, viewModel.state.value.filter)
+        assertEquals(false, viewModel.state.value.isFiltered)
+        assertEquals(VisitLogOverlay.None, viewModel.state.value.overlay)
+        assertEquals(viewModel.state.value.doneVisits.size, viewModel.state.value.resultCount)
+    }
+
+    @Test
+    fun `a filter with no match shows nothing`() {
+        viewModel.onEvent(VisitLogEvents.SelectFilter(VisitFilter.DoubleVisits))
+        assertEquals(0, viewModel.state.value.resultCount)
     }
 
     private fun TestScope.collectEvents(): MutableList<UiEvent> {

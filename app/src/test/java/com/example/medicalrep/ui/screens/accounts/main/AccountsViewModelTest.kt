@@ -74,6 +74,15 @@ class AccountsViewModelTest {
     }
 
     @Test
+    fun `filter icon is on only while a type is selected`() {
+        assertEquals(false, state.isFiltered)
+        viewModel.onEvent(AccountsEvents.SelectType(AccountType.Clinic))
+        assertEquals(true, state.isFiltered)
+        viewModel.onEvent(AccountsEvents.SelectType(null))
+        assertEquals(false, state.isFiltered)
+    }
+
+    @Test
     fun `selecting all restores every account`() {
         viewModel.onEvent(AccountsEvents.SelectType(AccountType.Clinic))
         viewModel.onEvent(AccountsEvents.SelectType(null))

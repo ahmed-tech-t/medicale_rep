@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.screens.visitplanning.utils
 
+import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.VisitType
 import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.VisitUi
@@ -15,7 +16,13 @@ object VisitPlanningFakes {
             placeName = "د. هاني عبد الفتاح (عظام)",
             account = "عيادة",
             specialty = "استشاري باطنة وجهاز هضمي",
-        ).toUi().copy(type = VisitType.Planning, date = "أمس", time = "04:15 م")
+        ).toUi().copy(
+            type = VisitType.Planning,
+            date = "أمس",
+            time = "04:15 م",
+            shift = if (index % 2 == 0) Shift.Am else Shift.Pm,
+            classCategory = listOf("A", "B", "C")[index % 3],
+        )
     }
 
     fun visits(): List<VisitUi> = List(4) { index ->
@@ -24,7 +31,10 @@ object VisitPlanningFakes {
             placeName = "د. محمد عبد الرحمن الشافعي",
             account = "عيادة",
             specialty = "استشاري باطنة وجهاز هضمي",
-        ).toUi()
+        ).toUi().copy(
+            shift = if (index % 2 == 0) Shift.Am else Shift.Pm,
+            classCategory = listOf("A", "B", "C")[index % 3],
+        )
     }
 
     fun state(): VisitPlanningState = VisitPlanningState(

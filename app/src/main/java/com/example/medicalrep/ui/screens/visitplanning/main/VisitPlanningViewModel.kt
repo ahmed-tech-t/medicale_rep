@@ -26,7 +26,10 @@ class VisitPlanningViewModel @Inject constructor(
         when (event) {
             VisitPlanningEvents.Back -> sendEvent(UiEvent.NavigationUp)
             is VisitPlanningEvents.SelectTab -> _state.update { it.copy(selectedTab = event.tab) }
-            VisitPlanningEvents.FilterClick -> showComingSoon()
+            VisitPlanningEvents.OpenFilter -> _state.update { it.copy(overlay = VisitPlanningOverlay.Filter) }
+            is VisitPlanningEvents.SelectFilter -> _state.update {
+                it.copy(filter = event.filter, overlay = VisitPlanningOverlay.None)
+            }
             is VisitPlanningEvents.ToggleSelect -> _state.update { it.copy(selectedIds = it.selectedIds.toggle(event.visitId)) }
             VisitPlanningEvents.OpenSchedule -> _state.update { it.copy(overlay = VisitPlanningOverlay.ScheduleVisit) }
             VisitPlanningEvents.DismissOverlay -> _state.update { it.copy(overlay = VisitPlanningOverlay.None) }

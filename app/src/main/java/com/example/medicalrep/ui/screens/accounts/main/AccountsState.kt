@@ -20,4 +20,5 @@ data class AccountsState(
         get() = if (selectedType == null) accounts else accounts.filter { it.type == selectedType }
 
     val resultCount: Int get() = visibleAccounts.size
+    val isFiltered: Boolean get() = selectedType != null
 }

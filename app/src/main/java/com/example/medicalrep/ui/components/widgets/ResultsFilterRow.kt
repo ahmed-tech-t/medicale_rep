@@ -19,12 +19,13 @@ import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.ui.theme.Ink
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 
-/** "19 results" with the filter button at the opposite end. */
+/** "19 results" with the filter button at the opposite end; the button turns primary while a filter is on. */
 @Composable
 fun ResultsFilterRow(
     count: Int,
     onFilterClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isFiltered: Boolean = false,
     filterMenu: @Composable () -> Unit = {},
 ) {
     Row(
@@ -43,7 +44,7 @@ fun ResultsFilterRow(
                 painter = painterResource(R.drawable.ic_filter_list),
                 contentDescription = stringResource(R.string.cd_filter),
                 onClick = onFilterClick,
-                tint = Ink,
+                tint = if (isFiltered) MaterialTheme.colorScheme.primary else Ink,
             )
             filterMenu()
         }

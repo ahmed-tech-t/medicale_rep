@@ -16,7 +16,10 @@ import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.chrome.AppHeader
 import com.example.medicalrep.ui.components.chrome.NexoraTabs
 import com.example.medicalrep.ui.components.primitives.NexoraButton
+import com.example.medicalrep.ui.components.widgets.FilterMenu
+import com.example.medicalrep.ui.components.widgets.plannedVisitFilterOptions
 import com.example.medicalrep.ui.components.widgets.ResultsFilterRow
+import com.example.medicalrep.ui.screens.visitplanning.main.VisitPlanningOverlay
 import com.example.medicalrep.ui.screens.visitplanning.main.VisitPlanningEvents
 import com.example.medicalrep.ui.screens.visitplanning.main.VisitPlanningState
 import com.example.medicalrep.ui.screens.visitplanning.main.VisitPlanningTab
@@ -60,7 +63,17 @@ fun VisitPlanningUi(
             item(key = "results") {
                 ResultsFilterRow(
                     count = state.resultCount,
-                    onFilterClick = { onEvent(VisitPlanningEvents.FilterClick) },
+                    onFilterClick = { onEvent(VisitPlanningEvents.OpenFilter) },
+                    isFiltered = state.isFiltered,
+                    filterMenu = {
+                        FilterMenu(
+                            expanded = state.overlay == VisitPlanningOverlay.Filter,
+                            options = plannedVisitFilterOptions,
+                            selected = state.filter,
+                            onSelect = { onEvent(VisitPlanningEvents.SelectFilter(it)) },
+                            onDismiss = { onEvent(VisitPlanningEvents.DismissOverlay) },
+                        )
+                    },
                 )
             }
             items(items = state.visibleVisits, key = { it.id }) { visit ->

@@ -15,6 +15,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.chrome.AppHeader
+import com.example.medicalrep.ui.components.widgets.FilterMenu
+import com.example.medicalrep.ui.components.widgets.accountTypeFilterOptions
 import com.example.medicalrep.ui.components.widgets.ResultsFilterRow
 import com.example.medicalrep.ui.screens.accounts.main.AccountsEvents
 import com.example.medicalrep.ui.screens.accounts.main.AccountsOverlay
@@ -46,9 +48,11 @@ fun AccountsUi(
                 ResultsFilterRow(
                     count = visibleAccounts.size,
                     onFilterClick = { onEvent(AccountsEvents.OpenFilter) },
+                    isFiltered = state.isFiltered,
                     filterMenu = {
-                        AccountTypeFilterMenu(
+                        FilterMenu(
                             expanded = state.overlay == AccountsOverlay.TypeFilter,
+                            options = accountTypeFilterOptions,
                             selected = state.selectedType,
                             onSelect = { onEvent(AccountsEvents.SelectType(it)) },
                             onDismiss = { onEvent(AccountsEvents.CloseFilter) },

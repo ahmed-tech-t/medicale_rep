@@ -15,7 +15,11 @@ import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.chrome.AppHeader
 import com.example.medicalrep.ui.components.chrome.NexoraTabs
+import com.example.medicalrep.ui.components.widgets.FilterMenu
+import com.example.medicalrep.ui.components.widgets.doneVisitFilterOptions
+import com.example.medicalrep.ui.components.widgets.plannedVisitFilterOptions
 import com.example.medicalrep.ui.components.widgets.ResultsFilterRow
+import com.example.medicalrep.ui.screens.visitlog.main.VisitLogOverlay
 import com.example.medicalrep.ui.components.widgets.visit.CompletedVisitCard
 import com.example.medicalrep.ui.components.widgets.visit.PlannedVisitCard
 import com.example.medicalrep.ui.models.VisitUi
@@ -62,7 +66,20 @@ fun VisitLogUi(
             item(key = "results") {
                 ResultsFilterRow(
                     count = state.resultCount,
-                    onFilterClick = { onEvent(VisitLogEvents.FilterClick) },
+                    onFilterClick = { onEvent(VisitLogEvents.OpenFilter) },
+                    isFiltered = state.isFiltered,
+                    filterMenu = {
+                        FilterMenu(
+                            expanded = state.overlay == VisitLogOverlay.Filter,
+                            options = when (state.selectedTab) {
+                                VisitLogTab.Required -> plannedVisitFilterOptions
+                                VisitLogTab.Done -> doneVisitFilterOptions
+                            },
+                            selected = state.filter,
+                            onSelect = { onEvent(VisitLogEvents.SelectFilter(it)) },
+                            onDismiss = { onEvent(VisitLogEvents.CloseFilter) },
+                        )
+                    },
                 )
             }
             items(items = state.visibleVisits, key = { it.id }) { visit ->
