@@ -11,8 +11,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.itemKey
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
+import com.example.medicalrep.ui.models.CustodyUi
+import com.example.medicalrep.ui.preview.pagingItemsOf
 import com.example.medicalrep.ui.components.chrome.AppHeader
 import com.example.medicalrep.ui.components.chrome.NexoraTabs
 import com.example.medicalrep.ui.screens.sampleandgifts.main.SampleAndGiftsEvents
@@ -26,6 +30,7 @@ import com.example.medicalrep.ui.ui.theme.Slate50
 @Composable
 fun SampleAndGiftsUi(
     state: SampleAndGiftsState,
+    items: LazyPagingItems<CustodyUi>,
     onEvent: (SampleAndGiftsEvents) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
@@ -53,8 +58,8 @@ fun SampleAndGiftsUi(
             contentPadding = PaddingValues(spacing.spaceSmallPlus),
             verticalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
         ) {
-            items(items = state.visibleItems, key = { it.id }) { item ->
-                SampleAndGiftsItemCard(item = item)
+            items(count = items.itemCount, key = items.itemKey { it.id }) { index ->
+                items[index]?.let { SampleAndGiftsItemCard(item = it) }
             }
         }
     }
@@ -64,7 +69,12 @@ fun SampleAndGiftsUi(
 @Composable
 private fun SampleAndGiftsUiSamplesPreview() {
     MedicalRepTheme {
-        SampleAndGiftsUi(state = SampleAndGiftsFakes.state(), onEvent = {}, onBack = {})
+        SampleAndGiftsUi(
+            state = SampleAndGiftsState(),
+            items = pagingItemsOf(SampleAndGiftsFakes.samples),
+            onEvent = {},
+            onBack = {},
+        )
     }
 }
 
@@ -73,7 +83,8 @@ private fun SampleAndGiftsUiSamplesPreview() {
 private fun SampleAndGiftsUiGiftsPreview() {
     MedicalRepTheme {
         SampleAndGiftsUi(
-            state = SampleAndGiftsFakes.state().copy(selectedTab = SampleAndGiftsTab.Gifts),
+            state = SampleAndGiftsState(selectedTab = SampleAndGiftsTab.Gifts),
+            items = pagingItemsOf(SampleAndGiftsFakes.gifts),
             onEvent = {},
             onBack = {},
         )

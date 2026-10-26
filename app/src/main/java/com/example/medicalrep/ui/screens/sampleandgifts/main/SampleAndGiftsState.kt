@@ -1,20 +1,16 @@
 package com.example.medicalrep.ui.screens.sampleandgifts.main
 
 import androidx.compose.runtime.Immutable
-import com.example.medicalrep.ui.screens.sampleandgifts.models.SampleAndGiftsItemType
-import com.example.medicalrep.ui.screens.sampleandgifts.models.SampleAndGiftsItemUi
+import com.example.medicalrep.domain.models.ProductType
 
-enum class SampleAndGiftsTab(val itemType: SampleAndGiftsItemType) {
-    Samples(SampleAndGiftsItemType.Sample),
-    Gifts(SampleAndGiftsItemType.Gift),
+/** Samples are the custody of kind Product, gifts the custody of kind Gift. */
+enum class SampleAndGiftsTab(val kind: ProductType) {
+    Samples(ProductType.Product),
+    Gifts(ProductType.Gift),
 }
 
+/** The list is paged and comes from the ViewModel's `items` flow. */
 @Immutable
 data class SampleAndGiftsState(
     val selectedTab: SampleAndGiftsTab = SampleAndGiftsTab.Samples,
-    val items: List<SampleAndGiftsItemUi> = emptyList(),
-) {
-    /** Items of the selected tab, in source order. */
-    val visibleItems: List<SampleAndGiftsItemUi>
-        get() = items.filter { it.type == selectedTab.itemType }
-}
+)

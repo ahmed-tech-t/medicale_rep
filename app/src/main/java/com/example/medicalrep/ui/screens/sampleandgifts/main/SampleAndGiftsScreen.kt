@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.appcore.core.domain.utils.UiEvent
 import com.appcore.core.ui.utils.HandleUiEvents
 import com.example.medicalrep.ui.screens.sampleandgifts.components.SampleAndGiftsUi
@@ -24,9 +25,11 @@ fun SampleAndGiftsScreen(
         navigationUp = navigationUp,
     )
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val items = viewModel.items.collectAsLazyPagingItems()
 
     SampleAndGiftsUi(
         state = state,
+        items = items,
         onEvent = viewModel::onEvent,
         onBack = navigationUp,
         modifier = modifier,

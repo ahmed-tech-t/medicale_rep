@@ -20,8 +20,7 @@ import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.primitives.NexoraCard
 import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.components.widgets.NexoraChip
-import com.example.medicalrep.ui.screens.sampleandgifts.models.SampleAndGiftsItemType
-import com.example.medicalrep.ui.screens.sampleandgifts.models.SampleAndGiftsItemUi
+import com.example.medicalrep.ui.models.CustodyUi
 import com.example.medicalrep.ui.screens.sampleandgifts.utils.SampleAndGiftsFakes
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 import com.example.medicalrep.ui.ui.theme.Slate100
@@ -34,7 +33,7 @@ import com.example.medicalrep.ui.ui.theme.Slate900
 /** Figma 57:12182 "Inventory card": item name, received / dispatched counts and a remaining-pieces pill. */
 @Composable
 fun SampleAndGiftsItemCard(
-    item: SampleAndGiftsItemUi,
+    item: CustodyUi,
     modifier: Modifier = Modifier,
 ) {
     NexoraCard(
@@ -98,7 +97,7 @@ private fun CountValue(value: Int) {
 private fun SampleAndGiftsItemCardSamplePreview() {
     MedicalRepTheme {
         SampleAndGiftsItemCard(
-            item = SampleAndGiftsFakes.items.first { it.type == SampleAndGiftsItemType.Sample },
+            item = SampleAndGiftsFakes.samples.first(),
             modifier = Modifier.padding(spacing.spaceMedium),
         )
     }
@@ -109,7 +108,7 @@ private fun SampleAndGiftsItemCardSamplePreview() {
 private fun SampleAndGiftsItemCardGiftPreview() {
     MedicalRepTheme {
         SampleAndGiftsItemCard(
-            item = SampleAndGiftsFakes.items.first { it.type == SampleAndGiftsItemType.Gift },
+            item = SampleAndGiftsFakes.gifts.first(),
             modifier = Modifier.padding(spacing.spaceMedium),
         )
     }

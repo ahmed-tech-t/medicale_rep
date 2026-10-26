@@ -1,15 +1,12 @@
 package com.example.medicalrep.ui.screens.products.main
 
 import androidx.compose.runtime.Immutable
-import com.example.medicalrep.ui.models.ProductUi
 
+/** The product list is paged and comes from the ViewModel's `products` flow; quantities are kept here by product id. */
 @Immutable
 data class ProductsState(
     val query: String = "",
-    val products: List<ProductUi> = emptyList(),
+    val quantities: Map<String, Int> = emptyMap(),
 ) {
-    val visibleProducts: List<ProductUi>
-        get() = products.filter { it.name.contains(query, ignoreCase = true) }
-
-    val hasSelection: Boolean get() = products.any { it.quantity > 0 }
+    val hasSelection: Boolean get() = quantities.values.any { it > 0 }
 }

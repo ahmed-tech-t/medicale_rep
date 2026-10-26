@@ -13,8 +13,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.itemKey
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
+import com.example.medicalrep.ui.models.ProductUi
+import com.example.medicalrep.ui.preview.pagingItemsOf
 import com.example.medicalrep.ui.components.chrome.AppHeader
 import com.example.medicalrep.ui.components.primitives.NexoraButton
 import com.example.medicalrep.ui.components.widgets.SearchBarComponent
@@ -28,6 +32,7 @@ import com.example.medicalrep.ui.ui.theme.Slate50
 @Composable
 fun ProductsUi(
     state: ProductsState,
+    products: LazyPagingItems<ProductUi>,
     onEvent: (ProductsEvents) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -48,11 +53,13 @@ fun ProductsUi(
             contentPadding = PaddingValues(horizontal = spacing.spaceSmallPlus),
             verticalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
         ) {
-            items(items = state.visibleProducts, key = { it.id }) { product ->
-                ProductItemCard(
-                    product = product,
-                    onChangeQuantity = { onEvent(ProductsEvents.ChangeQuantity(product.id, it)) },
-                )
+            items(count = products.itemCount, key = products.itemKey { it.id }) { index ->
+                products[index]?.let { product ->
+                    ProductItemCard(
+                        product = product.copy(quantity = state.quantities[product.id] ?: 0),
+                        onChangeQuantity = { onEvent(ProductsEvents.ChangeQuantity(product.id, it)) },
+                    )
+                }
             }
         }
         NexoraButton(
@@ -69,16 +76,11 @@ fun ProductsUi(
 @Preview(showBackground = true, locale = "ar", heightDp = 760)
 @Composable
 private fun ProductsUiArabicPreview() {
-    MedicalRepTheme { ProductsUi(state = ProductsFakes.state(), onEvent = {}) }
+    MedicalRepTheme { ProductsUi(state = ProductsFakes.state(), products = pagingItemsOf(ProductsFakes.products()), onEvent = {}) }
 }
 
 @Preview(showBackground = true, heightDp = 760)
 @Composable
 private fun ProductsUiNoSelectionPreview() {
-    MedicalRepTheme {
-        ProductsUi(
-            state = ProductsFakes.state().let { s -> s.copy(products = s.products.map { it.copy(quantity = 0) }) },
-            onEvent = {},
-        )
-    }
+    MedicalRepTheme { ProductsUi(state = ProductsState(), products = pagingItemsOf(ProductsFakes.products()), onEvent = {}) }
 }

@@ -1,94 +1,32 @@
 package com.example.medicalrep.ui.screens.sampleandgifts.utils
 
-import com.example.medicalrep.ui.screens.sampleandgifts.main.SampleAndGiftsState
-import com.example.medicalrep.ui.screens.sampleandgifts.models.SampleAndGiftsItemType
-import com.example.medicalrep.ui.screens.sampleandgifts.models.SampleAndGiftsItemUi
+import com.example.medicalrep.ui.models.CustodyUi
 
+/** Sample data for previews. */
 object SampleAndGiftsFakes {
-    val items: List<SampleAndGiftsItemUi> by lazy {
-        listOf(
-            SampleAndGiftsItemUi(
-                id = "sample-1",
-                type = SampleAndGiftsItemType.Sample,
-                name = "أوميبرازول فورت 40 مجم",
-                received = 100,
-                dispatched = 62,
-                remaining = 38,
-            ),
-            SampleAndGiftsItemUi(
-                id = "sample-2",
-                type = SampleAndGiftsItemType.Sample,
-                name = "شراب برونكوكير للأطفال 120 مل",
-                received = 80,
-                dispatched = 40,
-                remaining = 40,
-            ),
-            SampleAndGiftsItemUi(
-                id = "sample-3",
-                type = SampleAndGiftsItemType.Sample,
-                name = "كاردكس بلس 10 مجم أقراص",
-                received = 70,
-                dispatched = 63,
-                remaining = 7,
-            ),
-            SampleAndGiftsItemUi(
-                id = "sample-4",
-                type = SampleAndGiftsItemType.Sample,
-                name = "أموكسيسيلين 500 مجم",
-                received = 60,
-                dispatched = 35,
-                remaining = 25,
-            ),
-            SampleAndGiftsItemUi(
-                id = "sample-5",
-                type = SampleAndGiftsItemType.Sample,
-                name = "بانادول إكسترا",
-                received = 90,
-                dispatched = 50,
-                remaining = 40,
-            ),
-            SampleAndGiftsItemUi(
-                id = "sample-6",
-                type = SampleAndGiftsItemType.Sample,
-                name = "كونكور 5 مجم",
-                received = 45,
-                dispatched = 20,
-                remaining = 25,
-            ),
-            SampleAndGiftsItemUi(
-                id = "gift-1",
-                type = SampleAndGiftsItemType.Gift,
-                name = "قلم معدن فاخر محفور باسم الشركة",
-                received = 100,
-                dispatched = 62,
-                remaining = 15,
-            ),
-            SampleAndGiftsItemUi(
-                id = "gift-2",
-                type = SampleAndGiftsItemType.Gift,
-                name = "دفتر ملاحظات جلد فاخر",
-                received = 50,
-                dispatched = 28,
-                remaining = 22,
-            ),
-            SampleAndGiftsItemUi(
-                id = "gift-3",
-                type = SampleAndGiftsItemType.Gift,
-                name = "حقيبة طبية عملية",
-                received = 20,
-                dispatched = 12,
-                remaining = 8,
-            ),
-            SampleAndGiftsItemUi(
-                id = "gift-4",
-                type = SampleAndGiftsItemType.Gift,
-                name = "كوب حراري بشعار الشركة",
-                received = 40,
-                dispatched = 18,
-                remaining = 22,
-            ),
-        )
-    }
 
-    fun state(): SampleAndGiftsState = SampleAndGiftsState(items = items)
+    private fun item(id: String, name: String, isGift: Boolean, received: Int, dispatched: Int) = CustodyUi(
+        id = id,
+        name = name,
+        isGift = isGift,
+        received = received,
+        dispatched = dispatched,
+        remaining = received - dispatched,
+    )
+
+    val samples: List<CustodyUi> = listOf(
+        item("sample-1", "أوميبرازول فورت 40 مجم", false, 100, 62),
+        item("sample-2", "شراب برونكوكير للأطفال 120 مل", false, 80, 40),
+        item("sample-3", "كاردكس بلس 10 مجم أقراص", false, 70, 63),
+        item("sample-4", "أموكسيسيلين 500 مجم", false, 60, 35),
+        item("sample-5", "بانادول إكسترا", false, 90, 50),
+        item("sample-6", "كونكور 5 مجم", false, 45, 20),
+    )
+
+    val gifts: List<CustodyUi> = listOf(
+        item("gift-1", "قلم معدن فاخر محفور باسم الشركة", true, 100, 85),
+        item("gift-2", "دفتر ملاحظات جلد فاخر", true, 50, 28),
+        item("gift-3", "حقيبة طبية عملية", true, 20, 12),
+        item("gift-4", "كوب حراري بشعار الشركة", true, 40, 18),
+    )
 }

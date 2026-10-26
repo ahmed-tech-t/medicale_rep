@@ -11,13 +11,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
-import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
 import com.example.medicalrep.ui.models.AccountUi
+import com.example.medicalrep.ui.preview.pagingItemsOf
 import com.example.medicalrep.ui.components.chrome.AppHeader
 import com.example.medicalrep.ui.components.widgets.FilterMenu
 import com.example.medicalrep.ui.components.widgets.accountTypeFilterOptions
@@ -28,7 +27,6 @@ import com.example.medicalrep.ui.screens.accounts.main.AccountsState
 import com.example.medicalrep.ui.screens.accounts.utils.AccountsFakes
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 import com.example.medicalrep.ui.ui.theme.Slate50
-import kotlinx.coroutines.flow.flowOf
 
 /** Accounts list with a results row; its filter icon opens the account type popup. */
 @Composable
@@ -76,7 +74,7 @@ fun AccountsUi(
 @Composable
 private fun AccountsUiArabicPreview() {
     MedicalRepTheme {
-        AccountsUi(state = AccountsFakes.state(), accounts = previewAccounts(), onEvent = {})
+        AccountsUi(state = AccountsFakes.state(), accounts = pagingItemsOf(AccountsFakes.accounts()), onEvent = {})
     }
 }
 
@@ -86,12 +84,8 @@ private fun AccountsUiFilterOpenPreview() {
     MedicalRepTheme {
         AccountsUi(
             state = AccountsFakes.state().copy(overlay = AccountsOverlay.TypeFilter),
-            accounts = previewAccounts(),
+            accounts = pagingItemsOf(AccountsFakes.accounts()),
             onEvent = {},
         )
     }
 }
-
-@Composable
-private fun previewAccounts(): LazyPagingItems<AccountUi> =
-    flowOf(PagingData.from(AccountsFakes.accounts())).collectAsLazyPagingItems()

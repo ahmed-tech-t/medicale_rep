@@ -85,7 +85,7 @@ fun User.toUi(): UserUi = UserUi(
     initials = initials,
 )
 
-private fun Product.toProductUi(): ProductUi {
+fun Product.toProductUi(): ProductUi {
     return ProductUi(
         id = id.orEmpty(),
         name = name.orEmpty(),

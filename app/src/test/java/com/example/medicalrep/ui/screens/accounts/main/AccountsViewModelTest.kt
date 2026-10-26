@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -69,7 +69,7 @@ class AccountsViewModelTest {
     @Test
     fun `starts showing every account`() = runTest(dispatcher) {
         collectAccounts()
-        advanceUntilIdle()
+        runCurrent()
         assertEquals(listOf<AccountType?>(null), repo.requestedTypes)
         assertEquals(4, state.resultCount)
         assertEquals(null, state.selectedType)
@@ -87,10 +87,10 @@ class AccountsViewModelTest {
     @Test
     fun `selecting a type asks the repo for that type, updates the count and closes the popup`() = runTest(dispatcher) {
         collectAccounts()
-        advanceUntilIdle()
+        runCurrent()
         viewModel.onEvent(AccountsEvents.OpenFilter)
         viewModel.onEvent(AccountsEvents.SelectType(AccountType.Clinic))
-        advanceUntilIdle()
+        runCurrent()
         assertEquals(listOf(null, AccountType.Clinic), repo.requestedTypes)
         assertEquals(2, state.resultCount)
         assertEquals(AccountsOverlay.None, state.overlay)
@@ -99,11 +99,11 @@ class AccountsViewModelTest {
     @Test
     fun `selecting all asks for every type again`() = runTest(dispatcher) {
         collectAccounts()
-        advanceUntilIdle()
+        runCurrent()
         viewModel.onEvent(AccountsEvents.SelectType(AccountType.Clinic))
-        advanceUntilIdle()
+        runCurrent()
         viewModel.onEvent(AccountsEvents.SelectType(null))
-        advanceUntilIdle()
+        runCurrent()
         assertEquals(listOf(null, AccountType.Clinic, null), repo.requestedTypes)
         assertEquals(4, state.resultCount)
     }
@@ -112,7 +112,7 @@ class AccountsViewModelTest {
     fun `a type without accounts has a count of zero`() = runTest(dispatcher) {
         collectAccounts()
         viewModel.onEvent(AccountsEvents.SelectType(AccountType.MedicalCenter))
-        advanceUntilIdle()
+        runCurrent()
         assertEquals(0, state.resultCount)
     }
 
@@ -127,9 +127,9 @@ class AccountsViewModelTest {
 
     @Test
     fun `the count follows the stored accounts`() = runTest(dispatcher) {
-        advanceUntilIdle()
+        runCurrent()
         repo.save(Account("a5", name = "عيادة د. جديد", entityType = "عيادة"))
-        advanceUntilIdle()
+        runCurrent()
         assertEquals(5, state.resultCount)
     }
 
@@ -137,7 +137,7 @@ class AccountsViewModelTest {
     fun `back navigates up`() = runTest(dispatcher) {
         val events = collectEvents()
         viewModel.onEvent(AccountsEvents.Back)
-        advanceUntilIdle()
+        runCurrent()
         assertEquals(listOf<UiEvent>(UiEvent.NavigationUp), events)
     }
 }
