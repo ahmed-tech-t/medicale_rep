@@ -14,6 +14,13 @@ import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.unit.IntSize
+import com.example.medicalrep.ui.components.widgets.SearchFieldPopup
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,16 +53,22 @@ internal fun ItemsSection(
     addLabel: String,
     pillColors: PillColors,
     items: List<ProductUi>,
+    catalog: List<ProductUi>,
+    showPopup: Boolean,
     onAdd: () -> Unit,
+    onConfirm: (List<ProductUi>) -> Unit,
     onChange: (id: String, delta: Int) -> Unit,
 ) {
+    var headerSize by remember { mutableStateOf(IntSize.Zero) }
     StepCard {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .onGloballyPositioned { headerSize = it.size },
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            StepCardTitle(title)
+            StepCardTitle(title, modifier = Modifier.weight(1f))
             val shape = RoundedCornerShape(radii.small)
             NexoraText(
                 text = stringResource(R.string.unplanned_add_format, addLabel),
@@ -68,6 +81,16 @@ internal fun ItemsSection(
                     .clickable(role = Role.Button, onClick = onAdd)
                     .padding(horizontal = spacing.spaceSmall, vertical = spacing.spaceExtraSmall),
             )
+            if (showPopup) {
+                SearchFieldPopup(
+                    triggerSize = headerSize,
+                    options = catalog,
+                    onSelect = {},
+                    onClick = onAdd,
+                    onConfirm = onConfirm,
+                    subtitle = { availableLine(it) },
+                )
+            }
         }
         HorizontalDivider(color = Slate100)
         if (items.isEmpty()) {
@@ -97,7 +120,10 @@ private fun ItemsSectionGiftPreview() {
             addLabel = "هدية",
             pillColors = PillColors(container = WarningTint, border = WarningBorder, content = OnWarningContainer),
             items = PlanVisitFakes.state().visit.gifts,
+            catalog = PlanVisitFakes.giftCatalog,
+            showPopup = false,
             onAdd = {},
+            onConfirm = {},
             onChange = { _, _ -> },
         )
     }
@@ -112,7 +138,10 @@ private fun ItemsSectionProductEmptyPreview() {
             addLabel = "Product",
             pillColors = PillColors(container = BrandTint, border = InfoBorder, content = Brand),
             items = emptyList(),
+            catalog = PlanVisitFakes.productCatalog,
+            showPopup = false,
             onAdd = {},
+            onConfirm = {},
             onChange = { _, _ -> },
         )
     }

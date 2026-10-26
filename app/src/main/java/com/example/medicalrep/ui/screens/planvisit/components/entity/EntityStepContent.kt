@@ -32,6 +32,7 @@ import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.components.widgets.LabelWrapperComponent
 import com.example.medicalrep.ui.components.widgets.NexoraChip
 import com.example.medicalrep.ui.components.widgets.SearchFieldComponent
+import com.example.medicalrep.ui.components.widgets.toSearchItems
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitEvents
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitState
 import com.example.medicalrep.ui.screens.planvisit.utils.PlanVisitFakes
@@ -59,7 +60,7 @@ fun EntityStepContent(
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
+        verticalArrangement = Arrangement.spacedBy(spacing.spaceMedium),
     ) {
         StepCard {
             Row(
@@ -110,9 +111,9 @@ fun EntityStepContent(
                 ) {
                     SearchFieldComponent(
                         enabled = visit.type == VisitType.Unplanned,
-                        options = state.cityOptions,
+                        options = state.cityOptions.toSearchItems(),
                         onSelect = {
-                            onEvent(PlanVisitEvents.SelectCity(it))
+                            onEvent(PlanVisitEvents.SelectCity(it.name))
                             showCityPopup = false
                         },
                         placeholder = stringResource(R.string.enter_city),
@@ -129,9 +130,9 @@ fun EntityStepContent(
                     SearchFieldComponent(
                         enabled = visit.type == VisitType.Unplanned,
                         value = visit.region,
-                        options = state.districtOptions,
+                        options = state.districtOptions.toSearchItems(),
                         onSelect = {
-                            onEvent(PlanVisitEvents.SelectDistrict(it))
+                            onEvent(PlanVisitEvents.SelectDistrict(it.name))
                             showRegionPopup = false
                         },
                         placeholder = stringResource(R.string.enter_district),
@@ -149,9 +150,9 @@ fun EntityStepContent(
                 enabled = visit.type == VisitType.Unplanned,
                 modifier = Modifier.fillMaxWidth(),
                 value = visit.account,
-                options = state.entityTypeOptions,
+                options = state.entityTypeOptions.toSearchItems(),
                 onSelect = {
-                    onEvent(PlanVisitEvents.SelectEntityType(it))
+                    onEvent(PlanVisitEvents.SelectEntityType(it.name))
                     showAccountPopup = false
                 },
                 placeholder = stringResource(R.string.select_account),
@@ -177,9 +178,9 @@ fun EntityStepContent(
                     enabled = visit.type == VisitType.Unplanned,
                     modifier = Modifier.fillMaxWidth(),
                     value = visit.placeName,
-                    options = state.placeOptions,
+                    options = state.placeOptions.toSearchItems(),
                     onSelect = {
-                        onEvent(PlanVisitEvents.SelectPlace(it))
+                        onEvent(PlanVisitEvents.SelectPlace(it.name))
                         showplaceNamePopup = false
                     },
                     showPopup = showplaceNamePopup,
@@ -208,9 +209,9 @@ fun EntityStepContent(
                     enabled = visit.type == VisitType.Unplanned,
                     modifier = Modifier.fillMaxWidth(),
                     value = visit.specialty,
-                    options = state.specialtyOptions,
+                    options = state.specialtyOptions.toSearchItems(),
                     onSelect = {
-                        onEvent(PlanVisitEvents.SelectSpecialty(it))
+                        onEvent(PlanVisitEvents.SelectSpecialty(it.name))
                         showSpecialtyPopup = false
                     },
                     placeholder = stringResource(R.string.enter_specialty),
@@ -262,9 +263,9 @@ fun EntityStepContent(
                     SearchFieldComponent(
                         modifier = Modifier.fillMaxWidth(),
                         value = visit.supervisorName,
-                        options = state.supervisorOptions,
+                        options = state.supervisorOptions.toSearchItems(),
                         onSelect = {
-                            onEvent(PlanVisitEvents.SelectSupervisor(it))
+                            onEvent(PlanVisitEvents.SelectSupervisor(it.name))
                             showSupervisorNamePopup = false
                         },
                         placeholder = stringResource(R.string.select_supervisor),

@@ -21,16 +21,19 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -57,6 +60,7 @@ import com.appcore.core.ui.theme.dim
 import com.appcore.core.ui.theme.radii
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
+import com.example.medicalrep.ui.components.primitives.NexoraButton
 import com.example.medicalrep.ui.components.primitives.NexoraIcon
 import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
@@ -72,21 +76,26 @@ import com.example.medicalrep.ui.ui.theme.Slate900
  * Dropdown select with an integrated search popup (matching Figma design):
  * - Trigger: Closed search bar with leading magnifying glass, placeholder or chosen value, and trailing dropdown arrow.
  * - Dropdown: Floating Popup with a top pointer triangle, inner search input, and a divided list of options.
+ * - Multi-select: when [onConfirm] is set, rows get a checkbox and a done button returns every ticked option;
+ *   otherwise tapping a row returns it through [onSelect].
  */
 @Composable
-private fun SearchFieldBodyComponent(
-    options: List<String>,
-    onSelect: (String) -> Unit,
+private fun <T : SearchableItem> SearchFieldBodyComponent(
+    options: List<T>,
+    onSelect: (T) -> Unit,
     modifier: Modifier = Modifier,
+    onConfirm: ((List<T>) -> Unit)? = null,
+    subtitle: @Composable (T) -> String? = { null },
 ) {
     val state = rememberTextFieldState()
     val query = state.text.toString()
+    val ticked = remember { mutableStateListOf<T>() }
 
     val result = remember(query, options) {
         if (query.isBlank()) {
             options
         } else {
-            options.filter { it.contains(query, ignoreCase = true) }
+            options.filter { it.name.contains(query, ignoreCase = true) }
         }
     }
 
@@ -133,6 +142,7 @@ private fun SearchFieldBodyComponent(
                         color = Slate900,
                         fontWeight = FontWeight.Medium,
                     ),
+                  lineLimits = TextFieldLineLimits.SingleLine,
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 )
             }
@@ -171,24 +181,37 @@ private fun SearchFieldBodyComponent(
             } else {
                 itemsIndexed(result) { index, item ->
                     Column(modifier = Modifier.fillMaxWidth()) {
-                        Box(
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    onSelect(item)
+                                    if (onConfirm == null) onSelect(item)
+                                    else if (item in ticked) ticked.remove(item) else ticked.add(item)
                                 }
                                 .padding(horizontal = 20.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
                         ) {
-                            NexoraText(
-                                text = item,
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 15.sp,
-                                    textAlign = TextAlign.Start,
-                                ),
-                                color = Slate900,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
+                            if (onConfirm != null) Checkbox(checked = item in ticked, onCheckedChange = null)
+                            Column(modifier = Modifier.weight(1f)) {
+                                NexoraText(
+                                    text = item.name,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = 13.sp,
+                                        textAlign = TextAlign.Start,
+                                    ),
+                                    color = Slate900,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                                subtitle(item)?.let {
+                                    NexoraText(
+                                        text = it,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Slate400,
+                                    )
+                                }
+                            }
                         }
                         if (index < result.size - 1) {
                             HorizontalDivider(
@@ -201,14 +224,22 @@ private fun SearchFieldBodyComponent(
                 }
             }
         }
+        if (onConfirm != null) {
+            NexoraButton(
+                text = stringResource(R.string.action_done),
+                onClick = { onConfirm(ticked.toList()) },
+                enabled = ticked.isNotEmpty(),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            )
+        }
     }
 }
 
 @Composable
-fun SearchFieldComponent(
+fun <T : SearchableItem> SearchFieldComponent(
     value: String,
-    options: List<String>,
-    onSelect: (String) -> Unit,
+    options: List<T>,
+    onSelect: (T) -> Unit,
     modifier: Modifier = Modifier,
     placeholder: String? = null,
     onClick: () -> Unit,
@@ -239,12 +270,6 @@ fun SearchFieldComponent(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
         ) {
-            NexoraIcon(
-                imageVector = Icons.Default.Search,
-                contentDescription = null,
-                tint = Slate400,
-                modifier = Modifier.size(20.dp),
-            )
             NexoraText(
                 text = value.ifBlank { placeholder.orEmpty() },
                 style = MaterialTheme.typography.bodyMedium.copy(
@@ -282,11 +307,13 @@ fun SearchFieldComponent(
 }
 
 @Composable
-fun SearchFieldPopup(
+fun <T : SearchableItem> SearchFieldPopup(
     triggerSize: IntSize,
-    options: List<String>,
-    onSelect: (String) -> Unit,
-    onClick: () -> Unit
+    options: List<T>,
+    onSelect: (T) -> Unit,
+    onClick: () -> Unit,
+    onConfirm: ((List<T>) -> Unit)? = null,
+    subtitle: @Composable (T) -> String? = { null },
 ) {
     val density = LocalDensity.current
 
@@ -318,6 +345,8 @@ fun SearchFieldPopup(
                 modifier = Modifier.padding(top = 14.dp, bottom = 6.dp),
                 options = options,
                 onSelect = onSelect,
+                onConfirm = onConfirm,
+                subtitle = subtitle,
             )
         }
     }
@@ -343,7 +372,7 @@ private fun SearchFieldComponentPreview() {
                     "Hospital",
                     "Pharmacy",
                     "Medical Center"
-                ),
+                ).toSearchItems(),
                 onSelect = { showPopup = false },
                 placeholder = "Search account type",
                 onClick = { showPopup = !showPopup },
@@ -371,7 +400,7 @@ private fun SearchFieldComponentWithValuePreview() {
                     "Hospital",
                     "Pharmacy",
                     "Medical Center"
-                ),
+                ).toSearchItems(),
                 onSelect = { showPopup = false },
                 placeholder = "Search account type",
                 onClick = { showPopup = !showPopup },

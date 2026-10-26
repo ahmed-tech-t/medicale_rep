@@ -91,16 +91,24 @@ class PlanVisitUiTest {
     }
 
     @Test
-    fun addItemOverlay_showsSheetWithSaveDisabled() {
+    fun addItemOverlay_ticksSeveralItemsAndConfirmsThemTogether() {
+        val catalog = PlanVisitFakes.giftCatalog
+        val state = PlanVisitFakes.state()
+        // Empty visit, so each name appears once (in the popup only).
         setUi(
-            PlanVisitFakes.state().copy(
+            state.copy(
+                visit = state.visit.copy(gifts = emptyList(), products = emptyList()),
                 currentStep = PlanVisitStep.GiftsProducts,
                 overlay = PlanVisitOverlay.AddItem(ProductType.Gift),
             ),
         )
-        composeRule.onNodeWithTag(PlanVisitTestTags.AddItemSheet).assertIsDisplayed()
-        composeRule.onNodeWithText(text(R.string.unplanned_sheet_save)).assertIsNotEnabled()
-        composeRule.onNodeWithContentDescription(text(R.string.cd_close)).performClick()
-        assertEquals(listOf(PlanVisitEvents.DismissOverlay), events)
+        composeRule.onNodeWithText(text(R.string.action_done)).assertIsNotEnabled()
+        composeRule.onNodeWithText(catalog[0].name).performClick()
+        composeRule.onNodeWithText(catalog[1].name).performClick()
+        composeRule.onNodeWithText(text(R.string.action_done)).performClick()
+        assertEquals(
+            listOf(PlanVisitEvents.ConfirmAddItems(catalog.map { it.copy(quantity = 1) })),
+            events,
+        )
     }
 }

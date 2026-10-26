@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.models
 
+import com.example.medicalrep.ui.components.widgets.SearchableItem
 import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
@@ -46,14 +47,14 @@ data class VisitUi(
 @Immutable
 data class ProductUi(
     val id: String,
-    val name: String,
+    override val name: String,
     val quantity: Int,
     val kind: ProductType,
     val remaining: Int,
     val description: String,
     val price: Int = 0,
     val discountPercent: Int = 0,
-)
+) : SearchableItem
 
 @Immutable
 data class StatMetricUiModel(

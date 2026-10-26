@@ -2,7 +2,6 @@ package com.example.medicalrep.ui.screens.planvisit.components
 import com.example.medicalrep.ui.components.chrome.AppHeader
 import com.example.medicalrep.ui.screens.planvisit.components.entity.EntityStepContent
 import com.example.medicalrep.ui.screens.planvisit.components.giftsproducts.GiftsProductsStepContent
-import com.example.medicalrep.ui.screens.planvisit.components.giftsproducts.AddVisitItemSheetHost
 import com.example.medicalrep.ui.screens.planvisit.components.result.ResultStepContent
 
 import androidx.compose.foundation.background
@@ -35,7 +34,6 @@ object PlanVisitTestTags {
     const val Next = "unplanned_next"
     const val Previous = "unplanned_previous"
     const val EndVisit = "unplanned_end_visit"
-    const val AddItemSheet = "unplanned_add_item_sheet"
 }
 
 @Composable
@@ -78,8 +76,6 @@ fun PlanVisitUi(
 
         FooterBar(currentStep = state.currentStep, onEvent = onEvent)
     }
-
-    AddVisitItemSheetHost(state = state, onEvent = onEvent)
 }
 
 @Preview(showBackground = true, locale = "ar", device = Devices.PIXEL_7)

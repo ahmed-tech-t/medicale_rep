@@ -24,6 +24,7 @@
     <!-- Common -->
     <string name="em_dash">—</string>
     <string name="action_close">إغلاق</string>
+    <string name="action_done">تم</string>
     <string name="action_cancel">إلغاء</string>
     <string name="action_sync">مزامنة</string>
     <string name="cd_back">رجوع</string>
@@ -203,12 +204,6 @@
     <string name="unplanned_voice_prompt">سجل النتيجة بالصوت (Voice Note)</string>
     <string name="unplanned_attach_title">إرفاق صورة</string>
     <string name="unplanned_attach_hint">برجاء ارفاق صوره من امام باب العياده</string>
-    <string name="unplanned_sheet_title_gifts">إضافة هدايا</string>
-    <string name="unplanned_sheet_title_products">إضافة منتجات</string>
-    <string name="unplanned_sheet_search_label">البحث عن صنف أو عينة</string>
-    <string name="unplanned_sheet_search_hint_gift">اختر هدية</string>
-    <string name="unplanned_sheet_search_hint_product">اختر منتج</string>
-    <string name="unplanned_sheet_save">حفظ وإضافة للزيارة</string>
     <string name="unplanned_summary_gifts_format">هدايا: %1$d قطعة</string>
     <string name="unplanned_summary_products_format">منتجات: %1$d علب</string>
     <string name="unplanned_class_format">Class %1$s</string>

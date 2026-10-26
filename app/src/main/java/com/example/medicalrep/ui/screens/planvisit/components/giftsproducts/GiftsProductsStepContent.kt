@@ -12,6 +12,7 @@ import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitEvents
+import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitOverlay
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitState
 import com.example.medicalrep.ui.screens.planvisit.utils.PlanVisitFakes
 import com.example.medicalrep.ui.ui.theme.Brand
@@ -38,7 +39,10 @@ fun GiftsProductsStepContent(
             addLabel = stringResource(R.string.unplanned_add_gift),
             pillColors = PillColors(container = WarningTint, border = WarningBorder, content = OnWarningContainer),
             items = state.visit.gifts,
-            onAdd = { onEvent(PlanVisitEvents.OpenAddItem(ProductType.Gift)) },
+            catalog = state.giftCatalog.filter { it.remaining > 0 },
+            showPopup = state.overlay == PlanVisitOverlay.AddItem(ProductType.Gift),
+            onAdd = { onEvent(addOrDismiss(state, ProductType.Gift)) },
+            onConfirm = { onEvent(PlanVisitEvents.ConfirmAddItems(it.map { item -> item.copy(quantity = 1) })) },
             onChange = { id, delta -> onEvent(PlanVisitEvents.ChangeQuantity(ProductType.Gift, id, delta)) },
         )
         ItemsSection(
@@ -46,11 +50,19 @@ fun GiftsProductsStepContent(
             addLabel = stringResource(R.string.unplanned_add_product),
             pillColors = PillColors(container = BrandTint, border = InfoBorder, content = Brand),
             items = state.visit.products,
-            onAdd = { onEvent(PlanVisitEvents.OpenAddItem(ProductType.Product)) },
+            catalog = state.productCatalog.filter { it.remaining > 0 },
+            showPopup = state.overlay == PlanVisitOverlay.AddItem(ProductType.Product),
+            onAdd = { onEvent(addOrDismiss(state, ProductType.Product)) },
+            onConfirm = { onEvent(PlanVisitEvents.ConfirmAddItems(it.map { item -> item.copy(quantity = 1) })) },
             onChange = { id, delta -> onEvent(PlanVisitEvents.ChangeQuantity(ProductType.Product, id, delta)) },
         )
     }
 }
+
+/** The pill and the popup's outside tap share one action: open the popup, or close it when it is already open. */
+private fun addOrDismiss(state: PlanVisitState, kind: ProductType): PlanVisitEvents =
+    if (state.overlay == PlanVisitOverlay.AddItem(kind)) PlanVisitEvents.DismissOverlay
+    else PlanVisitEvents.OpenAddItem(kind)
 
 @Preview(showBackground = true, locale = "ar", heightDp = 700)
 @Composable

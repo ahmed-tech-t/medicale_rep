@@ -19,6 +19,7 @@ import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.components.primitives.NexoraTextField
 import com.example.medicalrep.ui.components.widgets.LabelWrapperComponent
 import com.example.medicalrep.ui.components.widgets.SearchFieldComponent
+import com.example.medicalrep.ui.components.widgets.toSearchItems
 import com.example.medicalrep.ui.components.widgets.SelectFieldComponent
 import com.example.medicalrep.ui.screens.addaccount.main.AddAccountEvents
 import com.example.medicalrep.ui.screens.addaccount.main.AddAccountState
@@ -40,9 +41,9 @@ internal fun LocationCard(state: AddAccountState, onEvent: (AddAccountEvents) ->
             ) {
                 SearchFieldComponent(
                     value = state.city,
-                    options = state.cityOptions,
+                    options = state.cityOptions.toSearchItems(),
                     onSelect = {
-                        onEvent(AddAccountEvents.SelectCity(it))
+                        onEvent(AddAccountEvents.SelectCity(it.name))
                         showCityPopup = false
                     },
                     placeholder = stringResource(R.string.enter_city),
@@ -74,9 +75,9 @@ internal fun EntityTypeCard(state: AddAccountState, onEvent: (AddAccountEvents) 
         SearchFieldComponent(
             modifier = Modifier.fillMaxWidth(),
             value = state.entityType,
-            options = state.entityTypeOptions,
+            options = state.entityTypeOptions.toSearchItems(),
             onSelect = {
-                onEvent(AddAccountEvents.SelectEntityType(it))
+                onEvent(AddAccountEvents.SelectEntityType(it.name))
                 showEntityTypePopup = false
             },
             placeholder = stringResource(R.string.select_account),
@@ -131,9 +132,9 @@ internal fun NameCard(state: AddAccountState, onEvent: (AddAccountEvents) -> Uni
             SearchFieldComponent(
                 modifier = Modifier.fillMaxWidth(),
                 value = state.specialty,
-                options = state.specialtyOptions,
+                options = state.specialtyOptions.toSearchItems(),
                 onSelect = {
-                    onEvent(AddAccountEvents.SelectSpecialty(it))
+                    onEvent(AddAccountEvents.SelectSpecialty(it.name))
                     showSpecialtyPopup = false
                 },
                 placeholder = stringResource(R.string.enter_specialty),

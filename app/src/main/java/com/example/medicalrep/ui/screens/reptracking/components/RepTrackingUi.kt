@@ -28,6 +28,7 @@ import com.example.medicalrep.ui.components.primitives.NexoraButton
 import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.components.widgets.DateField
 import com.example.medicalrep.ui.components.widgets.SearchFieldComponent
+import com.example.medicalrep.ui.components.widgets.toSearchItems
 import com.example.medicalrep.ui.screens.home.components.StaticsMetricCard
 import com.example.medicalrep.ui.screens.reptracking.main.RepTrackingEvents
 import com.example.medicalrep.ui.screens.reptracking.main.RepTrackingState
@@ -63,9 +64,9 @@ fun RepTrackingUi(
         ) {
             SearchFieldComponent(
                 value = state.selectedRep,
-                options = state.reps,
+                options = state.reps.toSearchItems(),
                 onSelect = {
-                    onEvent(RepTrackingEvents.SelectRep(it))
+                    onEvent(RepTrackingEvents.SelectRep(it.name))
                     showPopup = false
                 },
                 placeholder = stringResource(R.string.rep_tracking_change),

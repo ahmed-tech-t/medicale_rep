@@ -24,6 +24,7 @@
     <!-- Common -->
     <string name="em_dash">—</string>
     <string name="action_close">Close</string>
+    <string name="action_done">Done</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_sync">Sync</string>
     <string name="cd_back">Back</string>
@@ -203,12 +204,6 @@
     <string name="unplanned_voice_prompt">Record the result with voice (Voice Note)</string>
     <string name="unplanned_attach_title">Attach a photo</string>
     <string name="unplanned_attach_hint">Please attach a photo of the clinic door</string>
-    <string name="unplanned_sheet_title_gifts">Add gifts</string>
-    <string name="unplanned_sheet_title_products">Add products</string>
-    <string name="unplanned_sheet_search_label">Search for an item or sample</string>
-    <string name="unplanned_sheet_search_hint_gift">Select gift</string>
-    <string name="unplanned_sheet_search_hint_product">Select product</string>
-    <string name="unplanned_sheet_save">Save and add to visit</string>
     <string name="unplanned_summary_gifts_format">Gifts: %1$d pcs</string>
     <string name="unplanned_summary_products_format">Products: %1$d boxes</string>
     <string name="unplanned_class_format">Class %1$s</string>
@@ -319,7 +314,7 @@
     <string name="plan_visit_your_location">Your location</string>
     <string name="plan_visit_location_captured">Captured at %1$s</string>
     <string name="plan_visit_coordinates">Lat %1$.6f · Lng %2$.6f</string>
-    <string name="plan_visit_view_on_map">View on map</string>
+    <string name="plan_visit_view_on_map">Show on map</string>
     <string name="plan_visit_refresh_location">Refresh</string>
     <!-- Rep tracking -->
     <string name="rep_tracking_title">Rep tracking</string>
