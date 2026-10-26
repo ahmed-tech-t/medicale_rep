@@ -76,7 +76,9 @@ object SeedDataFactory {
         createdAt = 1_700_000_000_000L + id * DAY,
     )
 
-    private fun accounts() = listOf(
+    private fun accounts() = baseAccounts() + generatedAccounts()
+
+    private fun baseAccounts() = listOf(
         account(1, "عيادة د. محمود عبد الرحمن", "عيادة", "باطنة وجهاز هضمي", "A", "شبين الكوم", "البر الشرقى", "برج الأطباء - الدور الثالث", "sup-1"),
         account(2, "عيادة د. هاني المسيري", "عيادة", "باطنة", "B", "شبين الكوم", "البر الشرقى", "شارع البحر", "sup-1"),
         account(3, "عيادة د. سارة فتحي", "عيادة", "أطفال", "A", "شبين الكوم", "البر الغربى", "شارع جمال عبد الناصر", "sup-1"),
@@ -94,14 +96,54 @@ object SeedDataFactory {
     private fun product(id: Int, name: String, price: Int, discountPercent: Int) =
         Product(id = "prod-$id", name = name, description = "", price = price, discountPercent = discountPercent)
 
-    private fun products() = listOf(
+    private fun products() = baseProducts() + generatedProducts()
+
+    private fun baseProducts() = listOf(
         product(1, "بانادول اكسترا", 434, 20),
         product(2, "أوميبرازول فورت 40 مجم", 120, 20),
         product(3, "كاردكس بلس 10 مجم", 88, 15),
-        product(4, "أموكسيسيلين 500 مجم", 65, 10),
-        product(5, "كونكور 5 مجم", 150, 20),
-        product(6, "فلاجيل 500 مجم", 42, 5),
+        product(4, "أموكسيسيلين 875 مجم", 65, 10),
+        product(5, "كونكور 2.5 مجم", 150, 20),
+        product(6, "فلاجيل 400 مجم", 42, 5),
     )
+
+    private val doctorNames = listOf(
+        "أحمد حسن", "محمد علي", "سارة محمود", "كريم فؤاد", "منى الشاذلي", "هاني عبد الفتاح", "ياسمين سمير", "طارق عز الدين",
+        "نادية رشاد", "عمر خليل", "هبة إبراهيم", "وليد مصطفى", "ريم عادل", "خالد منصور", "دينا فاروق", "إسلام جمال",
+    )
+
+    private val cities = listOf("شبين الكوم", "منوف", "قويسنا", "الباجور")
+    private val districts = listOf("البر الشرقى", "البر الغربى", "وسط البلد")
+    private val specialties = listOf("باطنة", "أطفال", "عظام", "جلدية", "قلب", "نساء وتوليد", "أسنان", "عيون")
+    private val kinds = listOf("عيادة" to "عيادة د.", "صيدلية" to "صيدلية", "مستشفى" to "مستشفى", "مركز طبي" to "مركز")
+
+    /** Accounts 13..50: every type, class, city and district, so lists, search and filters have plenty to show. */
+    private fun generatedAccounts(): List<Account> = (13..50).map { n ->
+        val (type, prefix) = kinds[n % kinds.size]
+        account(
+            id = n,
+            name = "$prefix ${doctorNames[n % doctorNames.size]}",
+            type = type,
+            specialty = if (type == "صيدلية") "صيدلة" else specialties[n % specialties.size],
+            classCategory = listOf("A", "B", "C")[n % 3],
+            city = cities[(n * 3) % cities.size],
+            district = districts[(n * 5) % districts.size],
+            address = "شارع ${n * 7 % 90 + 1}",
+            supervisorId = if (n % 2 == 0) "sup-1" else "sup-2",
+        )
+    }
+
+    private val drugs = listOf(
+        "بانادول", "أوميبرازول", "كاردكس", "أموكسيسيلين", "كونكور", "فلاجيل", "نيكسيوم", "أوجمنتين", "كتافلام", "فولتارين",
+        "زيرتك", "فيتامين د", "ميوكوسولفان", "لانزور", "كونتروللوك", "جلوكوفاج", "بروفين", "سيبروفلوكساسين", "لوسك", "أنتينال",
+    )
+    private val strengths = listOf("5 مجم", "10 مجم", "20 مجم", "40 مجم", "100 مجم", "250 مجم", "500 مجم", "1 جم", "شراب 120 مل", "أمبول")
+
+    /** Products 7..200: a drug and a strength each, all different. */
+    private fun generatedProducts(): List<Product> = (7..200).map { n ->
+        val index = n - 1
+        product(n, "${drugs[index % drugs.size]} ${strengths[index / drugs.size % strengths.size]}", 20 + index * 3 % 480, index % 5 * 5)
+    }
 
     private fun custody() = listOf(
         Custody("gift-1", "مج حراري + قلم معدني بشعار الشركة", ProductType.Gift, received = 40, dispatched = 12),
@@ -154,6 +196,31 @@ object SeedDataFactory {
         products = samples,
     )
 
+    /** 85 more visits spread over weeks: still to do, done (uploaded or not, some double) and plan requests. */
+    private fun generatedVisits(now: Long, accounts: List<Account>): List<Visit> = (1..85).map { n ->
+        val account = accounts[n * 5 % accounts.size]
+        val shift = if (n % 2 == 0) Shift.Am else Shift.Pm
+        val hours = (n % 10) * HOUR
+        when (n % 5) {
+            0 -> visit("v-gen-$n", account, VisitType.Planned, shift, now + (n % 14 + 1) * DAY + hours)
+            1 -> doneVisit("v-gen-$n", account, shift, now - (n % 30 + 1) * DAY - hours, SyncStatus.Synced, double = false)
+            2 -> doneVisit("v-gen-$n", account, shift, now - (n % 30 + 1) * DAY - hours, SyncStatus.NotSynced, double = false)
+            3 -> doneVisit("v-gen-$n", account, shift, now - (n % 30 + 1) * DAY - hours, SyncStatus.Synced, double = true)
+            else -> visit(
+                "v-gen-$n", account, VisitType.Planning, shift, now + (n % 20 + 1) * DAY,
+                syncStatus = if (n % 2 == 0) SyncStatus.NotSynced else SyncStatus.Synced,
+                approvalStatus = if (n % 4 == 0) ApprovalStatus.Rejected else ApprovalStatus.Pending,
+                requestedAtMillis = now - (n % 6 + 1) * DAY,
+                decisionNote = if (n % 4 == 0) "تم رفض الطلب" else null,
+            )
+        }
+    }
+
+    private fun doneVisit(id: String, account: Account, shift: Shift, at: Long, sync: SyncStatus, double: Boolean) = visit(
+        id, account, if (double) VisitType.Planned else VisitType.Unplanned, shift, at, sync, double = double,
+        durationLabel = "10:00 د", completedAtMillis = at + 10 * MINUTE,
+    )
+
     private fun visits(now: Long, accounts: List<Account>): List<Visit> {
         fun acc(n: Int) = accounts[n - 1]
         val gift = line("gift-1", ProductType.Gift, "مج حراري + قلم معدني بشعار الشركة", 1)
@@ -179,6 +246,6 @@ object SeedDataFactory {
             visit("v-request-2", acc(3), VisitType.Planning, Shift.Pm, now + 5 * DAY, SyncStatus.Synced, approvalStatus = ApprovalStatus.Pending, requestedAtMillis = now - DAY),
             visit("v-request-3", acc(2), VisitType.Planning, Shift.Am, now + 2 * DAY, SyncStatus.Synced, approvalStatus = ApprovalStatus.Rejected, requestedAtMillis = now - 2 * DAY, decisionNote = "هذه العيادة تمت زيارتها هذا الأسبوع"),
         )
-        return planned + done + requests
+        return planned + done + requests + generatedVisits(now, accounts)
     }
 }

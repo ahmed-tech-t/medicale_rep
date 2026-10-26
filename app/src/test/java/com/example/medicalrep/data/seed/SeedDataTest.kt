@@ -27,6 +27,18 @@ class SeedDataTest {
     private val data = SeedDataFactory.build(now)
 
     @Test
+    fun `there is enough data to test lists and paging`() {
+        assertEquals(50, data.accounts.size)
+        assertEquals(200, data.products.size)
+        assertEquals(100, data.visits.size)
+        // Every kind of visit is well represented, so every tab and filter has several pages' worth of variety.
+        assertTrue(data.visits.count { it.type == VisitType.Planned && it.completedAtMillis == null } >= 15)
+        assertTrue(data.visits.count { it.completedAtMillis != null } >= 40)
+        assertTrue(data.visits.count { it.type == VisitType.Planning && it.approvalStatus == ApprovalStatus.Pending } >= 8)
+        assertTrue(data.products.map { it.name }.toSet().size == 200)
+    }
+
+    @Test
     fun `ids are unique`() {
         assertEquals(data.users.size, data.users.map { it.id }.toSet().size)
         assertEquals(data.accounts.size, data.accounts.map { it.id }.toSet().size)
