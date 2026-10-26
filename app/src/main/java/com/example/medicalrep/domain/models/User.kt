@@ -8,4 +8,6 @@ data class User(
     val employeeCode: String = "",
     val deviceId: String = "",
     val initials: String = "",
+    val role: UserRole = UserRole.Rep,
+    val supervisorId: String? = null,
 )

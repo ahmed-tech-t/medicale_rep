@@ -83,12 +83,21 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.test.core.ktx)
+    androidTestImplementation(libs.androidx.room.testing)
+    androidTestImplementation(libs.androidx.paging.testing)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
 
     implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.paging.runtime)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.paging)
     testImplementation(libs.androidx.room.testing)
     implementation(libs.androidx.room.ktx)
+}
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
 }

@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.mapper
 
+import android.net.Uri
 import com.example.medicalrep.R
 import com.example.medicalrep.domain.models.AttachmentPill
 import com.example.medicalrep.domain.models.Product
@@ -17,14 +18,17 @@ import com.example.medicalrep.ui.models.ProductUi
 import com.example.medicalrep.ui.models.StatMetricUiModel
 import com.example.medicalrep.ui.models.UserUi
 import com.example.medicalrep.ui.models.VisitUi
+import com.example.medicalrep.ui.utils.formatClockTime
+import com.example.medicalrep.ui.utils.formatDate
 import kotlin.collections.map
 
 fun Visit.toUi(): VisitUi {
 
     return VisitUi(
         id = id.orEmpty(),
-        date = date.orEmpty(),
-        time = time.orEmpty(),
+        backendId = backendId.orEmpty(),
+        date = date ?: dateTimeMillis?.let(::formatDate).orEmpty(),
+        time = time ?: dateTimeMillis?.let(::formatClockTime).orEmpty(),
         city = city.orEmpty(),
         region = region.orEmpty(),
         address = address.orEmpty(),
@@ -32,6 +36,13 @@ fun Visit.toUi(): VisitUi {
         placeName = placeName.orEmpty(),
         specialty = specialty.orEmpty(),
         shift = shift ?: Shift.Am,
+        visitLatitude = visitLatitude,
+        visitLongitude = visitLongitude,
+        accountLatitude = accountLatitude,
+        accountLongitude = accountLongitude,
+        travelSeconds = travelSeconds,
+        noIssueFound = noIssueFound,
+        imageNote = imageNote?.let(Uri::parse),
         isDoubleVisit = visitMode == VisitMode.Double,
         type = type ?: VisitType.Planned,
         supervisorName = supervisorName.orEmpty(),
