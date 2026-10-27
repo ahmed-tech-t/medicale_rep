@@ -287,7 +287,6 @@
     <string name="product_price_format">السعر : %1$d</string>
     <string name="product_discount_format">الخصم : %1$d%%</string>
     <string name="products_action_add">اضافة</string>
-    <string name="products_order_saved">تم حفظ الطلب وسيتم رفعه مع بقية بياناتك.</string>
     <string name="products_confirm_order_title">تأكيد الطلب؟</string>
     <string name="products_confirm_order_message">سيتم حفظ الطلب للحساب الذي اخترته.</string>
     <string name="products_confirm_order_action">تأكيد الطلب</string>
@@ -347,6 +346,13 @@
     <string name="rep_tracking_gifts_format">%1$d هدايا دعائية</string>
     <string name="visit_status_completed">مكتملة</string>
     <string name="no_result">لا توجد نتائج</string>
+    <string name="orders">الطلبات</string>
+    <string name="orders_order_number">طلب رقم %1$d</string>
+    <string name="orders_date_time">%1$s, %2$s</string>
+    <string name="orders_price">السعر: %1$d</string>
+    <string name="orders_discount">الخصم: %1$d%%</string>
+    <string name="orders_quantity">الكمية: %1$d</string>
+    <string name="money_egp">%1$s ج.م</string>
     <string name="accounts">الأطباء والحسابات</string>
     <string name="filter_all">الكل</string>
     <string name="accounts_filter_clinics">العيادات</string>

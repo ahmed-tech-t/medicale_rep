@@ -25,6 +25,9 @@ open class MainGraph {
     data object Products : MainGraph()
 
     @Serializable
+    data object Orders : MainGraph()
+
+    @Serializable
     data object Accounts : MainGraph()
 
     @Serializable

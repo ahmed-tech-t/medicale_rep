@@ -26,7 +26,7 @@ class OrderRepoTest : RepoTestBase() {
         val saved = repo.get("o1")!!
         assertEquals("Clinic", saved.accountName)
         assertEquals(2, saved.items.size)
-        assertEquals(110, saved.total)
+        assertEquals(110.0, saved.total, 0.0)
         assertNull(repo.get("none"))
     }
 

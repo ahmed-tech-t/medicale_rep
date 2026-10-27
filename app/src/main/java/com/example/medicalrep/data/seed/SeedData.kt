@@ -3,6 +3,8 @@ package com.example.medicalrep.data.seed
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.ApprovalStatus
 import com.example.medicalrep.domain.models.Custody
+import com.example.medicalrep.domain.models.Order
+import com.example.medicalrep.domain.models.OrderItem
 import com.example.medicalrep.domain.models.Product
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
@@ -20,6 +22,7 @@ data class SeedData(
     val products: List<Product>,
     val custody: List<Custody>,
     val visits: List<Visit>,
+    val orders: List<Order>,
 )
 
 private const val HOUR = 3_600_000L
@@ -33,12 +36,35 @@ object SeedDataFactory {
         val users = users()
         val accounts = accounts()
         val custody = custody()
+        val products = products()
         return SeedData(
             users = users,
             accounts = accounts,
-            products = products(),
+            products = products,
             custody = custody,
             visits = visits(nowMillis, accounts),
+            orders = orders(nowMillis, accounts, products),
+        )
+    }
+
+    /** Three orders of the first rep, numbered 999 to 1001, so the Orders screen has something to show. */
+    private fun orders(nowMillis: Long, accounts: List<Account>, products: List<Product>): List<Order> {
+        fun line(productIndex: Int, quantity: Int) = products[productIndex].let {
+            OrderItem(requireNotNull(it.id), requireNotNull(it.name), it.price, it.discountPercent, quantity)
+        }
+        fun order(number: Int, account: Account, ageMillis: Long, status: SyncStatus, vararg lines: OrderItem) = Order(
+            id = "order-$number",
+            number = number,
+            repId = "rep-1",
+            accountId = account.id,
+            createdAtMillis = nowMillis - ageMillis,
+            syncStatus = status,
+            items = lines.toList(),
+        )
+        return listOf(
+            order(999, accounts[2], 4 * DAY, SyncStatus.Synced, line(2, 5), line(3, 4)),
+            order(1000, accounts[1], 2 * DAY, SyncStatus.NotSynced, line(1, 3), line(4, 2), line(5, 6)),
+            order(1001, accounts[0], 2 * HOUR, SyncStatus.NotSynced, line(0, 4)),
         )
     }
 

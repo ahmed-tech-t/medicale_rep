@@ -289,7 +289,6 @@
     <string name="product_discount_format">Discount: %1$d%%</string>
     <string name="products_action_add">Add</string>
     <string name="products_action_order">Order</string>
-    <string name="products_order_saved">Order saved. It will be uploaded with your other data.</string>
     <string name="products_confirm_order_title">Confirm order?</string>
     <string name="products_confirm_order_message">The order will be saved for the account you chose.</string>
     <string name="products_confirm_order_action">Confirm order</string>
@@ -348,6 +347,13 @@
     <string name="rep_tracking_gifts_format">%1$d promotional gifts</string>
     <string name="visit_status_completed">Completed</string>
     <string name="no_result">No results found</string>
+    <string name="orders">Orders</string>
+    <string name="orders_order_number">Order #%1$d</string>
+    <string name="orders_date_time">%1$s, %2$s</string>
+    <string name="orders_price">Price: %1$d</string>
+    <string name="orders_discount">Discount: %1$d%%</string>
+    <string name="orders_quantity">Quantity: %1$d</string>
+    <string name="money_egp">%1$s EGP</string>
     <string name="accounts">Doctors &amp; Accounts</string>
     <string name="filter_all">All</string>
     <string name="accounts_filter_clinics">Clinics</string>

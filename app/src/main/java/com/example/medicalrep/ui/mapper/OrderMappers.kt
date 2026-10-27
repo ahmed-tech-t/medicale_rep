@@ -10,6 +10,7 @@ import com.example.medicalrep.ui.utils.formatDate
 
 fun Order.toUi() = OrderUi(
     id = id,
+    number = number,
     accountName = accountName.orEmpty(),
     date = createdAtMillis.takeIf { it > 0 }?.let(::formatDate).orEmpty(),
     time = createdAtMillis.takeIf { it > 0 }?.let(::formatClockTime).orEmpty(),

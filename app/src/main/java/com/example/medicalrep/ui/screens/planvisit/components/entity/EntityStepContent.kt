@@ -202,12 +202,11 @@ fun EntityStepContent(
                     placeholder = stringResource(R.string.enter_place_name),
                 )
             }
-            if (visit.type == VisitType.Planned && visit.placeName.isNotBlank()) {
                 AccountLocationRow(
                     addressLine = visit.accountAddressLine(),
                     onViewMap = { onEvent(PlanVisitEvents.ViewAccountLocationClick) },
+                    enabled = visit.placeName.isNotBlank()
                 )
-            }
 
             LabelWrapperComponent(
                 title = stringResource(R.string.unplanned_specialty_select_hint),

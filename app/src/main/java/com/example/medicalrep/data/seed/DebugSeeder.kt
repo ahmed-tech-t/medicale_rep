@@ -1,6 +1,7 @@
 package com.example.medicalrep.data.seed
 
 import com.example.medicalrep.domain.repo.AccountRepo
+import com.example.medicalrep.domain.repo.OrderRepo
 import com.example.medicalrep.domain.repo.ProductRepo
 import com.example.medicalrep.domain.repo.SyncInfoRepo
 import com.example.medicalrep.domain.repo.UserRepo
@@ -18,22 +19,24 @@ class DebugSeeder @Inject constructor(
     private val accountRepo: AccountRepo,
     private val productRepo: ProductRepo,
     private val visitRepo: VisitRepo,
+    private val orderRepo: OrderRepo,
     private val syncInfoRepo: SyncInfoRepo,
 ) {
 
     suspend fun seedIfEmpty(now: Long = System.currentTimeMillis()) {
         if (syncInfoRepo.get(SEED_KEY) != null) return
         val data = SeedDataFactory.build(now)
-        // Order matters: visits point at users and accounts.
+        // Order matters: visits and orders point at users and accounts.
         data.users.forEach { userRepo.save(it) }
         data.accounts.forEach { accountRepo.save(it) }
         productRepo.saveProducts(data.products)
         productRepo.saveCustody(data.custody)
         data.visits.forEach { visitRepo.save(it) }
+        data.orders.forEach { orderRepo.save(it) }
         syncInfoRepo.set(SEED_KEY, now)
     }
 
     companion object {
-        const val SEED_KEY = "debug_seed_v3"
+        const val SEED_KEY = "debug_seed_v4"
     }
 }

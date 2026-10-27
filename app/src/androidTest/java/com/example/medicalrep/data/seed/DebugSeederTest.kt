@@ -3,6 +3,7 @@ package com.example.medicalrep.data.seed
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.medicalrep.data.repo.AccountRepoImpl
 import com.example.medicalrep.data.repo.DraftVisitRepoImpl
+import com.example.medicalrep.data.repo.OrderRepoImpl
 import com.example.medicalrep.data.repo.ProductRepoImpl
 import com.example.medicalrep.data.repo.RepoTestBase
 import com.example.medicalrep.data.repo.SyncInfoRepoImpl
@@ -28,6 +29,7 @@ class DebugSeederTest : RepoTestBase() {
             accounts,
             ProductRepoImpl(db.productDao(), db.custodyDao()),
             VisitRepoImpl(db.visitDao(), media),
+            OrderRepoImpl(db.orderDao()),
             syncInfo,
         )
 
@@ -37,6 +39,7 @@ class DebugSeederTest : RepoTestBase() {
         assertNotNull(syncInfo.get(DebugSeeder.SEED_KEY))
         val expected = SeedDataFactory.build(1_792_000_000_000L)
         assertEquals(expected.visits.size, db.visitDao().getAll().first().size)
+        assertEquals(expected.orders.map { it.number }, db.orderDao().getAll().first().map { it.order.number }.sorted())
         assertEquals(expected.accounts.map { it.city }.toSet().sorted(), accounts.cities().first())
         seeder.seedIfEmpty(now = 1_792_000_000_000L + 1)
         assertEquals(expected.visits.size, db.visitDao().getAll().first().size)

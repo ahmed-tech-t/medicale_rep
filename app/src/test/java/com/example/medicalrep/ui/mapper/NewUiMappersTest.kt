@@ -60,17 +60,18 @@ class NewUiMappersTest {
     fun `order maps account lines totals and time`() {
         val millis = 1_792_000_000_000L
         val order = Order(
-            id = "o1", accountName = "Clinic", createdAtMillis = millis, syncStatus = SyncStatus.Synced,
+            id = "o1", number = 1001, accountName = "Clinic", createdAtMillis = millis, syncStatus = SyncStatus.Synced,
             items = listOf(OrderItem("p1", "Panadol", 50, 10, 2), OrderItem("p2", "Brufen", 20, 0, 1)),
         )
         val ui = order.toUi()
         assertEquals("Clinic", ui.accountName)
         assertEquals(formatDate(millis), ui.date)
         assertEquals(formatClockTime(millis), ui.time)
-        assertEquals(110, ui.total)
+        assertEquals(1001, ui.number)
+        assertEquals(110.0, ui.total, 0.0)
         assertTrue(ui.isSynced)
         assertEquals(listOf("Panadol", "Brufen"), ui.items.map { it.name })
-        assertEquals(90, ui.items[0].lineTotal)
+        assertEquals(90.0, ui.items[0].lineTotal, 0.0)
     }
 
     @Test
@@ -79,7 +80,7 @@ class NewUiMappersTest {
         assertEquals("", ui.accountName)
         assertEquals("", ui.date)
         assertEquals("", ui.time)
-        assertEquals(0, ui.total)
+        assertEquals(0.0, ui.total, 0.0)
         assertTrue(ui.items.isEmpty())
         assertFalse(ui.isSynced)
     }

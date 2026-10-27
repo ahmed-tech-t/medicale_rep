@@ -12,7 +12,7 @@ data class UserDS(
     val emailVerified: Boolean = false,
     val expiresIn: Int = 0,
     val firstName: String = "",
-    val id: Int? = null,
+    val id: Int? = 1,
     val identificationStatus: Boolean? = null,
     val idtentificationPicture: String? = null,
     val lastName: String = "",

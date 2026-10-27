@@ -58,6 +58,7 @@ class HomeViewModel @Inject constructor(
                     NavDrawerItem.Language -> switchLanguage()
                     NavDrawerItem.AddVisit -> requestStart(HomeEvents.OnAddVisitClick)
                     NavDrawerItem.Products -> sendEvent(UiEvent.Navigate(MainGraph.Products))
+                    NavDrawerItem.Orders -> sendEvent(UiEvent.Navigate(MainGraph.Orders))
                     NavDrawerItem.Accounts -> sendEvent(UiEvent.Navigate(MainGraph.Accounts))
                     NavDrawerItem.PlanVisit -> sendEvent(UiEvent.Navigate(MainGraph.VisitPlanning))
                     NavDrawerItem.TrackReps -> sendEvent(UiEvent.Navigate(MainGraph.RepTracking))
@@ -77,7 +78,7 @@ class HomeViewModel @Inject constructor(
                 _state.update { it.copy(overlay = HomeOverlay.None) }
             }
             HomeEvents.OnOverlayDismiss -> _state.update { it.copy(overlay = HomeOverlay.None) }
-            HomeEvents.OnSyncClick,
+            HomeEvents.OnSyncClick->{}
             HomeEvents.OnTodayMoreClick ->{
                 sendEvent(UiEvent.Navigate(MainGraph.VisitLog))
             }

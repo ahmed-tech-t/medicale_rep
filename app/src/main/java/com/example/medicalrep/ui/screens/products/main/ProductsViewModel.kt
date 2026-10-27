@@ -6,9 +6,7 @@ import androidx.paging.cachedIn
 import androidx.paging.map
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
-import com.appcore.core.domain.utils.UiText
 import com.appcore.core.ui.utils.BaseViewModel
-import com.example.medicalrep.R
 import com.example.medicalrep.domain.models.Order
 import com.example.medicalrep.domain.models.OrderItem
 import com.example.medicalrep.domain.repo.AccountRepo
@@ -18,6 +16,7 @@ import com.example.medicalrep.ui.mapper.toProductUi
 import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.AccountUi
 import com.example.medicalrep.ui.models.ProductUi
+import com.example.medicalrep.ui.navigation.model.MainGraph
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -86,7 +85,7 @@ class ProductsViewModel @Inject constructor(
         }
     }
 
-    /** One order for the confirmed account: a line per selected product with its name, price and discount copied; uploaded later. */
+    /** One order for the confirmed account: a line per selected product with its name, price and discount copied; uploaded later. Then the Orders screen opens. */
     private fun saveOrder() {
         val state = _state.value
         val account = (state.overlay as? ProductsOverlay.ConfirmOrder)?.account ?: return
@@ -102,7 +101,7 @@ class ProductsViewModel @Inject constructor(
                 ),
             )
             _state.update { it.copy(selected = emptyMap(), overlay = ProductsOverlay.None) }
-            sendEvent(UiEvent.ShowSnackBar(UiText.StringResource(R.string.products_order_saved)))
+            sendEvent(UiEvent.Navigate(MainGraph.Orders))
         }
     }
 }

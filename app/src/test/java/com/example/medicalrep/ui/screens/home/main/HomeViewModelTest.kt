@@ -251,9 +251,20 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `accounts drawer row sits under products and opens the accounts screen`() = runTest(dispatcher) {
+    fun `orders drawer row sits under products and opens the orders screen`() = runTest(dispatcher) {
         val menu = NavDrawerItem.menu
-        assertEquals(menu.indexOf(NavDrawerItem.Products) + 1, menu.indexOf(NavDrawerItem.Accounts))
+        assertEquals(menu.indexOf(NavDrawerItem.Products) + 1, menu.indexOf(NavDrawerItem.Orders))
+        val events = collectEvents()
+        viewModel.onEvent(HomeEvents.OnMenuClick)
+        viewModel.onEvent(HomeEvents.OnDrawerItem(NavDrawerItem.Orders))
+        assertFalse(state.isDrawerOpen)
+        assertEquals(listOf<UiEvent>(UiEvent.Navigate(MainGraph.Orders)), events)
+    }
+
+    @Test
+    fun `accounts drawer row opens the accounts screen`() = runTest(dispatcher) {
+        val menu = NavDrawerItem.menu
+        assertEquals(menu.indexOf(NavDrawerItem.Orders) + 1, menu.indexOf(NavDrawerItem.Accounts))
         val events = collectEvents()
         viewModel.onEvent(HomeEvents.OnMenuClick)
         viewModel.onEvent(HomeEvents.OnDrawerItem(NavDrawerItem.Accounts))

@@ -17,6 +17,7 @@ import org.junit.Test
  * 1. Ids are unique in every list.
  * 2. Every reference exists: account -> supervisor, visit -> account / rep / supervisor, visit line -> custody.
  * 3. All four account types, three classes, several cities, districts and specialties are present.
+ * 6. Three orders numbered 999 to 1001 with real accounts, rep and product lines.
  * 4. Products exist; custody has gifts and samples with stock left.
  * 5. Visits cover: planned (both shifts), done synced and not synced, double visits with a supervisor,
  *    pending and rejected plan requests (with a reason), and dates relative to "now".
@@ -46,6 +47,27 @@ class SeedDataTest {
         val types = data.accounts.map { it.entityType }.toSet()
         val missing = cities.flatMap { c -> districts.flatMap { d -> types.map { t -> Triple(c, d, t) } } } - existing
         assertEquals(emptyList<Triple<String, String, String>>(), missing)
+    }
+
+    @Test
+    fun `orders are numbered, belong to the rep and use real accounts and products`() {
+        assertEquals(listOf(999, 1000, 1001), data.orders.map { it.number })
+        assertEquals(data.orders.size, data.orders.map { it.id }.toSet().size)
+        val accountIds = data.accounts.map { it.id }.toSet()
+        val userIds = data.users.map { it.id }.toSet()
+        val products = data.products.associateBy { it.id }
+        data.orders.forEach { order ->
+            assertTrue(order.accountId in accountIds)
+            assertTrue(order.repId in userIds)
+            assertTrue(order.createdAtMillis in 1..now)
+            assertTrue(order.items.isNotEmpty() && order.total > 0)
+            order.items.forEach { line ->
+                val product = products.getValue(line.productId)
+                assertEquals(product.name, line.productName)
+                assertEquals(product.price, line.unitPrice)
+                assertEquals(product.discountPercent, line.discountPercent)
+            }
+        }
     }
 
     @Test

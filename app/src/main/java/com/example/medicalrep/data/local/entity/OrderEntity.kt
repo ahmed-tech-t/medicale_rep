@@ -22,5 +22,7 @@ data class OrderEntity(
     val accountId: String?,
     val createdAtMillis: Long,
     val syncStatus: SyncStatus,
+    /** The number the rep sees; set when the order is first saved. */
+    val number: Int = 0,
     val searchText: String = "",
 )

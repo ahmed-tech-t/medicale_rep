@@ -11,6 +11,7 @@ import com.appcore.core.ui.utils.BaseViewModel
 import com.example.medicalrep.R
 import com.example.medicalrep.domain.repo.VisitRepo
 import com.example.medicalrep.ui.mapper.toUi
+import com.example.medicalrep.ui.utils.toggle
 import com.example.medicalrep.ui.models.VisitFilter
 import com.example.medicalrep.ui.models.VisitUi
 import com.example.medicalrep.ui.screens.visitplanning.utils.asPlanRequest
@@ -97,5 +98,4 @@ class VisitPlanningViewModel @Inject constructor(
         }
     }
 
-    private fun Set<String>.toggle(id: String): Set<String> = if (id in this) this - id else this + id
 }

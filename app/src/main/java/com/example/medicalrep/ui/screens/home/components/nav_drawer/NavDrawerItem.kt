@@ -9,6 +9,7 @@ sealed class NavDrawerItem(@StringRes val labelRes: Int) {
     data object PlanVisit : NavDrawerItem(R.string.nav_plan)
     data object Custody : NavDrawerItem(R.string.nav_custody)
     data object Products : NavDrawerItem(R.string.products)
+    data object Orders : NavDrawerItem(R.string.orders)
     data object Accounts : NavDrawerItem(R.string.accounts)
     data object AddAccount : NavDrawerItem(R.string.drawer_add_account)
     data object TrackReps : NavDrawerItem(R.string.track_rep)
@@ -23,6 +24,7 @@ sealed class NavDrawerItem(@StringRes val labelRes: Int) {
             PlanVisit,
             Custody,
             Products,
+            Orders,
             Accounts,
             AddAccount,
             TrackReps,

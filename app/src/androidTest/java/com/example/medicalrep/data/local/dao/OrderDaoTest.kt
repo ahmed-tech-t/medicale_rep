@@ -36,6 +36,23 @@ class OrderDaoTest : DaoTestBase() {
         assertNull(dao.getById("o1"))
     }
 
+    @Test fun aNewOrderGetsTheNextNumberAndAnEditKeepsIt() = runBlocking {
+        dao.save(order("o1"), emptyList())
+        dao.save(order("o2"), emptyList())
+        assertEquals(listOf(1, 2), listOf("o1", "o2").map { dao.getById(it)!!.number })
+        dao.save(order("o1"), listOf(item("o1", "p1")))
+        assertEquals(1, dao.getById("o1")!!.number)
+        dao.save(order("o3"), emptyList())
+        assertEquals(3, dao.getById("o3")!!.number)
+    }
+
+    @Test fun aGivenNumberIsKeptAndTheNextOneFollowsIt() = runBlocking {
+        dao.save(order("o1").copy(number = 1001), emptyList())
+        dao.save(order("o2"), emptyList())
+        assertEquals(1001, dao.getById("o1")!!.number)
+        assertEquals(1002, dao.getById("o2")!!.number)
+    }
+
     @Test fun sameProductTwiceIsOneLine() = runBlocking {
         dao.save(order("o1"), listOf(item("o1", "p1", 1), item("o1", "p1", 4)))
         assertEquals(listOf(4), dao.getWithDetails("o1")!!.items.map { it.quantity })

@@ -38,6 +38,7 @@ import com.example.medicalrep.ui.ui.theme.Slate900
 fun AccountLocationRow(
     addressLine: String,
     onViewMap: () -> Unit,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     NexoraOutlinedSurface(modifier = modifier) {
@@ -74,6 +75,7 @@ fun AccountLocationRow(
                 onClick = onViewMap,
                 variant = NexoraButtonVariant.Secondary,
                 compact = true,
+                enabled = enabled,
                 fillMaxWidth = false,
                 leadingIcon = { NexoraIcon(imageVector = Icons.Outlined.Map, tint = Brand) },
             )

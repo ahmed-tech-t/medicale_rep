@@ -68,11 +68,19 @@ abstract class OrderDao : BaseDao<OrderEntity> {
     @Query("UPDATE orders SET searchText = $ORDER_SEARCH_TEXT_SQL WHERE id = :id")
     abstract suspend fun refreshSearchText(id: String)
 
-    /** Saves the order with its lines and makes its search text. Returns false when the order is already uploaded. */
+    @Query("SELECT COALESCE(MAX(number), 0) FROM orders")
+    abstract suspend fun lastNumber(): Int
+
+    /**
+     * Saves the order with its lines and makes its search text. Returns false when the order is already uploaded.
+     * An edited order keeps its number; a new one keeps the number it brings, or gets the next one.
+     */
     @Transaction
     open suspend fun save(order: OrderEntity, items: List<OrderItemEntity>): Boolean {
-        if (getById(order.id)?.syncStatus == SyncStatus.Synced) return false
-        upsert(order)
+        val saved = getById(order.id)
+        if (saved?.syncStatus == SyncStatus.Synced) return false
+        val number = saved?.number ?: order.number.takeIf { it > 0 } ?: (lastNumber() + 1)
+        upsert(order.copy(number = number))
         deleteItems(order.id)
         insertItems(items)
         refreshSearchText(order.id)

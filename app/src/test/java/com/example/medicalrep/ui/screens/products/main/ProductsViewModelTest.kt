@@ -11,6 +11,7 @@ import com.example.medicalrep.domain.repo.FakeAccountRepo
 import com.example.medicalrep.domain.repo.FakeOrderRepo
 import com.example.medicalrep.domain.repo.FakeProductRepo
 import com.example.medicalrep.ui.models.AccountUi
+import com.example.medicalrep.ui.navigation.model.MainGraph
 import com.example.medicalrep.ui.models.ProductUi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -38,6 +39,7 @@ import org.junit.Test
  * 3. When "+" on a product, Then it is selected with quantity 1; "+" again raises it; "-" lowers it; at 1 "-" removes it;
  *    it never goes negative. The selection keeps each product's name, price and discount.
  * 4. Selected products stay while the search text changes.
+ * 6. Confirming the order saves it, then opens the Orders screen.
  * 5. Order with nothing selected does nothing; with a selection it opens the account picker.
  * 6. The picker searches accounts through the repo; dismissing closes it and keeps the selection.
  * 7. Choosing an account asks to confirm (nothing saved yet; Cancel closes it and keeps the selection). Confirming saves one order for that account: a line per selected product (name, price, discount, quantity
@@ -186,12 +188,11 @@ class ProductsViewModelTest {
         assertEquals(listOf("p1", "p2"), order.items.map { it.productId })
         val line = order.items.first()
         assertEquals(listOf("بانادول", 100, 10, 2), listOf(line.productName, line.unitPrice, line.discountPercent, line.quantity))
-        assertEquals(180 + 50, order.total)
+        assertEquals(180.0 + 50.0, order.total, 0.0)
 
         assertFalse(state.hasSelection)
         assertEquals(ProductsOverlay.None, state.overlay)
-        assertEquals(1, events.size)
-        assertTrue(events[0] is UiEvent.ShowSnackBar)
+        assertEquals(listOf<UiEvent>(UiEvent.Navigate(MainGraph.Orders)), events)
     }
 
     @Test

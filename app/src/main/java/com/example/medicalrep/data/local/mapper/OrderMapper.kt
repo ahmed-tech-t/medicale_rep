@@ -8,6 +8,7 @@ import com.example.medicalrep.domain.models.OrderItem
 
 fun OrderWithDetails.toDomain() = Order(
     id = order.id,
+    number = order.number,
     backendId = order.backendId,
     repId = order.repId,
     accountId = order.accountId,
@@ -33,6 +34,7 @@ fun Order.toEntity() = OrderEntity(
     accountId = accountId,
     createdAtMillis = createdAtMillis,
     syncStatus = syncStatus,
+    number = number,
 )
 
 fun Order.toItems(): List<OrderItemEntity> = items.map {
