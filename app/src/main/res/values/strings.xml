@@ -193,7 +193,6 @@
     <string name="account_directions_to_account">To the account</string>
     <string name="account_directions_by_car">by car</string>
     <string name="account_directions_on_foot">on foot</string>
-    <string name="account_directions_refresh">Refresh location</string>
     <string name="duration_hours_minutes">%1$d h %2$d min</string>
     <string name="duration_minutes">%1$d min</string>
     <string name="distance_km_format">%1$d km</string>
@@ -328,13 +327,13 @@
     <string name="visit_details_location_away">Visit recorded away from the account location</string>
     <string name="visit_details_location_distance">Distance from the account: %1$d m</string>
     <string name="visit_details_location_distance_km">Distance from the account: %1$d km</string>
+    <string name="plan_visit_weak_gps">Weak GPS signal, the location may not be accurate</string>
     <string name="plan_visit_your_location">Your location</string>
     <string name="plan_visit_map">Map</string>
     <string name="account_location_get_directions">Get Directions</string>
     <string name="plan_visit_location_captured">Captured at %1$s</string>
     <string name="plan_visit_coordinates">Lat %1$.6f · Lng %2$.6f</string>
     <string name="plan_visit_view_on_map">Show on map</string>
-    <string name="plan_visit_refresh_location">Refresh</string>
     <!-- Rep tracking -->
     <string name="rep_tracking_title">Rep tracking</string>
     <string name="rep_tracking_change">Change</string>

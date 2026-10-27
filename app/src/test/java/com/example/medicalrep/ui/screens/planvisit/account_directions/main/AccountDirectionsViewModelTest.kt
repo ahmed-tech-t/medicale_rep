@@ -7,7 +7,6 @@ import com.appcore.core.domain.utils.Resource
 import com.appcore.core.domain.utils.UiEvent
 import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.models.RouteResult
-import com.example.medicalrep.domain.repo.GeocodingRepo
 import com.example.medicalrep.domain.repo.RouteRepo
 import com.example.medicalrep.domain.repo.FakeSession
 import com.example.medicalrep.ui.common.location.LocationStatus
@@ -36,8 +35,8 @@ import org.junit.Test
  * 2. Given the rep is within 50 m of the account, Then no route is requested and there is no line at all.
  * 3. Given no rep location, Then no distance and no route.
  * 4. Given the route request fails (e.g. no internet), Then a straight line rep -> account is drawn and no car or walking time is shown.
- * 5. Given a rep location, Then the capture time and street are stored; a failed street lookup keeps the rest.
- * 6. When RefreshLocation, Then the location is read again; with no new fix the old one is kept.
+ * 5. Given a rep location, Then the capture time and the saved street are shown; no saved street keeps the rest; the street follows the session live.
+ * 6. When the session gets a new location, Then the map follows it (street and route reload); losing it keeps the last one.
  * 7. When ToggleCard, Then the card collapses, and expands again. Back -> NavigationUp.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -50,8 +49,7 @@ class AccountDirectionsViewModelTest {
     private val far = GeoPoint(latitude = 0.1, longitude = 0.0) // about 11 km
     private val near = GeoPoint(latitude = 0.0001, longitude = 0.0) // about 11 m
     private val routeRepo = FakeRouteRepo()
-    private val geocodingRepo = FakeGeocodingRepo()
-    private val session = FakeSession()
+    private val session = FakeSession().also { it.setAddress("Al Geish Street") }
 
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -72,7 +70,6 @@ class AccountDirectionsViewModelTest {
             ),
             session.manager,
             routeRepo,
-            geocodingRepo,
         )
     }
 
@@ -130,8 +127,8 @@ class AccountDirectionsViewModelTest {
     }
 
     @Test
-    fun `street lookup failure keeps the rest`() {
-        geocodingRepo.result = Resource.Error("offline")
+    fun `no saved street keeps the rest`() {
+        session.setAddress(null)
         val state = createViewModel(far).state.value
         assertNull(state.userStreet)
         assertNotNull(state.capturedAtMillis)
@@ -139,18 +136,34 @@ class AccountDirectionsViewModelTest {
     }
 
     @Test
-    fun `refresh reads the location again and keeps the old one without a new fix`() {
+    fun `a new session location moves the rep and reloads the route`() {
         val viewModel = createViewModel(far)
         session.setLocation(near)
-        viewModel.onEvent(AccountDirectionsEvents.RefreshLocation)
         assertEquals(near, viewModel.state.value.userLocation)
         assertTrue(viewModel.state.value.isAtAccount)
         assertNull(viewModel.state.value.route)
 
         session.setLocation(null)
-        viewModel.onEvent(AccountDirectionsEvents.RefreshLocation)
         assertEquals(near, viewModel.state.value.userLocation)
-        assertFalse(viewModel.state.value.isLocating)
+    }
+
+    @Test
+    fun `the first fix after opening without a location shows up`() {
+        val viewModel = createViewModel(null)
+        assertNull(viewModel.state.value.userLocation)
+        session.setLocation(far)
+        assertEquals(far, viewModel.state.value.userLocation)
+        assertNotNull(viewModel.state.value.route)
+    }
+
+    @Test
+    fun `the street follows the session live`() {
+        val viewModel = createViewModel(far)
+        assertEquals("Al Geish Street", viewModel.state.value.userStreet)
+        session.setAddress("Another Street")
+        assertEquals("Another Street", viewModel.state.value.userStreet)
+        session.setAddress(null)
+        assertNull(viewModel.state.value.userStreet)
     }
 
     @Test
@@ -183,11 +196,6 @@ private class FakeRouteRepo : RouteRepo {
         lastWaypoints = waypoints
         return flowOf(result)
     }
-}
-
-private class FakeGeocodingRepo : GeocodingRepo {
-    var result: Resource<String> = Resource.Success("Al Geish Street")
-    override fun getAddress(point: GeoPoint): Flow<Resource<String>> = flowOf(result)
 }
 
 private object FakeSettingsRepo : AppSettingsRepo {

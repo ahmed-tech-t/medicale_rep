@@ -27,4 +27,8 @@ data class UserDS(
     val lastLatitude: Double? = null,
     val lastLongitude: Double? = null,
     val lastLocationTimeMillis: Long = 0L,
+    /** How many metres the last location may be off; null until the first GPS update. */
+    val lastAccuracyMeters: Float? = null,
+    /** The street at [lastLatitude], [lastLongitude]; null when the lookup found none or failed. */
+    val lastAddress: String? = null,
 )

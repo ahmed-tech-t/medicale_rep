@@ -8,7 +8,6 @@ import com.appcore.core.domain.utils.Resource
 import com.appcore.core.domain.utils.UiEvent
 import com.appcore.core.ui.utils.BaseViewModel
 import com.example.medicalrep.domain.models.GeoPoint
-import com.example.medicalrep.domain.repo.GeocodingRepo
 import com.example.medicalrep.domain.repo.RouteRepo
 import com.appcore.core.data.local.session.AuthSessionManager
 import com.example.medicalrep.domain.models.lastLocation
@@ -17,6 +16,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,7 +30,6 @@ class AccountDirectionsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val session: AuthSessionManager,
     private val routeRepo: RouteRepo,
-    private val geocodingRepo: GeocodingRepo,
 ) : BaseViewModel(appSettingsRepo) {
 
     private val route = savedStateHandle.toRoute<MainGraph.AccountDirections>()
@@ -41,45 +43,33 @@ class AccountDirectionsViewModel @Inject constructor(
     val state: StateFlow<AccountDirectionsState> = _state.asStateFlow()
 
     init {
-        loadLocation()
-    }
-
-    /** Reads the rep's position, then its street and (when he is not at the account yet) the road route. */
-    private fun loadLocation() {
-        if (_state.value.isLocating) return
-        _state.update { it.copy(isLocating = true) }
+        // The map follows the session: every new GPS fix moves the rep and reloads the street and the route.
         viewModelScope.launch {
-            val user = session.user.value.lastLocation
-            if (user == null) {
-                _state.update { it.copy(isLocating = false) }
-                return@launch
+            session.user.map { it.lastLocation }.filterNotNull().distinctUntilChanged().collectLatest(::showLocation)
+        }
+        viewModelScope.launch {
+            session.user.map { it.lastAddress }.distinctUntilChanged().collect { street ->
+                _state.update { it.copy(userStreet = street) }
             }
-            _state.update {
-                it.copy(
-                    userLocation = user,
-                    capturedAtMillis = System.currentTimeMillis(),
-                    route = null,
-                    userStreet = null,
-                    isLocating = false,
-                )
-            }
-            launch { loadStreet(user) }
-            // Within range of the account there is nothing to navigate, so no route.
-            if (!_state.value.isAtAccount) loadRoute(user)
         }
     }
 
-    private suspend fun loadStreet(user: GeoPoint) {
-        geocodingRepo.getAddress(GeoPoint(user.latitude, user.longitude)).collect { result ->
-            if (result is Resource.Success) _state.update { it.copy(userStreet = result.data) }
+    /** Shows the rep at [user], then (when he is not at the account yet) the road route. */
+    private suspend fun showLocation(user: GeoPoint) {
+        _state.update {
+            it.copy(
+                userLocation = user,
+                capturedAtMillis = session.user.value.lastLocationTimeMillis,
+                route = null,
+            )
         }
+        // Within range of the account there is nothing to navigate, so no route.
+        if (!_state.value.isAtAccount) loadRoute(user)
     }
 
     private suspend fun loadRoute(user: GeoPoint) {
         val account = _state.value.accountLocation
-        routeRepo.getRoute(
-            listOf(GeoPoint(user.latitude, user.longitude), GeoPoint(account.latitude, account.longitude))
-        ).collect { result ->
+        routeRepo.getRoute(listOf(user, account)).collect { result ->
             if (result is Resource.Success) _state.update { it.copy(route = result.data) }
         }
     }
@@ -88,7 +78,6 @@ class AccountDirectionsViewModel @Inject constructor(
         when (event) {
             AccountDirectionsEvents.Back -> sendEvent(UiEvent.NavigationUp)
             AccountDirectionsEvents.ToggleCard -> _state.update { it.copy(isCardExpanded = !it.isCardExpanded) }
-            AccountDirectionsEvents.RefreshLocation -> loadLocation()
         }
     }
 }

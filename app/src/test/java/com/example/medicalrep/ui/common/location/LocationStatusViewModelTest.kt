@@ -3,6 +3,7 @@ package com.example.medicalrep.ui.common.location
 import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.example.medicalrep.domain.models.GeoPoint
+import com.example.medicalrep.domain.models.LocationFix
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -15,7 +16,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertTrue
 import com.example.medicalrep.domain.models.SyncStatus
+import com.example.medicalrep.domain.repo.FakeGeocodingRepo
 import com.example.medicalrep.domain.repo.FakeTrackPointRepo
+import com.appcore.core.domain.utils.Resource
+import kotlinx.coroutines.CompletableDeferred
+import org.junit.Assert.assertNull
 import com.appcore.core.data.local.datastore.model.UserDS
 import com.example.medicalrep.domain.repo.FakeSession
 import org.junit.After
@@ -27,7 +32,8 @@ import org.junit.Test
 /**
  * 1. Given the helper reports a status, When the screen opens, Then the state has that status.
  * 2. Given the status changes (permission granted, GPS toggled), When Refresh, Then the state follows it.
- * 4. While tracking, each GPS update is saved as the last location; cancelling stops saving.
+ * 4. While tracking, each GPS update is saved as the last location with its accuracy; cancelling stops saving.
+ * 5. Every update also looks up its street and saves it in the user; a failed lookup clears it; a newer update cancels an unfinished lookup.
  * 3. Given the app stays open, When the helper reports a system change (GPS switched off), Then the state follows it
  *    without a Refresh.
  */
@@ -37,7 +43,7 @@ class LocationStatusViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
-        viewModel = LocationStatusViewModel(FakeSettingsRepo, helper, trackPointRepo, session.manager)
+        viewModel = LocationStatusViewModel(FakeSettingsRepo, helper, trackPointRepo, geocodingRepo, session.manager)
     }
 
     @After
@@ -45,8 +51,8 @@ class LocationStatusViewModelTest {
 
     private val helper = FakeLocationHelper(LocationStatus.PermissionDenied)
     private val trackPointRepo = FakeTrackPointRepo()
+    private val geocodingRepo = FakeGeocodingRepo()
     private val session = FakeSession(UserDS(id = 7))
-    private val users = session.users
     private lateinit var viewModel: LocationStatusViewModel
 
     @Test
@@ -64,21 +70,31 @@ class LocationStatusViewModelTest {
     @Test
     fun `tracking saves every gps update and stops when cancelled`() = runTest {
         val job = launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.trackLocation() }
-        helper.updates.emit(GeoPoint(30.1, 31.1))
+        helper.updates.emit(fix(30.1, 31.1))
         assertEquals(GeoPoint(30.1, 31.1), session.manager.user.value.lastLocation)
-        helper.updates.emit(GeoPoint(30.2, 31.2))
+        helper.updates.emit(fix(30.2, 31.2))
         assertEquals(GeoPoint(30.2, 31.2), session.manager.user.value.lastLocation)
         assertTrue(session.manager.user.value.lastLocationTimeMillis > 0)
         job.cancel()
-        helper.updates.emit(GeoPoint(30.3, 31.3))
+        helper.updates.emit(fix(30.3, 31.3))
         assertEquals(GeoPoint(30.2, 31.2), session.manager.user.value.lastLocation)
+    }
+
+    @Test
+    fun `the accuracy of each update is saved with the location`() = runTest {
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.trackLocation() }
+        helper.updates.emit(fix(30.1, 31.1, accuracyMeters = 80f))
+        assertEquals(80f, session.manager.user.value.lastAccuracyMeters)
+        helper.updates.emit(fix(30.2, 31.2, accuracyMeters = 6f))
+        assertEquals(6f, session.manager.user.value.lastAccuracyMeters)
+        job.cancel()
     }
 
     @Test
     fun `every gps update is also stored as a track point of the current rep, not uploaded`() = runTest {
         val job = launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.trackLocation() }
-        helper.updates.emit(GeoPoint(30.1, 31.1))
-        helper.updates.emit(GeoPoint(30.2, 31.2))
+        helper.updates.emit(fix(30.1, 31.1))
+        helper.updates.emit(fix(30.2, 31.2))
         val points = trackPointRepo.added
         assertEquals(listOf(30.1 to 31.1, 30.2 to 31.2), points.map { it.latitude to it.longitude })
         assertTrue(points.all { it.repId == "7" })
@@ -89,9 +105,9 @@ class LocationStatusViewModelTest {
 
     @Test
     fun `without a signed in user no track point is stored but the last location still is`() = runTest {
-        session.manager.updateUser { UserDS() } // nobody signed in
+        session.manager.updateUser { UserDS(id = null) } // nobody signed in
         val job = launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.trackLocation() }
-        helper.updates.emit(GeoPoint(30.1, 31.1))
+        helper.updates.emit(fix(30.1, 31.1))
         assertEquals(emptyList<Any>(), trackPointRepo.added)
         assertEquals(GeoPoint(30.1, 31.1), session.manager.user.value.lastLocation)
         job.cancel()
@@ -101,11 +117,64 @@ class LocationStatusViewModelTest {
     fun `a failing track point insert does not stop saving the last location or later updates`() = runTest {
         trackPointRepo.failOnAdd = true
         val job = launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.trackLocation() }
-        helper.updates.emit(GeoPoint(30.1, 31.1))
+        helper.updates.emit(fix(30.1, 31.1))
         trackPointRepo.failOnAdd = false
-        helper.updates.emit(GeoPoint(30.2, 31.2))
+        helper.updates.emit(fix(30.2, 31.2))
         assertEquals(GeoPoint(30.2, 31.2), session.manager.user.value.lastLocation)
         assertEquals(listOf(30.2), trackPointRepo.added.map { it.latitude })
+        job.cancel()
+    }
+
+    @Test
+    fun `every update looks up its street and saves it`() = runTest {
+        geocodingRepo.resultFor = { Resource.Success("street ${it.latitude}") }
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.trackLocation() }
+        helper.updates.emit(fix(30.1, 31.1))
+        assertEquals("street 30.1", session.manager.user.value.lastAddress)
+        helper.updates.emit(fix(30.2, 31.2))
+        assertEquals("street 30.2", session.manager.user.value.lastAddress)
+        assertEquals(listOf(GeoPoint(30.1, 31.1), GeoPoint(30.2, 31.2)), geocodingRepo.requested)
+        job.cancel()
+    }
+
+    @Test
+    fun `a failed lookup clears the street and the next good one brings it back`() = runTest {
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.trackLocation() }
+        helper.updates.emit(fix(30.1, 31.1))
+        assertEquals("Al Geish Street", session.manager.user.value.lastAddress)
+
+        geocodingRepo.resultFor = { Resource.Error("No street found") }
+        helper.updates.emit(fix(30.2, 31.2))
+        assertNull(session.manager.user.value.lastAddress)
+        assertEquals(GeoPoint(30.2, 31.2), session.manager.user.value.lastLocation)
+
+        geocodingRepo.resultFor = { Resource.Success("Back Street") }
+        helper.updates.emit(fix(30.3, 31.3))
+        assertEquals("Back Street", session.manager.user.value.lastAddress)
+        job.cancel()
+    }
+
+    @Test
+    fun `the old street stays while a lookup is running`() = runTest {
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.trackLocation() }
+        helper.updates.emit(fix(30.1, 31.1))
+        geocodingRepo.gate = CompletableDeferred()
+        helper.updates.emit(fix(30.2, 31.2))
+        assertEquals("Al Geish Street", session.manager.user.value.lastAddress)
+        assertEquals(GeoPoint(30.2, 31.2), session.manager.user.value.lastLocation)
+        job.cancel()
+    }
+
+    @Test
+    fun `a newer update cancels the lookup that is still running`() = runTest {
+        geocodingRepo.gate = CompletableDeferred()
+        geocodingRepo.resultFor = { Resource.Success("street ${it.latitude}") }
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.trackLocation() }
+        helper.updates.emit(fix(30.1, 31.1))
+        helper.updates.emit(fix(30.2, 31.2))
+        geocodingRepo.gate!!.complete(Unit)
+        assertEquals(listOf(GeoPoint(30.2, 31.2)), geocodingRepo.answered)
+        assertEquals("street 30.2", session.manager.user.value.lastAddress)
         job.cancel()
     }
 
@@ -123,12 +192,15 @@ class LocationStatusViewModelTest {
     }
 }
 
+private fun fix(latitude: Double, longitude: Double, accuracyMeters: Float = 5f) =
+    LocationFix(GeoPoint(latitude, longitude), accuracyMeters)
+
 private class FakeLocationHelper(var status: LocationStatus) : LocationHelper {
     val changes = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     override fun status() = status
     override fun statusChanges(): Flow<Unit> = changes
-    val updates = MutableSharedFlow<GeoPoint>(extraBufferCapacity = 8)
-    override fun updates(): Flow<GeoPoint> = updates
+    val updates = MutableSharedFlow<LocationFix>(extraBufferCapacity = 8)
+    override fun updates(): Flow<LocationFix> = updates
 }
 
 private object FakeSettingsRepo : AppSettingsRepo {

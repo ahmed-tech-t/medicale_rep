@@ -28,6 +28,9 @@ android {
         // OSRM routing server; 10.0.2.2 reaches the PC from the emulator, a phone needs the PC's LAN address.
         val osrmBaseUrl = localProperties.getProperty("OSRM_BASE_URL") ?: "http://10.0.2.2:5000/"
         buildConfigField("String", "OSRM_BASE_URL", "\"$osrmBaseUrl\"")
+        // Street lookup server; the public one allows 1 request/second. Point it at your own Nominatim to lift that.
+        val nominatimBaseUrl = localProperties.getProperty("NOMINATIM_BASE_URL") ?: "https://nominatim.openstreetmap.org/"
+        buildConfigField("String", "NOMINATIM_BASE_URL", "\"$nominatimBaseUrl\"")
     }
 
     buildTypes {

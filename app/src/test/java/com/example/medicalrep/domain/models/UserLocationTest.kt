@@ -5,7 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
-/** The last location lives in the user: a point only when both numbers exist; withLocation sets all three fields. */
+/** The last location lives in the user: a point only when both numbers exist; withLocation sets the point, the accuracy and the time. */
 class UserLocationTest {
 
     @Test
@@ -22,9 +22,10 @@ class UserLocationTest {
 
     @Test
     fun `with location sets the point and the time and keeps the rest`() {
-        val user = UserDS(id = 7, firstName = "Ahmed").withLocation(GeoPoint(30.5, 31.1), timeMillis = 99L)
+        val user = UserDS(id = 7, firstName = "Ahmed").withLocation(LocationFix(GeoPoint(30.5, 31.1), 12f), timeMillis = 99L)
         assertEquals(GeoPoint(30.5, 31.1), user.lastLocation)
         assertEquals(99L, user.lastLocationTimeMillis)
+        assertEquals(12f, user.lastAccuracyMeters)
         assertEquals(7, user.id)
         assertEquals("Ahmed", user.firstName)
     }

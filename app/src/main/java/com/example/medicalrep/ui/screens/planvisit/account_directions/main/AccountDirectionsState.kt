@@ -15,7 +15,6 @@ data class AccountDirectionsState(
     val route: RouteResult? = null,
     val userStreet: String? = null,
     val capturedAtMillis: Long? = null,
-    val isLocating: Boolean = false,
     val isCardExpanded: Boolean = true,
 ) {
     /** Straight-line distance; null until the rep's position is known. */
@@ -44,9 +43,6 @@ data class AccountDirectionsState(
         get() = when {
             userLocation == null || isAtAccount -> emptyList()
             route != null -> route.points
-            else -> listOf(
-                GeoPoint(userLocation.latitude, userLocation.longitude),
-                GeoPoint(accountLocation.latitude, accountLocation.longitude),
-            )
+            else -> listOf(userLocation, accountLocation)
         }
 }

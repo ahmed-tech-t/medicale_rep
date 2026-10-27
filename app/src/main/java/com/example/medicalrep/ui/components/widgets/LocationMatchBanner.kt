@@ -37,10 +37,15 @@ import com.example.medicalrep.ui.ui.theme.Warning
 import com.example.medicalrep.ui.ui.theme.WarningBorder
 import com.example.medicalrep.ui.ui.theme.WarningContainer
 
-/** Green when the visit was recorded at the account (within 50 m), amber warning otherwise. */
+/**
+ * Green when the visit was recorded at the account (within 50 m), amber warning otherwise.
+ * [weakSignal] adds the weak GPS line and turns the banner amber, since the distance is then unreliable;
+ * with no [distanceMeters] (no account location) only that line shows.
+ */
 @Composable
-fun LocationMatchBanner(distanceMeters: Int, modifier: Modifier = Modifier) {
-    val matched = isAtAccountLocation(distanceMeters)
+fun LocationMatchBanner(distanceMeters: Int?, modifier: Modifier = Modifier, weakSignal: Boolean = false) {
+    val atAccount = distanceMeters != null && isAtAccountLocation(distanceMeters)
+    val matched = atAccount && !weakSignal
     Surface(
         modifier = modifier.fillMaxWidth(),
         color = if (matched) SuccessContainer else WarningContainer,
@@ -58,22 +63,31 @@ fun LocationMatchBanner(distanceMeters: Int, modifier: Modifier = Modifier) {
                 tint = if (matched) Success else Warning,
             )
             Column(verticalArrangement = Arrangement.spacedBy(spacing.spaceExtraSmall)) {
-                NexoraText(
-                    text = stringResource(
-                        if (matched) R.string.visit_details_location_matched else R.string.visit_details_location_away
-                    ),
-                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                    color = Slate800,
-                )
-                NexoraText(
-                    text = if (distanceMeters >= METERS_PER_KM) {
-                        stringResource(R.string.visit_details_location_distance_km, (distanceMeters / METERS_PER_KM.toDouble()).roundToInt())
-                    } else {
-                        stringResource(R.string.visit_details_location_distance, distanceMeters)
-                    },
-                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                    color = if (matched) OnSuccessContainer else OnWarningContainer,
-                )
+                if (distanceMeters != null) {
+                    NexoraText(
+                        text = stringResource(
+                            if (atAccount) R.string.visit_details_location_matched else R.string.visit_details_location_away
+                        ),
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                        color = Slate800,
+                    )
+                    NexoraText(
+                        text = if (distanceMeters >= METERS_PER_KM) {
+                            stringResource(R.string.visit_details_location_distance_km, (distanceMeters / METERS_PER_KM.toDouble()).roundToInt())
+                        } else {
+                            stringResource(R.string.visit_details_location_distance, distanceMeters)
+                        },
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = if (matched) OnSuccessContainer else OnWarningContainer,
+                    )
+                }
+                if (weakSignal) {
+                    NexoraText(
+                        text = stringResource(R.string.plan_visit_weak_gps),
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = OnWarningContainer,
+                    )
+                }
             }
         }
     }
@@ -89,4 +103,16 @@ private fun LocationMatchBannerMatchedPreview() {
 @Composable
 private fun LocationMatchBannerAwayPreview() {
     MedicalRepTheme { LocationMatchBanner(distanceMeters = 750) }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun LocationMatchBannerWeakSignalPreview() {
+    MedicalRepTheme { LocationMatchBanner(distanceMeters = 20, weakSignal = true) }
+}
+
+@Preview(showBackground = true, locale = "ar")
+@Composable
+private fun LocationMatchBannerWeakSignalNoDistancePreview() {
+    MedicalRepTheme { LocationMatchBanner(distanceMeters = null, weakSignal = true) }
 }

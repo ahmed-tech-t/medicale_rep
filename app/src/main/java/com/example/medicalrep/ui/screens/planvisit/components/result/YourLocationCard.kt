@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -22,7 +21,6 @@ import com.appcore.core.ui.theme.dim
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.primitives.NexoraButton
-import com.example.medicalrep.ui.components.primitives.NexoraButtonVariant
 import com.example.medicalrep.ui.components.primitives.NexoraIcon
 import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.components.widgets.NexoraChip
@@ -41,12 +39,11 @@ import com.example.medicalrep.ui.ui.theme.Slate500
 import com.example.medicalrep.ui.ui.theme.Slate600
 import com.example.medicalrep.ui.ui.theme.Slate800
 
-/** Where the rep captured the visit: address, coordinates, distance from the account, map and refresh. */
+/** Where the rep captured the visit: address, coordinates, distance from the account and the map. */
 @Composable
 fun YourLocationCard(
     state: PlanVisitState,
     onViewOnMap: () -> Unit,
-    onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val visit = state.visit
@@ -88,35 +85,22 @@ fun YourLocationCard(
             }
 
         }
-        if (visit.hasLocations) LocationMatchBanner(distanceMeters = visit.distanceFromAccountMeters)
-        Row(horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus)) {
-            NexoraButton(
-                text = stringResource(R.string.plan_visit_view_on_map),
-                onClick = onViewOnMap,
-                fillMaxWidth = false,
-                modifier = Modifier.weight(2f),
-                leadingIcon = {
-                    NexoraIcon(
-                        imageVector = Icons.Outlined.Map,
-                        modifier = Modifier.size(dim.smallIconSize)
-                    )
-                },
-            )
-            NexoraButton(
-                text = stringResource(R.string.plan_visit_refresh_location),
-                onClick = onRefresh,
-                variant = NexoraButtonVariant.Muted,
-                enabled = !state.isLocating,
-                fillMaxWidth = false,
-                modifier = Modifier.weight(1f),
-                leadingIcon = {
-                    NexoraIcon(
-                        imageVector = Icons.Filled.Refresh,
-                        modifier = Modifier.size(dim.smallIconSize)
-                    )
-                },
+        if (visit.hasLocations || state.hasWeakSignal) {
+            LocationMatchBanner(
+                distanceMeters = visit.distanceFromAccountMeters.takeIf { visit.hasLocations },
+                weakSignal = state.hasWeakSignal,
             )
         }
+        NexoraButton(
+            text = stringResource(R.string.plan_visit_view_on_map),
+            onClick = onViewOnMap,
+            leadingIcon = {
+                NexoraIcon(
+                    imageVector = Icons.Outlined.Map,
+                    modifier = Modifier.size(dim.smallIconSize)
+                )
+            },
+        )
     }
 }
 
@@ -135,7 +119,18 @@ private fun YourLocationCardPreview() {
         YourLocationCard(
             state = sampleState(),
             onViewOnMap = {},
-            onRefresh = {},
+            modifier = Modifier.padding(spacing.spaceMedium),
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun YourLocationCardWeakSignalPreview() {
+    MedicalRepTheme {
+        YourLocationCard(
+            state = sampleState().copy(locationAccuracyMeters = 40f),
+            onViewOnMap = {},
             modifier = Modifier.padding(spacing.spaceMedium),
         )
     }
@@ -146,9 +141,8 @@ private fun YourLocationCardPreview() {
 private fun YourLocationCardNoAddressPreview() {
     MedicalRepTheme {
         YourLocationCard(
-            state = sampleState().copy(locationAddress = null, isLocating = true),
+            state = sampleState().copy(locationAddress = null),
             onViewOnMap = {},
-            onRefresh = {},
             modifier = Modifier.padding(spacing.spaceMedium),
         )
     }

@@ -9,6 +9,7 @@ import android.location.LocationManager
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import com.example.medicalrep.domain.models.GeoPoint
+import com.example.medicalrep.domain.models.LocationFix
 import android.os.Looper
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -21,9 +22,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import javax.inject.Inject
 import javax.inject.Singleton
-
-private const val UPDATE_INTERVAL_MS = 5_000L
-private const val MIN_DISTANCE_METERS = 5f
 
 @Singleton
 class FusedLocationHelper @Inject constructor(
@@ -52,13 +50,13 @@ class FusedLocationHelper @Inject constructor(
     }
 
     @SuppressLint("MissingPermission") // Only collected while the location status is Ready.
-    override fun updates(): Flow<GeoPoint> = callbackFlow {
+    override fun updates(): Flow<LocationFix> = callbackFlow {
         val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, UPDATE_INTERVAL_MS)
-            .setMinUpdateDistanceMeters(MIN_DISTANCE_METERS)
+            .setMinUpdateDistanceMeters(MIN_UPDATE_DISTANCE_METERS)
             .build()
         val callback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
-                result.lastLocation?.let { trySend(GeoPoint(it.latitude, it.longitude)) }
+                result.lastLocation?.let { trySend(LocationFix(GeoPoint(it.latitude, it.longitude), it.accuracy)) }
             }
         }
         client.requestLocationUpdates(request, callback, Looper.getMainLooper())

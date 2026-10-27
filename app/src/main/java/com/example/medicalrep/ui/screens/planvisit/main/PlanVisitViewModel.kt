@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.appcore.core.domain.repo.AppSettingsRepo
-import com.appcore.core.domain.utils.Resource
 import com.appcore.core.domain.utils.UiEvent
 import com.appcore.core.domain.utils.UiEvent.*
 import com.appcore.core.domain.utils.UiText
@@ -14,12 +13,10 @@ import com.example.medicalrep.R
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.ProductType
-import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.models.UserRole
 import com.example.medicalrep.domain.models.VisitType
 import com.example.medicalrep.domain.repo.AccountRepo
 import com.example.medicalrep.domain.repo.DraftVisitRepo
-import com.example.medicalrep.domain.repo.GeocodingRepo
 import com.example.medicalrep.domain.repo.ProductRepo
 import com.example.medicalrep.domain.repo.UserRepo
 import com.example.medicalrep.domain.repo.VisitRepo
@@ -59,7 +56,6 @@ class PlanVisitViewModel @Inject constructor(
     appSettingsRepo: AppSettingsRepo,
     savedStateHandle: SavedStateHandle,
     private val session: AuthSessionManager,
-    private val geocodingRepo: GeocodingRepo,
     private val draftRepo: DraftVisitRepo,
     private val accountRepo: AccountRepo,
     userRepo: UserRepo,
@@ -187,7 +183,6 @@ class PlanVisitViewModel @Inject constructor(
             PlanVisitEvents.ViewLocationClick -> openVisitLocation()
             PlanVisitEvents.ViewAccountDirectionsClick -> openAccountDirections()
             PlanVisitEvents.ViewAccountLocationClick -> openAccountLocation()
-            PlanVisitEvents.RefreshLocation -> captureLocation()
 
             is PlanVisitEvents.AttachImageResult -> updateVisit { it.copy(imageNote = event.document.uri) }
         }
@@ -286,28 +281,21 @@ class PlanVisitViewModel @Inject constructor(
         if (current.currentStep == PlanVisitStep.Result && current.capturedAtMillis == null) captureLocation()
     }
 
-    /** Stores where the rep is now (and its address, when the lookup works) as the visit location. */
+    /** Stores where the rep was last seen by the session (and its saved street) as the visit location. */
     private fun captureLocation() {
-        if (_state.value.isLocating) return
-        _state.update { it.copy(isLocating = true) }
-        viewModelScope.launch {
-            val location = session.user.value.lastLocation
-            if (location == null) {
-                _state.update { it.copy(isLocating = false) }
-                sendEvent(ShowSnackBar(StringResource(R.string.visit_location_unavailable)))
-                return@launch
-            }
-            _state.update {
-                it.copy(
-                    visit = it.visit.copy(visitLatitude = location.latitude, visitLongitude = location.longitude),
-                    capturedAtMillis = System.currentTimeMillis(),
-                    locationAddress = null,
-                    isLocating = false,
-                )
-            }
-            geocodingRepo.getAddress(GeoPoint(location.latitude, location.longitude)).collect { address ->
-                if (address is Resource.Success) _state.update { it.copy(locationAddress = address.data) }
-            }
+        val user = session.user.value
+        val location = user.lastLocation
+        if (location == null) {
+            sendEvent(ShowSnackBar(StringResource(R.string.visit_location_unavailable)))
+            return
+        }
+        _state.update {
+            it.copy(
+                visit = it.visit.copy(visitLatitude = location.latitude, visitLongitude = location.longitude),
+                capturedAtMillis = user.lastLocationTimeMillis,
+                locationAddress = user.lastAddress,
+                locationAccuracyMeters = user.lastAccuracyMeters,
+            )
         }
     }
 

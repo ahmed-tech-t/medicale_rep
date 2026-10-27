@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -21,10 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
 import com.example.medicalrep.domain.models.GeoPoint
-import com.example.medicalrep.ui.components.primitives.NexoraButton
-import com.example.medicalrep.ui.components.primitives.NexoraButtonVariant
 import com.example.medicalrep.ui.components.primitives.NexoraCard
-import com.example.medicalrep.ui.components.primitives.NexoraIcon
 import com.example.medicalrep.ui.components.primitives.NexoraIconButton
 import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.components.widgets.NexoraChip
@@ -44,7 +40,6 @@ import com.example.medicalrep.ui.utils.formatClockTime
 fun AccountLocationCard(
     state: AccountDirectionsState,
     onToggle: () -> Unit,
-    onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     NexoraCard(modifier = modifier, borderColor = Color.Unspecified) {
@@ -106,13 +101,6 @@ fun AccountLocationCard(
                         }
                     }
                 }
-                NexoraButton(
-                    text = stringResource(R.string.account_directions_refresh),
-                    onClick = onRefresh,
-                    variant = NexoraButtonVariant.Secondary,
-                    enabled = !state.isLocating,
-                    leadingIcon = { NexoraIcon(imageVector = Icons.Filled.Refresh) },
-                )
             }
         }
     }
@@ -129,13 +117,13 @@ private fun sampleState() = AccountDirectionsState(
 @Preview(showBackground = true, locale = "ar")
 @Composable
 private fun AccountLocationCardExpandedPreview() {
-    MedicalRepTheme { AccountLocationCard(state = sampleState(), onToggle = {}, onRefresh = {}) }
+    MedicalRepTheme { AccountLocationCard(state = sampleState(), onToggle = {}) }
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun AccountLocationCardCollapsedPreview() {
     MedicalRepTheme {
-        AccountLocationCard(state = sampleState().copy(isCardExpanded = false), onToggle = {}, onRefresh = {})
+        AccountLocationCard(state = sampleState().copy(isCardExpanded = false), onToggle = {})
     }
 }

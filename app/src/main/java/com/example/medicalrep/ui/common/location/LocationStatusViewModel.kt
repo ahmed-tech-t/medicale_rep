@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.common.location
 
+import android.util.Log
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.ui.utils.BaseViewModel
 import com.appcore.core.data.local.session.AuthSessionManager
@@ -7,12 +8,17 @@ import androidx.lifecycle.viewModelScope
 import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.models.TrackPoint
 import com.example.medicalrep.domain.models.withLocation
+import com.example.medicalrep.domain.repo.GeocodingRepo
 import com.example.medicalrep.domain.repo.TrackPointRepo
+import com.appcore.core.domain.utils.Resource
 import kotlin.coroutines.cancellation.CancellationException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,6 +31,7 @@ class LocationStatusViewModel @Inject constructor(
     appSettingsRepo: AppSettingsRepo,
     private val locationHelper: LocationHelper,
     private val trackPointRepo: TrackPointRepo,
+    private val geocodingRepo: GeocodingRepo,
     private val session: AuthSessionManager,
 ) : BaseViewModel(appSettingsRepo) {
 
@@ -40,13 +47,25 @@ class LocationStatusViewModel @Inject constructor(
     /**
      * Saves every GPS update as the user's last location and as a track point until cancelled (the caller runs it only
      * while location is Ready). A point that cannot be stored never stops the tracking.
+     * The street of each update is looked up on the side; a newer update cancels a lookup that is still running.
      */
-    suspend fun trackLocation() {
-        locationHelper.updates().collect { location ->
+    suspend fun trackLocation() = coroutineScope {
+        var lookup: Job? = null
+        locationHelper.updates().collect { fix ->
+            Log.d("LocationStatusViewModel","trackLocation: $fix")
             val now = System.currentTimeMillis()
-            session.updateUser { it.withLocation(location, now) }
-            saveTrackPoint(location, now)
+            session.updateUser { it.withLocation(fix, now) }
+            saveTrackPoint(fix.point, now)
+            lookup?.cancel()
+            lookup = launch { saveAddress(fix.point) }
         }
+    }
+
+    /** The street of [location], or null (shown as nothing) when the lookup finds none or fails. */
+    private suspend fun saveAddress(location: GeoPoint) {
+        val result = geocodingRepo.getAddress(location).first { it !is Resource.Loading }
+        val address = (result as? Resource.Success)?.data
+        session.updateUser { it.copy(lastAddress = address) }
     }
 
     private suspend fun saveTrackPoint(location: GeoPoint, timeMillis: Long) {

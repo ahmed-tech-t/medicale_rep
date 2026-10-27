@@ -42,7 +42,6 @@ fun AccountDirectionsUi(
             AccountLocationCard(
                 state = state,
                 onToggle = { onEvent(AccountDirectionsEvents.ToggleCard) },
-                onRefresh = { onEvent(AccountDirectionsEvents.RefreshLocation) },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .navigationBarsPadding()

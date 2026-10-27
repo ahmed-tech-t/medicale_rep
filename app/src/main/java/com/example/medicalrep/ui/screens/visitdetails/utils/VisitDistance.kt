@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.screens.visitdetails.utils
 
+import com.example.medicalrep.ui.common.location.MAX_MATCH_DISTANCE_METERS
 import com.example.medicalrep.ui.models.VisitUi
 import kotlin.math.asin
 import kotlin.math.cos
@@ -7,9 +8,6 @@ import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.math.sqrt
-
-/** A visit recorded within this distance of the account counts as made at the account. */
-const val MAX_MATCH_DISTANCE_METERS = 50
 
 private const val EARTH_RADIUS_METERS = 6_371_000.0
 

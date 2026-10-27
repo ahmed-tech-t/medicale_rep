@@ -44,9 +44,7 @@ class VisitLocationMapViewModel @Inject constructor(
     private suspend fun loadRoute() {
         val rep = _state.value.visitLocation
         val account = _state.value.accountLocation
-        routeRepo.getRoute(
-            listOf(GeoPoint(rep.latitude, rep.longitude), GeoPoint(account.latitude, account.longitude))
-        ).collect { result ->
+        routeRepo.getRoute(listOf(rep, account)).collect { result ->
             if (result is Resource.Success) _state.update { it.copy(route = result.data) }
         }
     }

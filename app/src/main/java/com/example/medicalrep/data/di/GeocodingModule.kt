@@ -18,9 +18,6 @@ import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
-/** Public Nominatim: max 1 request/second and a User-Agent is required. Self-host before heavy production use. */
-private const val NOMINATIM_BASE_URL = "https://nominatim.openstreetmap.org/"
-
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class GeocodingModule {
@@ -29,6 +26,7 @@ abstract class GeocodingModule {
     abstract fun bindGeocodingRepo(impl: GeocodingRepoImpl): GeocodingRepo
 
     companion object {
+        // The public Nominatim allows 1 request/second and needs a User-Agent; self-host it before heavy use.
         // Own client without the auth/headers interceptors, so the user's token is never sent to Nominatim.
         @Provides
         @Singleton
@@ -46,7 +44,7 @@ abstract class GeocodingModule {
                 .apply { if (BuildConfig.DEBUG) addInterceptor(loggingInterceptor) }
                 .build()
             return Retrofit.Builder()
-                .baseUrl(NOMINATIM_BASE_URL)
+                .baseUrl(BuildConfig.NOMINATIM_BASE_URL)
                 .client(client)
                 .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
                 .build()

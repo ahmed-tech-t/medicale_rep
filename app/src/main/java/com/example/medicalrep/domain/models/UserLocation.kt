@@ -10,5 +10,9 @@ val UserDS.lastLocation: GeoPoint?
         return if (latitude != null && longitude != null) GeoPoint(latitude, longitude) else null
     }
 
-fun UserDS.withLocation(point: GeoPoint, timeMillis: Long): UserDS =
-    copy(lastLatitude = point.latitude, lastLongitude = point.longitude, lastLocationTimeMillis = timeMillis)
+fun UserDS.withLocation(fix: LocationFix, timeMillis: Long): UserDS = copy(
+    lastLatitude = fix.point.latitude,
+    lastLongitude = fix.point.longitude,
+    lastAccuracyMeters = fix.accuracyMeters,
+    lastLocationTimeMillis = timeMillis,
+)

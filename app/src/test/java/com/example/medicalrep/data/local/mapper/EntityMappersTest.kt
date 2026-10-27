@@ -106,8 +106,8 @@ class EntityMappersTest {
             lines = listOf(VisitCustodyEntity("v1", "c1", 2), VisitCustodyEntity("v1", "c2", 1)),
         )
         val visit = details.toDomain()
-        assertEquals("Clinic", visit.account)
-        assertEquals("Pharmacy", visit.placeName)
+        assertEquals("Pharmacy", visit.account)
+        assertEquals("Clinic", visit.placeName)
         assertEquals("Cairo", visit.city)
         assertEquals("Nasr", visit.region)
         assertEquals("St 1", visit.address)

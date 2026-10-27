@@ -3,6 +3,7 @@ package com.example.medicalrep.ui.screens.planvisit.main
 import androidx.compose.runtime.Immutable
 import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.ProductType
+import com.example.medicalrep.ui.common.location.WEAK_GPS_METERS
 import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.ProductUi
 import com.example.medicalrep.ui.models.VisitUi
@@ -36,7 +37,8 @@ data class PlanVisitState(
     val isRecordingVoice: Boolean = false,
     val capturedAtMillis: Long? = null,
     val locationAddress: String? = null,
-    val isLocating: Boolean = false,
+    /** How many metres the captured location may be off; null when it is not known. */
+    val locationAccuracyMeters: Float? = null,
     val giftCatalog: List<ProductUi> = emptyList(),
     val productCatalog: List<ProductUi> = emptyList(),
     val cityOptions: List<String> = emptyList(),
@@ -46,6 +48,9 @@ data class PlanVisitState(
     val specialtyOptions: List<String> = emptyList(),
     val supervisorOptions: List<String> = emptyList(),
 ) {
+    /** The GPS reading behind the captured location is too rough to trust (worse than [WEAK_GPS_METERS]). */
+    val hasWeakSignal: Boolean get() = (locationAccuracyMeters ?: 0f) > WEAK_GPS_METERS
+
     /** Back asks to save only while a visit in progress was changed; the finished result step just leaves. */
     val asksToSave: Boolean get() = visit != initialVisit && currentStep != PlanVisitStep.Result
     /** Step 1 is done: every search field is chosen; the supervisor only matters for a double visit. */

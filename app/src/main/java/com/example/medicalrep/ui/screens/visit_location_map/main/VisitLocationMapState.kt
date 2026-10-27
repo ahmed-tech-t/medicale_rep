@@ -28,10 +28,7 @@ data class VisitLocationMapState(
         get() = when {
             isAtAccount -> emptyList()
             route != null -> route.points
-            else -> listOf(
-                GeoPoint(visitLocation.latitude, visitLocation.longitude),
-                GeoPoint(accountLocation.latitude, accountLocation.longitude),
-            )
+            else -> listOf(visitLocation, accountLocation)
         }
 
     val showTravel: Boolean get() = travelSeconds > 0 && !isAtAccount

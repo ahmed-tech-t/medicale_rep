@@ -6,7 +6,6 @@ import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.Resource
 import com.appcore.core.domain.utils.UiEvent
 import com.example.medicalrep.domain.models.GeoPoint
-import com.example.medicalrep.domain.repo.GeocodingRepo
 import com.example.medicalrep.domain.repo.FakeSession
 import com.example.medicalrep.ui.common.location.LocationStatus
 import com.example.medicalrep.domain.models.ProductType
@@ -40,6 +39,7 @@ import com.example.medicalrep.domain.repo.FakeDraftVisitRepo
 import com.appcore.core.ui.utils.document_picker.PickedDocument
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -62,12 +62,11 @@ import org.junit.Test
  * 9. Given a row with quantity 1, When − is tapped, Then the row is removed.
  * 10. Given the result step, When the clinic checkbox toggles, Then state follows.
  * 11. When Back, Then NavigationUp. When EndVisit, Then snackbar then NavigationUp.
- * 13. Given the visit moves to the result step, Then the location is captured once: coordinates, time and address.
+ * 13. Given the visit moves to the result step, Then the location is captured once from the session: coordinates, the time of the fix and address.
+ * 19. Given the saved fix is worse than 20 m (or has no accuracy), Then the result step shows the weak signal warning; a good fix shows none.
  * 14. Given the result step was reached before, When it is reached again, Then the location is not captured again.
- * 15. When RefreshLocation, Then the location is captured again.
  * 16. Given no location is available, Then a snackbar shows and the old coordinates are kept.
  * 17. Given the address lookup fails, Then the address is null and the coordinates are kept.
- * 18. Given a capture is running, When RefreshLocation arrives, Then it is ignored (no double submit).
  * 12. When view location, Then the map opens with the visit coordinates (no coordinates: see VisitDistanceTest).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -75,8 +74,10 @@ class PlanVisitViewModelTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: PlanVisitViewModel
-    private val session = FakeSession().also { it.setLocation(GeoPoint(30.55, 31.13)) }
-    private val geocodingRepo = FakeGeocodingRepo()
+    private val session = FakeSession().also {
+        it.setLocation(GeoPoint(30.55, 31.13))
+        it.setAddress("Al Geish Street")
+    }
     private val draftRepo = FakeDraftVisitRepo()
     private val accountRepo = FakeAccountRepo(
         listOf(
@@ -126,7 +127,7 @@ class PlanVisitViewModelTest {
 
     private fun createViewModel(savedStateHandle: SavedStateHandle = SavedStateHandle()) =
         PlanVisitViewModel(
-            FakeUnplannedSettingsRepo, savedStateHandle, session.manager, geocodingRepo, draftRepo, accountRepo, userRepo, productRepo, visitRepo,
+            FakeUnplannedSettingsRepo, savedStateHandle, session.manager, draftRepo, accountRepo, userRepo, productRepo, visitRepo,
         )
 
     @Test
@@ -229,7 +230,7 @@ class PlanVisitViewModelTest {
         openResultStep()
         assertEquals(30.55, state.visit.visitLatitude, 0.0)
         assertEquals(31.13, state.visit.visitLongitude, 0.0)
-        assertNotNull(state.capturedAtMillis)
+        assertEquals(session.manager.user.value.lastLocationTimeMillis, state.capturedAtMillis)
         assertEquals("Al Geish Street", state.locationAddress)
         val capturedAt = state.capturedAtMillis
 
@@ -239,11 +240,26 @@ class PlanVisitViewModelTest {
     }
 
     @Test
-    fun `refresh captures the location again`() {
+    fun `a fix worse than 20 m raises the weak signal warning`() {
+        session.setLocation(GeoPoint(30.55, 31.13), accuracyMeters = 40f)
         openResultStep()
-        session.setLocation(GeoPoint(30.60, 31.20))
-        viewModel.onEvent(PlanVisitEvents.RefreshLocation)
-        assertEquals(30.60, state.visit.visitLatitude, 0.0)
+        assertEquals(40f, state.locationAccuracyMeters)
+        assertTrue(state.hasWeakSignal)
+    }
+
+    @Test
+    fun `a good fix shows no warning`() {
+        session.setLocation(GeoPoint(30.55, 31.13), accuracyMeters = 12f)
+        openResultStep()
+        assertFalse(state.hasWeakSignal)
+    }
+
+    @Test
+    fun `exactly 20 m is still good and no location shows no warning`() {
+        session.setLocation(GeoPoint(30.55, 31.13), accuracyMeters = 20f)
+        openResultStep()
+        assertFalse(state.hasWeakSignal)
+        assertFalse(PlanVisitState().hasWeakSignal)
     }
 
     @Test
@@ -258,8 +274,8 @@ class PlanVisitViewModelTest {
     }
 
     @Test
-    fun `address lookup failure keeps coordinates and drops the address`() {
-        geocodingRepo.result = Resource.Error("offline")
+    fun `no saved address keeps coordinates and shows no address`() {
+        session.setAddress(null)
         openResultStep()
         assertNull(state.locationAddress)
         assertEquals(30.55, state.visit.visitLatitude, 0.0)
@@ -642,7 +658,3 @@ private object FakeUnplannedSettingsRepo : AppSettingsRepo {
 }
 
 
-private class FakeGeocodingRepo : GeocodingRepo {
-    var result: Resource<String> = Resource.Success("Al Geish Street")
-    override fun getAddress(point: GeoPoint): Flow<Resource<String>> = flowOf(result)
-}
