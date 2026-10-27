@@ -8,6 +8,7 @@ import com.example.medicalrep.data.local.dao.CustodyDao
 import com.example.medicalrep.data.local.dao.DraftVisitDao
 import com.example.medicalrep.data.local.dao.OrderDao
 import com.example.medicalrep.data.local.dao.ProductDao
+import com.example.medicalrep.data.local.dao.StatisticsDao
 import com.example.medicalrep.data.local.dao.SyncInfoDao
 import com.example.medicalrep.data.local.dao.TrackPointDao
 import com.example.medicalrep.data.local.dao.UserDao
@@ -65,4 +66,5 @@ object DatabaseModule {
     @Provides fun provideOrderDao(db: AppDatabase): OrderDao = db.orderDao()
     @Provides fun provideTrackPointDao(db: AppDatabase): TrackPointDao = db.trackPointDao()
     @Provides fun provideSyncInfoDao(db: AppDatabase): SyncInfoDao = db.syncInfoDao()
+    @Provides fun provideStatisticsDao(db: AppDatabase): StatisticsDao = db.statisticsDao()
 }

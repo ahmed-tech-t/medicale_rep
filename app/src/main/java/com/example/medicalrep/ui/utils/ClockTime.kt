@@ -20,6 +20,19 @@ fun startOfDay(millis: Long): Long = Calendar.getInstance().apply {
     set(Calendar.MILLISECOND, 0)
 }.timeInMillis
 
+/** The Saturday at midnight that starts the week [millis] falls in (the week runs Saturday to Friday). */
+fun startOfWeek(millis: Long): Long = Calendar.getInstance().apply {
+    timeInMillis = startOfDay(millis)
+    // Calendar numbers Sunday 1 .. Saturday 7, so Saturday is 0 days back, Sunday 1, ... Friday 6.
+    add(Calendar.DAY_OF_YEAR, -((get(Calendar.DAY_OF_WEEK) - Calendar.SATURDAY + 7) % 7))
+}.timeInMillis
+
+/** The Saturday at midnight that starts the week after the one [millis] falls in. */
+fun startOfNextWeek(millis: Long): Long = Calendar.getInstance().apply {
+    timeInMillis = startOfWeek(millis)
+    add(Calendar.DAY_OF_YEAR, 7)
+}.timeInMillis
+
 /** How long a visit took, as shown on its card: 275_000 -> "04:35 د". */
 fun formatDurationLabel(durationMillis: Long): String {
     val seconds = durationMillis.coerceAtLeast(0) / 1000

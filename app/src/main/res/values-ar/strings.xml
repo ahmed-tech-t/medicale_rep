@@ -385,4 +385,30 @@
     <string name="discard_pending_message">سيتم حذف بيانات هذه الزيارة المحفوظة.</string>
     <string name="discard_pending_confirm">إلغاء الزيارة المعلقة</string>
     <string name="discard_pending_keep">إبقاء</string>
+    <string name="statistics_section_week_visits">زيارات الأسبوع</string>
+    <string name="statistics_section_stock">العينات والهدايا</string>
+    <string name="statistics_section_classes">الحسابات حسب التصنيف</string>
+    <string name="statistics_completed_visits">الزيارات المكتملة</string>
+    <string name="statistics_doctors">الأطباء</string>
+    <string name="statistics_clinics">العيادات</string>
+    <string name="statistics_hospitals">المستشفيات</string>
+    <string name="statistics_pharmacies">الصيدليات</string>
+    <string name="statistics_medical_centers">المراكز الطبية</string>
+    <string name="statistics_samples">عينات الأدوية</string>
+    <string name="statistics_gifts">الهدايا الدعائية</string>
+    <string name="statistics_products">المنتجات</string>
+    <string name="statistics_received">المستلم</string>
+    <string name="statistics_used">المستخدم</string>
+    <string name="statistics_remaining">المتبقي</string>
+    <string name="statistics_total">الإجمالي</string>
+    <string name="statistics_sold">المباع</string>
+    <string name="statistics_class_format">تصنيف %1$s</string>
+    <plurals name="statistics_accounts_count">
+        <item quantity="zero">%1$d حساب</item>
+        <item quantity="one">حساب واحد</item>
+        <item quantity="two">حسابان</item>
+        <item quantity="few">%1$d حسابات</item>
+        <item quantity="many">%1$d حساب</item>
+        <item quantity="other">%1$d حساب</item>
+    </plurals>
 </resources>

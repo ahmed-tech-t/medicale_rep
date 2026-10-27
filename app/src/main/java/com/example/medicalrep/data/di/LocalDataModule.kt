@@ -4,6 +4,7 @@ import com.example.medicalrep.data.repo.AccountRepoImpl
 import com.example.medicalrep.data.repo.DraftVisitRepoImpl
 import com.example.medicalrep.data.repo.OrderRepoImpl
 import com.example.medicalrep.data.repo.ProductRepoImpl
+import com.example.medicalrep.data.repo.StatisticsRepoImpl
 import com.example.medicalrep.data.repo.SyncInfoRepoImpl
 import com.example.medicalrep.data.repo.TrackPointRepoImpl
 import com.example.medicalrep.data.repo.UserRepoImpl
@@ -12,6 +13,7 @@ import com.example.medicalrep.domain.repo.AccountRepo
 import com.example.medicalrep.domain.repo.DraftVisitRepo
 import com.example.medicalrep.domain.repo.OrderRepo
 import com.example.medicalrep.domain.repo.ProductRepo
+import com.example.medicalrep.domain.repo.StatisticsRepo
 import com.example.medicalrep.domain.repo.SyncInfoRepo
 import com.example.medicalrep.domain.repo.TrackPointRepo
 import com.example.medicalrep.domain.repo.UserRepo
@@ -32,4 +34,5 @@ abstract class LocalDataModule {
     @Binds abstract fun bindUserRepo(impl: UserRepoImpl): UserRepo
     @Binds abstract fun bindTrackPointRepo(impl: TrackPointRepoImpl): TrackPointRepo
     @Binds abstract fun bindSyncInfoRepo(impl: SyncInfoRepoImpl): SyncInfoRepo
+    @Binds abstract fun bindStatisticsRepo(impl: StatisticsRepoImpl): StatisticsRepo
 }

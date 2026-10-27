@@ -28,6 +28,9 @@ open class MainGraph {
     data object Orders : MainGraph()
 
     @Serializable
+    data object Statistics : MainGraph()
+
+    @Serializable
     data object Accounts : MainGraph()
 
     @Serializable

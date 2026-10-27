@@ -11,5 +11,7 @@ data class ProductEntity(
     val description: String,
     val price: Int,
     val discountPercent: Int,
+    /** How many the rep received; what orders sold is counted from the order lines. */
+    val quantity: Int,
     val searchText: String = "",
 )

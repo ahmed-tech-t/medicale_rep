@@ -8,6 +8,7 @@ import com.example.medicalrep.data.local.dao.CustodyDao
 import com.example.medicalrep.data.local.dao.DraftVisitDao
 import com.example.medicalrep.data.local.dao.OrderDao
 import com.example.medicalrep.data.local.dao.ProductDao
+import com.example.medicalrep.data.local.dao.StatisticsDao
 import com.example.medicalrep.data.local.dao.SyncInfoDao
 import com.example.medicalrep.data.local.dao.TrackPointDao
 import com.example.medicalrep.data.local.dao.UserDao
@@ -38,7 +39,7 @@ import com.example.medicalrep.data.local.entity.VisitEntity
         TrackPointEntity::class,
         SyncInfoEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -52,4 +53,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun draftVisitDao(): DraftVisitDao
     abstract fun trackPointDao(): TrackPointDao
     abstract fun syncInfoDao(): SyncInfoDao
+    abstract fun statisticsDao(): StatisticsDao
 }

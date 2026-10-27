@@ -2,6 +2,7 @@ package com.example.medicalrep.data.local.mapper
 
 import com.example.medicalrep.data.local.entity.VisitCustodyEntity
 import com.example.medicalrep.data.local.relation.CustodyWithPending
+import com.example.medicalrep.data.local.relation.ProductWithSold
 import com.example.medicalrep.data.local.relation.VisitWithDetails
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.Custody
@@ -54,10 +55,19 @@ class EntityMappersTest {
     }
 
     @Test
+    fun `what orders sold is taken off what the rep received, and never goes below zero`() {
+        val entity = Product(id = "p1", name = "Panadol", received = 100).toEntity()
+        assertEquals(60, ProductWithSold(entity, sold = 40).toDomain().remaining)
+        assertEquals(100, ProductWithSold(entity, sold = 40).toDomain().received)
+        assertEquals(0, ProductWithSold(entity, sold = 130).toDomain().remaining)
+    }
+
+    @Test
     fun `product round trip and id is required`() {
-        val product = Product(id = "p1", name = "Panadol", description = "Pain", price = 50, discountPercent = 10)
+        val product = Product(id = "p1", name = "Panadol", description = "Pain", price = 50, discountPercent = 10, received = 100, remaining = 100)
         val entity = product.toEntity()
-        assertEquals(product, entity.toDomain())
+        assertEquals(100, entity.quantity)
+        assertEquals(product, ProductWithSold(entity, sold = 0).toDomain())
         assertEquals("panadol pain", entity.searchText)
         assertTrue(runCatching { Product(name = "x").toEntity() }.isFailure)
     }

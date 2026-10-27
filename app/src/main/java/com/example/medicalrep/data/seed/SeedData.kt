@@ -119,18 +119,18 @@ object SeedDataFactory {
         account(12, "عيادة د. أميرة سعد", "عيادة", "جلدية", "B", "قويسنا", "وسط البلد", "شارع الجلاء", "sup-2"),
     )
 
-    private fun product(id: Int, name: String, price: Int, discountPercent: Int) =
-        Product(id = "prod-$id", name = name, description = "", price = price, discountPercent = discountPercent)
+    private fun product(id: Int, name: String, price: Int, discountPercent: Int, received: Int) =
+        Product(id = "prod-$id", name = name, description = "", price = price, discountPercent = discountPercent, received = received)
 
     private fun products() = baseProducts() + generatedProducts()
 
     private fun baseProducts() = listOf(
-        product(1, "بانادول اكسترا", 434, 20),
-        product(2, "أوميبرازول فورت 40 مجم", 120, 20),
-        product(3, "كاردكس بلس 10 مجم", 88, 15),
-        product(4, "أموكسيسيلين 875 مجم", 65, 10),
-        product(5, "كونكور 2.5 مجم", 150, 20),
-        product(6, "فلاجيل 400 مجم", 42, 5),
+        product(1, "بانادول اكسترا", 434, 20, 300),
+        product(2, "أوميبرازول فورت 40 مجم", 120, 20, 150),
+        product(3, "كاردكس بلس 10 مجم", 88, 15, 120),
+        product(4, "أموكسيسيلين 875 مجم", 65, 10, 100),
+        product(5, "كونكور 2.5 مجم", 150, 20, 200),
+        product(6, "فلاجيل 400 مجم", 42, 5, 80),
     )
 
     private val doctorNames = listOf(
@@ -177,7 +177,7 @@ object SeedDataFactory {
     /** Products 7..200: a drug and a strength each, all different. */
     private fun generatedProducts(): List<Product> = (7..200).map { n ->
         val index = n - 1
-        product(n, "${drugs[index % drugs.size]} ${strengths[index / drugs.size % strengths.size]}", 20 + index * 3 % 480, index % 5 * 5)
+        product(n, "${drugs[index % drugs.size]} ${strengths[index / drugs.size % strengths.size]}", 20 + index * 3 % 480, index % 5 * 5, received = 50 + index % 8 * 25)
     }
 
     private fun custody() = listOf(

@@ -12,7 +12,7 @@ object ProductsFakes {
         name = name,
         quantity = quantity,
         kind = ProductType.Product,
-        remaining = 0,
+        remaining = 10,
         description = "",
         price = price,
         discountPercent = discountPercent,

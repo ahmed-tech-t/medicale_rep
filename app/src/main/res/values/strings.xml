@@ -386,4 +386,26 @@
     <string name="discard_pending_message">The saved data of this visit will be deleted.</string>
     <string name="discard_pending_confirm">Cancel pending visit</string>
     <string name="discard_pending_keep">Keep</string>
+    <string name="statistics_section_week_visits">Week\'s visits</string>
+    <string name="statistics_section_stock">Samples and gifts</string>
+    <string name="statistics_section_classes">Accounts by class</string>
+    <string name="statistics_completed_visits">Completed visits</string>
+    <string name="statistics_doctors">Doctors</string>
+    <string name="statistics_clinics">Clinics</string>
+    <string name="statistics_hospitals">Hospitals</string>
+    <string name="statistics_pharmacies">Pharmacies</string>
+    <string name="statistics_medical_centers">Medical centers</string>
+    <string name="statistics_samples">Medicine samples</string>
+    <string name="statistics_gifts">Promotional gifts</string>
+    <string name="statistics_products">Products</string>
+    <string name="statistics_received">Received</string>
+    <string name="statistics_used">Used</string>
+    <string name="statistics_remaining">Remaining</string>
+    <string name="statistics_total">Total</string>
+    <string name="statistics_sold">Sold</string>
+    <string name="statistics_class_format">Class %1$s</string>
+    <plurals name="statistics_accounts_count">
+        <item quantity="one">%1$d account</item>
+        <item quantity="other">%1$d accounts</item>
+    </plurals>
 </resources>

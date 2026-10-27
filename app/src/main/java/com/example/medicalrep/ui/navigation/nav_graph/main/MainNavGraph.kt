@@ -13,6 +13,7 @@ import com.example.medicalrep.ui.screens.map_rep_tracking.main.MapRepTrackingScr
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitScreen
 import com.example.medicalrep.ui.screens.accounts.main.AccountsScreen
 import com.example.medicalrep.ui.screens.orders.main.OrdersScreen
+import com.example.medicalrep.ui.screens.statistics.main.StatisticsScreen
 import com.example.medicalrep.ui.screens.products.main.ProductsScreen
 import com.example.medicalrep.ui.screens.reptracking.main.RepTrackingScreen
 import com.example.medicalrep.ui.screens.sampleandgifts.main.SampleAndGiftsScreen
@@ -60,6 +61,13 @@ fun NavGraphBuilder.mainNavGraph(
         }
         composable<MainGraph.Orders> {
             OrdersScreen(
+                onNavigate = onNavigate,
+                navigationUp = navigationUp,
+                snackbarHostState = snackbarHostState,
+            )
+        }
+        composable<MainGraph.Statistics> {
+            StatisticsScreen(
                 onNavigate = onNavigate,
                 navigationUp = navigationUp,
                 snackbarHostState = snackbarHostState,

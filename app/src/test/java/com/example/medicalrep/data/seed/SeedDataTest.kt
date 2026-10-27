@@ -71,6 +71,14 @@ class SeedDataTest {
     }
 
     @Test
+    fun `every product has a quantity and the orders never sell more than the rep received`() {
+        assertTrue(data.products.all { it.received > 0 })
+        val sold = data.orders.flatMap { it.items }.groupBy { it.productId }.mapValues { (_, lines) -> lines.sumOf { it.quantity } }
+        val received = data.products.associate { it.id to it.received }
+        sold.forEach { (productId, quantity) -> assertTrue(quantity <= received.getValue(productId)) }
+    }
+
+    @Test
     fun `ids are unique`() {
         assertEquals(data.users.size, data.users.map { it.id }.toSet().size)
         assertEquals(data.accounts.size, data.accounts.map { it.id }.toSet().size)

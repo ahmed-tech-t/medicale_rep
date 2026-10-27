@@ -74,10 +74,10 @@ class ProductsViewModel @Inject constructor(
         }
     }
 
-    /** Quantity never goes below 0; reaching 0 puts the product back to its "Add" state. */
+    /** Quantity stays between 0 and what the rep has left of the product; reaching 0 puts it back to its "Add" state. */
     private fun changeQuantity(product: ProductUi, delta: Int) {
         _state.update { state ->
-            val quantity = ((state.selected[product.id]?.quantity ?: 0) + delta).coerceAtLeast(0)
+            val quantity = ((state.selected[product.id]?.quantity ?: 0) + delta).coerceIn(0, product.remaining)
             state.copy(
                 selected = if (quantity == 0) state.selected - product.id
                 else state.selected + (product.id to product.copy(quantity = quantity)),

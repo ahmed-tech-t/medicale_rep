@@ -9,6 +9,8 @@ data class Product(
     val remaining: Int = 0,
     val price: Int = 0,
     val discountPercent: Int = 0,
+    /** For a product for sale: how many the rep received. [remaining] is what is left of them after the orders. */
+    val received: Int = 0,
 )
 
 enum class ProductType {

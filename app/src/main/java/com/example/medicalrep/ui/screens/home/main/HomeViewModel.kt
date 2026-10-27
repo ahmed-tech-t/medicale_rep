@@ -73,6 +73,7 @@ class HomeViewModel @Inject constructor(
                     NavDrawerItem.AddVisit -> requestStart(HomeEvents.OnAddVisitClick)
                     NavDrawerItem.Products -> sendEvent(UiEvent.Navigate(MainGraph.Products))
                     NavDrawerItem.Orders -> sendEvent(UiEvent.Navigate(MainGraph.Orders))
+                    NavDrawerItem.Statistics -> sendEvent(UiEvent.Navigate(MainGraph.Statistics))
                     NavDrawerItem.Accounts -> sendEvent(UiEvent.Navigate(MainGraph.Accounts))
                     NavDrawerItem.PlanVisit -> sendEvent(UiEvent.Navigate(MainGraph.VisitPlanning))
                     NavDrawerItem.TrackReps -> sendEvent(UiEvent.Navigate(MainGraph.RepTracking))

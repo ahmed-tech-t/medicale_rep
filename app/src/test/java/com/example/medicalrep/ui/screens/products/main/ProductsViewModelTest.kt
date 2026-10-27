@@ -45,6 +45,7 @@ import org.junit.Test
  * 7. Choosing an account asks to confirm (nothing saved yet; Cancel closes it and keeps the selection). Confirming saves one order for that account: a line per selected product (name, price, discount, quantity
  *    copied), not uploaded, with the time; the selection and picker clear and one snackbar shows.
  * 8. Choosing an account with nothing selected saves nothing. When Back, Then NavigationUp.
+ * 9. The quantity of a product stops at what the rep has left of it; a product with none left cannot be added.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class ProductsViewModelTest {
@@ -56,8 +57,8 @@ class ProductsViewModelTest {
     private lateinit var viewModel: ProductsViewModel
     private val state get() = viewModel.state.value
 
-    private val panadol = ProductUi("p1", "بانادول", 0, ProductType.Product, 0, "", price = 100, discountPercent = 10)
-    private val concor = ProductUi("p2", "كونكور", 0, ProductType.Product, 0, "", price = 50, discountPercent = 0)
+    private val panadol = ProductUi("p1", "بانادول", 0, ProductType.Product, 50, "", price = 100, discountPercent = 10)
+    private val concor = ProductUi("p2", "كونكور", 0, ProductType.Product, 20, "", price = 50, discountPercent = 0)
 
     @Before
     fun setUp() {
@@ -227,6 +228,23 @@ class ProductsViewModelTest {
         viewModel.onEvent(ProductsEvents.Back)
         runCurrent()
         assertEquals(listOf<UiEvent>(UiEvent.NavigationUp), events)
+    }
+
+    @Test
+    fun `the quantity stops at what the rep has left`() {
+        val few = panadol.copy(remaining = 3)
+        repeat(5) { viewModel.onEvent(ProductsEvents.ChangeQuantity(few, 1)) }
+        assertEquals(3, state.selected.getValue("p1").quantity)
+        viewModel.onEvent(ProductsEvents.ChangeQuantity(few, 5))
+        assertEquals(3, state.selected.getValue("p1").quantity)
+        viewModel.onEvent(ProductsEvents.ChangeQuantity(few, -1))
+        assertEquals(2, state.selected.getValue("p1").quantity)
+    }
+
+    @Test
+    fun `a product with none left cannot be added`() {
+        viewModel.onEvent(ProductsEvents.ChangeQuantity(panadol.copy(remaining = 0), 1))
+        assertEquals(false, state.hasSelection)
     }
 }
 
