@@ -3,7 +3,7 @@ package com.example.medicalrep.ui.screens.visitlog.main
 import androidx.compose.runtime.Immutable
 import com.example.medicalrep.ui.models.VisitFilter
 
-enum class VisitLogTab { Required, Done }
+enum class VisitLogTab { Required, Done, Missed }
 
 sealed interface VisitLogOverlay {
     data object None : VisitLogOverlay

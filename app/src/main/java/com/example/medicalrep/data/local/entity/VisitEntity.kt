@@ -4,10 +4,10 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.example.medicalrep.domain.models.ApprovalStatus
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.VisitMode
+import com.example.medicalrep.domain.models.VisitStatus
 import com.example.medicalrep.domain.models.VisitType
 
 /** The visit's own data. Account details (city, address, place name, ...) are read from the account, never copied. */
@@ -26,7 +26,7 @@ import com.example.medicalrep.domain.models.VisitType
         Index("dateTimeMillis"),
         Index("type"),
         Index("syncStatus"),
-        Index("approvalStatus"),
+        Index("status"),
         Index("completedAtMillis"),
     ],
 )
@@ -50,10 +50,9 @@ data class VisitEntity(
     val voiceNotePath: String?,
     val syncStatus: SyncStatus,
     val durationLabel: String,
-    val approvalStatus: ApprovalStatus?,
+    val status: VisitStatus,
     val requestedAtMillis: Long?,
     val decidedAtMillis: Long?,
-    val decisionNote: String?,
     /** When the visit was finished; null while it is still to do. */
     val completedAtMillis: Long?,
     /** Made by the DAO from the account, the supervisor and the date; see [VISIT_SEARCH_TEXT_SQL]. */

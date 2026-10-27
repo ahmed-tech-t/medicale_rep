@@ -3,6 +3,7 @@ package com.example.medicalrep.ui.screens.planvisit.main
 import androidx.compose.runtime.Immutable
 import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.ProductType
+import com.example.medicalrep.domain.models.User
 import com.example.medicalrep.ui.common.location.WEAK_GPS_METERS
 import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.ProductUi
@@ -35,6 +36,8 @@ data class PlanVisitState(
     val initialVisit: VisitUi = VisitUi(),
     val overlay: PlanVisitOverlay = PlanVisitOverlay.None,
     val isRecordingVoice: Boolean = false,
+    /** The visit is being stored; a second tap on End visit is ignored. */
+    val isSaving: Boolean = false,
     val capturedAtMillis: Long? = null,
     val locationAddress: String? = null,
     /** How many metres the captured location may be off; null when it is not known. */
@@ -46,8 +49,17 @@ data class PlanVisitState(
     val entityTypeOptions: List<String> = emptyList(),
     val placeOptions: List<String> = emptyList(),
     val specialtyOptions: List<String> = emptyList(),
-    val supervisorOptions: List<String> = emptyList(),
+    /** The supervisors the form can choose from; a double visit stores the id of the chosen one. */
+    val supervisors: List<User> = emptyList(),
+    /** When the form opened: the visit started then. */
+    val openedAtMillis: Long = 0L,
 ) {
+    val supervisorOptions: List<String> get() = supervisors.map(User::displayName)
+
+    /** The id of the supervisor chosen on the form; null when none is chosen or the visit is single. */
+    val chosenSupervisorId: String?
+        get() = if (visit.isDoubleVisit) supervisors.firstOrNull { it.displayName == visit.supervisorName }?.id else null
+
     /** The GPS reading behind the captured location is too rough to trust (worse than [WEAK_GPS_METERS]). */
     val hasWeakSignal: Boolean get() = (locationAccuracyMeters ?: 0f) > WEAK_GPS_METERS
 

@@ -3,10 +3,10 @@ package com.example.medicalrep.ui.screens.visitplanning.main
 import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
-import com.example.medicalrep.domain.models.ApprovalStatus
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.Visit
+import com.example.medicalrep.domain.models.VisitStatus
 import com.example.medicalrep.domain.models.VisitType
 import com.example.medicalrep.domain.repo.FakeVisitRepo
 import com.example.medicalrep.ui.models.VisitFilter
@@ -14,6 +14,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -32,6 +34,7 @@ import org.junit.Test
 /**
  * 1. Given the screen opens, Then Visits is selected, the repo is asked for done visits and the count is theirs.
  * 2. When the Pending tab is selected, Then the repo is asked for pending requests and the count follows.
+ * 2b. When the Rejected tab is selected, Then the repo is asked for rejected requests and the count follows.
  * 3. Filters (shift, class) reach the repo for the selected tab, the count follows, the icon is on; the filter stays on tab switch.
  * 4. When a visit is toggled, Then it is selected; toggling again clears it; several can be selected; it survives a tab switch.
  * 5. When Set appointment, Then the schedule sheet opens; Dismiss closes it; a date change is stored.
@@ -48,8 +51,9 @@ class VisitPlanningViewModelTest {
             done("d1", "a1", Shift.Am, "A"),
             done("d2", "a2", Shift.Pm, "B"),
             done("d3", "a3", Shift.Am, "C"),
-            Visit(id = "p1", type = VisitType.Planning, approvalStatus = ApprovalStatus.Pending, shift = Shift.Am, classCategory = "A"),
-            Visit(id = "p2", type = VisitType.Planning, approvalStatus = ApprovalStatus.Rejected, shift = Shift.Pm, classCategory = "B"),
+            Visit(id = "p1", type = VisitType.Planning, status = VisitStatus.PendingApproval, shift = Shift.Am, classCategory = "A"),
+            Visit(id = "p2", type = VisitType.Planning, status = VisitStatus.Rejected, shift = Shift.Pm, classCategory = "B"),
+            Visit(id = "p3", type = VisitType.Planning, status = VisitStatus.PendingApproval, shift = Shift.Pm, classCategory = "B"),
         ),
     )
     private lateinit var viewModel: VisitPlanningViewModel
@@ -64,8 +68,13 @@ class VisitPlanningViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
+    /** Collects the list of the selected tab, and of every tab selected later, like the screen does. */
     private fun TestScope.collectVisits() {
-        backgroundScope.launch(dispatcher) { viewModel.visits.collect { } }
+        backgroundScope.launch(dispatcher) {
+            viewModel.state.map { it.selectedTab }.distinctUntilChanged().collect { tab ->
+                launch { viewModel.visitsOf(tab).collect { } }
+            }
+        }
         runCurrent()
     }
 
@@ -92,6 +101,27 @@ class VisitPlanningViewModelTest {
         runCurrent()
         assertEquals(listOf<Pair<Shift?, String?>>(null to null), repo.pendingRequestsAsked)
         assertEquals(2, state.resultCount)
+    }
+
+    @Test
+    fun `every tab has its own list so a tab never shows the items of the tab before it`() {
+        val lists = VisitPlanningTab.entries.map { viewModel.visitsOf(it) }
+        assertEquals(VisitPlanningTab.entries.size, lists.toSet().size)
+        assertTrue(VisitPlanningTab.entries.all { viewModel.visitsOf(it) === viewModel.visitsOf(it) })
+    }
+
+    @Test
+    fun `rejected tab asks for rejected requests and the count follows`() = runTest(dispatcher) {
+        collectVisits()
+        viewModel.onEvent(VisitPlanningEvents.SelectTab(VisitPlanningTab.Rejected))
+        runCurrent()
+        assertEquals(listOf<Pair<Shift?, String?>>(null to null), repo.rejectedRequestsAsked)
+        assertEquals(1, state.resultCount)
+        viewModel.onEvent(VisitPlanningEvents.OpenFilter)
+        viewModel.onEvent(VisitPlanningEvents.SelectFilter(VisitFilter.Morning))
+        runCurrent()
+        assertEquals(Shift.Am to null, repo.rejectedRequestsAsked.last())
+        assertEquals(0, state.resultCount)
     }
 
     @Test
@@ -149,9 +179,9 @@ class VisitPlanningViewModelTest {
         viewModel.onEvent(VisitPlanningEvents.OpenSchedule)
         viewModel.onEvent(VisitPlanningEvents.RequestVisit)
         runCurrent()
-        val requests = repo.current.value.filter { it.type == VisitType.Planning && it.id !in setOf("p1", "p2") }
+        val requests = repo.current.value.filter { it.type == VisitType.Planning && it.id !in setOf("p1", "p2", "p3") }
         assertEquals(setOf("a1", "a3"), requests.map { it.accountId }.toSet())
-        assertTrue(requests.all { it.approvalStatus == ApprovalStatus.Pending && it.syncStatus == SyncStatus.NotSynced })
+        assertTrue(requests.all { it.status == VisitStatus.PendingApproval && it.syncStatus == SyncStatus.NotSynced })
         assertTrue(requests.all { it.dateTimeMillis == 5_000L })
         assertEquals(2, requests.map { it.id }.toSet().size)
         assertFalse(state.hasSelection)
@@ -180,7 +210,7 @@ class VisitPlanningViewModelTest {
 
     private companion object {
         fun done(id: String, accountId: String, shift: Shift, classCategory: String) = Visit(
-            id = id, accountId = accountId, type = VisitType.Unplanned, shift = shift, classCategory = classCategory, completedAtMillis = 1L,
+            id = id, accountId = accountId, type = VisitType.Unplanned, shift = shift, classCategory = classCategory, status = VisitStatus.Completed, completedAtMillis = 1L,
         )
     }
 }

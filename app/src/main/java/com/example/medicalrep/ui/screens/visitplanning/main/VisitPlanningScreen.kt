@@ -25,7 +25,7 @@ fun VisitPlanningScreen(
         navigationUp = navigationUp,
     )
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val visits = viewModel.visits.collectAsLazyPagingItems()
+    val visits = viewModel.visitsOf(state.selectedTab).collectAsLazyPagingItems()
 
     VisitPlanningUi(
         state = state,

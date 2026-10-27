@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.screens.planvisit.main
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,7 +25,9 @@ fun PlanVisitScreen(
         navigationUp = navigationUp,
     )
     val state by viewModel.state.collectAsStateWithLifecycle()
-
+    BackHandler {
+        viewModel.onEvent(PlanVisitEvents.Back)
+    }
     PlanVisitUi(
         state = state,
         onEvent = viewModel::onEvent,

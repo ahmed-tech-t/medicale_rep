@@ -3,7 +3,7 @@ package com.example.medicalrep.ui.screens.visitplanning.main
 import androidx.compose.runtime.Immutable
 import com.example.medicalrep.ui.models.VisitFilter
 
-enum class VisitPlanningTab { Visits, Pending }
+enum class VisitPlanningTab { Visits, Pending, Rejected }
 
 sealed interface VisitPlanningOverlay {
     data object None : VisitPlanningOverlay

@@ -8,6 +8,7 @@ import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.Visit
 import com.example.medicalrep.domain.models.VisitMode
+import com.example.medicalrep.domain.models.VisitStatus
 import com.example.medicalrep.domain.models.VisitType
 import com.example.medicalrep.domain.repo.FakeDraftVisitRepo
 import com.example.medicalrep.domain.repo.FakeVisitRepo
@@ -17,6 +18,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -36,6 +39,7 @@ import org.junit.Test
  * 1. Given the screen opens, Then Required is selected and the repo is asked for every required visit; the count is theirs.
  * 2. When the Done tab is selected, Then the repo is asked for done visits and the count follows; Required restores it.
  * 3. Given no visits, Then the count is 0 on both tabs.
+ * 3b. When the Missed tab is selected, Then the repo is asked for missed visits with the same filters as Required.
  * 4. Required filters (shift, class) and Done filters (shift, double, sync status) reach the repo; the count follows.
  * 5. Switching tab resets the filter to All and closes the popup; the filter icon is on only while filtered.
  * 6. When Start visit, Then it navigates to the plan-visit screen with that visit id; with a pending visit it asks first.
@@ -53,6 +57,8 @@ class VisitLogViewModelTest {
             visit("r3", Shift.Am, "C"),
             visit("d1", Shift.Am, "A", done = true, double = true, syncStatus = SyncStatus.NotSynced),
             visit("d2", Shift.Pm, "B", done = true, syncStatus = SyncStatus.Synced),
+            visit("m1", Shift.Am, "A", missed = true),
+            visit("m2", Shift.Pm, "B", missed = true),
         ),
     )
     private lateinit var viewModel: VisitLogViewModel
@@ -67,9 +73,13 @@ class VisitLogViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
-    /** Starts collecting the list and lets the collector begin (runCurrent also runs background work). */
+    /** Collects the list of the selected tab, and of every tab selected later, like the screen does. */
     private fun TestScope.collectVisits() {
-        backgroundScope.launch(dispatcher) { viewModel.visits.collect { } }
+        backgroundScope.launch(dispatcher) {
+            viewModel.state.map { it.selectedTab }.distinctUntilChanged().collect { tab ->
+                launch { viewModel.visitsOf(tab).collect { } }
+            }
+        }
         runCurrent()
     }
 
@@ -98,6 +108,37 @@ class VisitLogViewModelTest {
         viewModel.onEvent(VisitLogEvents.SelectTab(VisitLogTab.Required))
         runCurrent()
         assertEquals(3, state.resultCount)
+    }
+
+    @Test
+    fun `selecting the missed tab asks for missed visits with the required filters and the count follows`() = runTest(dispatcher) {
+        collectVisits()
+        viewModel.onEvent(VisitLogEvents.SelectTab(VisitLogTab.Missed))
+        runCurrent()
+        assertEquals(listOf<Pair<Shift?, String?>>(null to null), repo.missedRequests)
+        assertEquals(2, state.resultCount)
+        viewModel.onEvent(VisitLogEvents.SelectFilter(VisitFilter.Evening))
+        runCurrent()
+        assertEquals(Shift.Pm to null, repo.missedRequests.last())
+        assertEquals(1, state.resultCount)
+        viewModel.onEvent(VisitLogEvents.SelectFilter(VisitFilter.ClassA))
+        runCurrent()
+        assertEquals(null to "A", repo.missedRequests.last())
+        assertEquals(1, state.resultCount)
+    }
+
+    @Test
+    fun `every tab has its own list so a tab never shows the items of the tab before it`() {
+        val lists = VisitLogTab.entries.map { viewModel.visitsOf(it) }
+        assertEquals(VisitLogTab.entries.size, lists.toSet().size)
+        assertTrue(VisitLogTab.entries.all { viewModel.visitsOf(it) === viewModel.visitsOf(it) })
+    }
+
+    @Test
+    fun `a tab that is not shown does not ask the repo`() = runTest(dispatcher) {
+        collectVisits()
+        assertTrue(repo.doneRequests.isEmpty())
+        assertTrue(repo.missedRequests.isEmpty())
     }
 
     @Test
@@ -222,6 +263,7 @@ class VisitLogViewModelTest {
             shift: Shift,
             classCategory: String,
             done: Boolean = false,
+            missed: Boolean = false,
             double: Boolean = false,
             syncStatus: SyncStatus = SyncStatus.Synced,
         ) = Visit(
@@ -231,6 +273,7 @@ class VisitLogViewModelTest {
             classCategory = classCategory,
             visitMode = if (double) VisitMode.Double else VisitMode.Single,
             syncStatus = syncStatus,
+            status = if (done) VisitStatus.Completed else if (missed) VisitStatus.Missed else VisitStatus.Scheduled,
             completedAtMillis = if (done) 1_000L else null,
         )
     }

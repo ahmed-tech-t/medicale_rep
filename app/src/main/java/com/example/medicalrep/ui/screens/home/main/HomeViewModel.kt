@@ -10,6 +10,9 @@ import com.appcore.core.ui.utils.BaseViewModel
 import com.example.medicalrep.R
 import com.example.medicalrep.domain.models.ConnectionState
 import com.example.medicalrep.domain.repo.DraftVisitRepo
+import com.example.medicalrep.domain.repo.VisitRepo
+import com.example.medicalrep.ui.utils.startOfDay
+import com.appcore.core.data.local.session.AuthSessionManager
 import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.common.connectivity.ConnectivityObserver
 import com.example.medicalrep.ui.navigation.model.MainGraph
@@ -30,6 +33,8 @@ class HomeViewModel @Inject constructor(
     private val localeHelper: LocaleHelper,
     connectivityObserver: ConnectivityObserver,
     private val draftVisitRepo: DraftVisitRepo,
+    private val visitRepo: VisitRepo,
+    private val session: AuthSessionManager,
 ) : BaseViewModel(appSettingsRepo) {
 
     // Offline until the observer reports the real network state.
@@ -40,12 +45,21 @@ class HomeViewModel @Inject constructor(
     val state: StateFlow<HomeState> = _state.asStateFlow()
 
     init {
+        viewModelScope.launch { markMissedOncePerDay() }
         viewModelScope.launch {
             draftVisitRepo.draft().collect { draft -> _state.update { it.copy(activeVisit = draft?.visit?.toUi()) } }
         }
         viewModelScope.launch {
             connectivityObserver.connection.collect { connection -> _state.update { it.copy(connection = connection) } }
         }
+    }
+
+    /** Scheduled visits of earlier days were not done: mark them Missed the first time Home opens each day. */
+    private suspend fun markMissedOncePerDay() {
+        val today = startOfDay(System.currentTimeMillis())
+        if (session.user.value.missedCheckedDay == today) return
+        visitRepo.markMissed(today)
+        session.updateUser { it.copy(missedCheckedDay = today) }
     }
 
     fun onEvent(event: HomeEvents) {

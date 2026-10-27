@@ -17,6 +17,8 @@ import com.example.medicalrep.domain.models.VisitType
 data class VisitUi(
     val id: String = "",
     val backendId: String = "",
+    /** The account the visit is for; empty until a place is chosen. */
+    val accountId: String = "",
     val date: String = "",
     val time: String = "",
     val city: String = "",

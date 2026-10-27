@@ -1,6 +1,10 @@
 package com.example.medicalrep.ui.mapper
 
 import com.example.medicalrep.domain.models.Visit
+import com.example.medicalrep.domain.models.Shift
+import com.example.medicalrep.domain.models.SyncStatus
+import com.example.medicalrep.domain.models.VisitStatus
+import com.example.medicalrep.ui.models.VisitUi
 import com.example.medicalrep.domain.models.VisitType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -59,5 +63,44 @@ class VisitMapperTest {
         val none = Visit().toUi()
         assertEquals("", none.date)
         assertEquals("", none.time)
+    }
+
+    @Test
+    fun `an ended visit becomes a completed visit that is not uploaded yet`() {
+        val form = VisitUi(
+            id = "v1", accountId = "a1", type = VisitType.Planned, shift = Shift.Pm, isDoubleVisit = true, supervisorName = "Boss",
+            noIssueFound = false, voiceNote = byteArrayOf(1), imageNote = android.net.FakeUri(),
+        )
+        val visit = form.toCompletedVisit(stored = null, repId = "r1", supervisorId = "s1", startedAtMillis = 1_000L, completedAtMillis = 276_000L)
+        assertEquals("v1", visit.id)
+        assertEquals("a1", visit.accountId)
+        assertEquals("r1", visit.repId)
+        assertEquals("s1", visit.supervisorId)
+        assertEquals(VisitType.Planned, visit.type)
+        assertEquals(VisitStatus.Completed, visit.status)
+        assertEquals(SyncStatus.NotSynced, visit.syncStatus)
+        assertEquals(1_000L, visit.dateTimeMillis)
+        assertEquals(276_000L, visit.completedAtMillis)
+        assertEquals("04:35 د", visit.durationLabel)
+        assertEquals(Shift.Pm, visit.shift)
+        assertEquals(false, visit.noIssueFound)
+    }
+
+    @Test
+    fun `a form without an account or rep stores them as missing`() {
+        val visit = VisitUi(id = "v1").toCompletedVisit(stored = null, repId = null, supervisorId = null, startedAtMillis = 5L, completedAtMillis = 5L)
+        assertEquals(null, visit.accountId)
+        assertEquals(null, visit.repId)
+        assertEquals(null, visit.supervisorId)
+    }
+
+    @Test
+    fun `completing a stored visit keeps its server id and request times`() {
+        val stored = Visit(id = "v1", backendId = "srv-9", requestedAtMillis = 5L, decidedAtMillis = 6L)
+        val visit = VisitUi(id = "v1").toCompletedVisit(stored = stored, repId = null, supervisorId = null, startedAtMillis = 10L, completedAtMillis = 20L)
+        assertEquals("srv-9", visit.backendId)
+        assertEquals(5L, visit.requestedAtMillis)
+        assertEquals(6L, visit.decidedAtMillis)
+        assertEquals(VisitStatus.Completed, visit.status)
     }
 }

@@ -1,10 +1,10 @@
 package com.example.medicalrep.ui.screens.visitplanning.utils
 
-import com.example.medicalrep.domain.models.ApprovalStatus
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.Visit
 import com.example.medicalrep.domain.models.VisitMode
+import com.example.medicalrep.domain.models.VisitStatus
 import com.example.medicalrep.domain.models.VisitType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -22,7 +22,7 @@ class PlanRequestTest {
         assertEquals("r1", request.repId)
         assertEquals(Shift.Pm, request.shift)
         assertEquals(VisitType.Planning, request.type)
-        assertEquals(ApprovalStatus.Pending, request.approvalStatus)
+        assertEquals(VisitStatus.PendingApproval, request.status)
         assertEquals(SyncStatus.NotSynced, request.syncStatus)
         assertEquals(1_000L, request.dateTimeMillis)
         assertEquals(2_000L, request.requestedAtMillis)
@@ -36,7 +36,6 @@ class PlanRequestTest {
         assertNull(request.supervisorId)
         assertNull(request.completedAtMillis)
         assertNull(request.backendId)
-        assertNull(request.decisionNote)
         assertEquals(true, request.noIssueFound)
     }
 }

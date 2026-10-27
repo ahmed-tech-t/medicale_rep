@@ -45,14 +45,14 @@ fun visit(
     syncStatus: SyncStatus = SyncStatus.Synced,
     dateTimeMillis: Long = 1_700_000_000_000L,
     backendId: String? = null,
-    approvalStatus: ApprovalStatus? = null,
+    status: VisitStatus = VisitStatus.Scheduled,
     requestedAtMillis: Long? = null,
     shift: Shift = Shift.Am,
     double: Boolean = false,
     completedAtMillis: Long? = null,
 ) = Visit(
     id = id, accountId = accountId, repId = repId, supervisorId = supervisorId, type = type, syncStatus = syncStatus,
-    dateTimeMillis = dateTimeMillis, backendId = backendId, approvalStatus = approvalStatus, requestedAtMillis = requestedAtMillis,
+    dateTimeMillis = dateTimeMillis, backendId = backendId, status = status, requestedAtMillis = requestedAtMillis,
     shift = shift, visitMode = if (double) VisitMode.Double else VisitMode.Single, completedAtMillis = completedAtMillis,
 ).toEntity()
 

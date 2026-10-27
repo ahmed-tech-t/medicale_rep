@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.screens.planvisit.utils
 
+import com.example.medicalrep.domain.models.User
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.VisitType
@@ -60,6 +61,6 @@ object PlanVisitFakes {
         entityTypeOptions = listOf("عيادة خاصة", "مستشفى", "صيدلية"),
         placeOptions = listOf("عيادة د. محمود عبد الرحمن", "عيادة د. هاني المسيري", "مستشفى الجامعة"),
         specialtyOptions = listOf("باطنة وجهاز هضمي", "أطفال", "جلدية"),
-        supervisorOptions = listOf("د. وائل نصار", "د. سارة أحمد"),
+        supervisors = listOf(User("sup-1", "د. وائل نصار", "مشرف"), User("sup-2", "د. سارة أحمد", "مشرف")),
     )
 }

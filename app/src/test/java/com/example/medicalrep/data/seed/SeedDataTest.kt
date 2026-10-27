@@ -1,12 +1,12 @@
 package com.example.medicalrep.data.seed
 
 import com.example.medicalrep.domain.models.AccountType
-import com.example.medicalrep.domain.models.ApprovalStatus
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.UserRole
 import com.example.medicalrep.domain.models.VisitMode
+import com.example.medicalrep.domain.models.VisitStatus
 import com.example.medicalrep.domain.models.VisitType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -33,9 +33,9 @@ class SeedDataTest {
         assertEquals(200, data.products.size)
         assertEquals(100, data.visits.size)
         // Every kind of visit is well represented, so every tab and filter has several pages' worth of variety.
-        assertTrue(data.visits.count { it.type == VisitType.Planned && it.completedAtMillis == null } >= 15)
-        assertTrue(data.visits.count { it.completedAtMillis != null } >= 40)
-        assertTrue(data.visits.count { it.type == VisitType.Planning && it.approvalStatus == ApprovalStatus.Pending } >= 8)
+        assertTrue(data.visits.count { it.status == VisitStatus.Scheduled } >= 15)
+        assertTrue(data.visits.count { it.status == VisitStatus.Completed } >= 40)
+        assertTrue(data.visits.count { it.status == VisitStatus.PendingApproval } >= 8)
         assertTrue(data.products.map { it.name }.toSet().size == 200)
     }
 
@@ -117,28 +117,44 @@ class SeedDataTest {
 
     @Test
     fun `visits cover the filters of every screen`() {
-        val planned = data.visits.filter { it.type == VisitType.Planned && it.completedAtMillis == null }
+        val planned = data.visits.filter { it.status == VisitStatus.Scheduled }
         assertTrue(planned.size >= 4)
         assertEquals(setOf(Shift.Am, Shift.Pm), planned.map { it.shift }.toSet())
-        val done = data.visits.filter { it.completedAtMillis != null }
+        val done = data.visits.filter { it.status == VisitStatus.Completed }
         assertTrue(done.any { it.type == VisitType.Planned } && done.any { it.type == VisitType.Unplanned })
         assertEquals(setOf(SyncStatus.Synced, SyncStatus.NotSynced), done.map { it.syncStatus }.toSet())
         assertEquals(setOf(Shift.Am, Shift.Pm), done.map { it.shift }.toSet())
         val double = data.visits.filter { it.visitMode == VisitMode.Double }
         assertTrue(double.isNotEmpty() && double.all { it.supervisorId != null })
         val requests = data.visits.filter { it.type == VisitType.Planning }
-        assertEquals(setOf(ApprovalStatus.Pending, ApprovalStatus.Rejected), requests.map { it.approvalStatus }.toSet())
-        assertTrue(requests.filter { it.approvalStatus == ApprovalStatus.Rejected }.all { !it.decisionNote.isNullOrBlank() })
+        assertEquals(setOf(VisitStatus.PendingApproval, VisitStatus.Rejected), requests.map { it.status }.toSet())
         assertTrue(requests.all { it.requestedAtMillis != null })
     }
 
     @Test
     fun `done visits are in the past and planned ones are today or later`() {
-        data.visits.filter { it.completedAtMillis != null }.forEach {
+        data.visits.filter { it.status == VisitStatus.Completed }.forEach {
             assertTrue(it.completedAtMillis!! < now && it.completedAtMillis!! >= it.dateTimeMillis!!)
         }
-        data.visits.filter { it.type == VisitType.Planned && it.completedAtMillis == null }
+        data.visits.filter { it.status == VisitStatus.Scheduled }
             .forEach { assertTrue(it.dateTimeMillis!! >= now - 12 * HOUR) }
+    }
+
+    @Test
+    fun `every visit has a status that fits its type and its dates`() {
+        assertTrue(data.visits.all { it.status != null })
+        // Only done visits carry a completion time.
+        data.visits.forEach { assertEquals(it.status == VisitStatus.Completed, it.completedAtMillis != null) }
+        // Plan requests wait for or were refused by the admin; the other types never are.
+        data.visits.filter { it.type == VisitType.Planning }
+            .forEach { assertTrue(it.status in setOf(VisitStatus.PendingApproval, VisitStatus.Rejected)) }
+        data.visits.filter { it.type != VisitType.Planning }
+            .forEach { assertTrue(it.status in setOf(VisitStatus.Scheduled, VisitStatus.Completed, VisitStatus.Missed)) }
+        // Missed visits are planned ones whose day passed, and the lists have some of them.
+        val missed = data.visits.filter { it.status == VisitStatus.Missed }
+        assertTrue(missed.size >= 5)
+        missed.forEach { assertTrue(it.type == VisitType.Planned && it.dateTimeMillis!! < now) }
+        assertTrue(data.visits.count { it.status == VisitStatus.Rejected } >= 3)
     }
 
     private companion object {

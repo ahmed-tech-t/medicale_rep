@@ -31,4 +31,6 @@ data class UserDS(
     val lastAccuracyMeters: Float? = null,
     /** The street at [lastLatitude], [lastLongitude]; null when the lookup found none or failed. */
     val lastAddress: String? = null,
+    /** The start of the day (millis) the visits that were not done were last marked Missed; 0 = never. */
+    val missedCheckedDay: Long = 0L,
 )

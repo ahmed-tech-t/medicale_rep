@@ -9,10 +9,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import com.example.medicalrep.data.local.entity.VisitCustodyEntity
 import com.example.medicalrep.data.local.search.normalizeSearch
-import com.example.medicalrep.domain.models.ApprovalStatus
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
+import com.example.medicalrep.domain.models.VisitStatus
 import com.example.medicalrep.domain.models.VisitType
 
 /** CRUD, paging, search through the account, lines, filters, download rules and the plan approval flow. */
@@ -106,39 +106,42 @@ class VisitDaoTest : DaoTestBase() {
     }
 
     @Test fun planRequestIsPendingThenApprovedBecomesStartable() = runBlocking {
-        dao.save(visit("p", type = VisitType.Planning, approvalStatus = ApprovalStatus.Pending, requestedAtMillis = 5, backendId = "b1"), emptyList())
+        dao.save(visit("p", type = VisitType.Planning, status = VisitStatus.PendingApproval, requestedAtMillis = 5, backendId = "b1"), emptyList())
         assertEquals(1, dao.countPending().first())
         assertEquals(listOf("p"), dao.pendingPaged(null, null).allRows().map { it.visit.id })
         assertTrue(dao.startablePaged().allRows().isEmpty())
-        assertEquals(1, dao.applyDecision("b1", ApprovalStatus.Approved, null, 9))
+        assertEquals(1, dao.applyDecision("b1", true, 9))
         assertEquals(0, dao.countPending().first())
         assertTrue(dao.pendingPaged(null, null).allRows().isEmpty())
         val started = dao.startablePaged().allRows().single().visit
         assertEquals(VisitType.Planned, started.type)
+        assertEquals(VisitStatus.Scheduled, started.status)
         assertEquals(9L, started.decidedAtMillis)
     }
 
-    @Test fun rejectedRequestKeepsReasonUntilDismissed() = runBlocking {
-        dao.save(visit("p", type = VisitType.Planning, approvalStatus = ApprovalStatus.Pending, backendId = "b1"), emptyList())
-        dao.applyDecision("b1", ApprovalStatus.Rejected, "too far", 9)
-        val row = dao.pendingPaged(null, null).allRows().single().visit
+    @Test fun rejectedRequestMovesToTheRejectedListUntilDismissed() = runBlocking {
+        dao.save(visit("p", type = VisitType.Planning, status = VisitStatus.PendingApproval, backendId = "b1"), emptyList())
+        dao.applyDecision("b1", false, 9)
+        assertTrue(dao.pendingPaged(null, null).allRows().isEmpty())
+        val row = dao.rejectedPaged(null, null).allRows().single().visit
         assertEquals(VisitType.Planning, row.type)
-        assertEquals("too far", row.decisionNote)
+        assertEquals(VisitStatus.Rejected, row.status)
+        assertEquals(1, dao.rejectedFilteredCount(null, null).first())
         assertTrue(dao.startablePaged().allRows().isEmpty())
         assertEquals(1, dao.dismissRejected("p"))
         assertNull(dao.getById("p"))
     }
 
     @Test fun unknownBackendIdChangesNothingAndDismissIgnoresPending() = runBlocking {
-        dao.save(visit("p", type = VisitType.Planning, approvalStatus = ApprovalStatus.Pending, backendId = "b1"), emptyList())
-        assertEquals(0, dao.applyDecision("nope", ApprovalStatus.Approved, null, 9))
+        dao.save(visit("p", type = VisitType.Planning, status = VisitStatus.PendingApproval, backendId = "b1"), emptyList())
+        assertEquals(0, dao.applyDecision("nope", true, 9))
         assertEquals(0, dao.dismissRejected("p"))
         assertNotNull(dao.getById("p"))
     }
 
     @Test fun cancelOnlyWorksOnRequestsNotUploadedYet() = runBlocking {
-        dao.save(visit("local", type = VisitType.Planning, approvalStatus = ApprovalStatus.Pending, syncStatus = SyncStatus.NotSynced), emptyList())
-        dao.save(visit("sent", type = VisitType.Planning, approvalStatus = ApprovalStatus.Pending, syncStatus = SyncStatus.Synced), emptyList())
+        dao.save(visit("local", type = VisitType.Planning, status = VisitStatus.PendingApproval, syncStatus = SyncStatus.NotSynced), emptyList())
+        dao.save(visit("sent", type = VisitType.Planning, status = VisitStatus.PendingApproval, syncStatus = SyncStatus.Synced), emptyList())
         assertEquals(1, dao.cancelRequest("local"))
         assertEquals(0, dao.cancelRequest("sent"))
     }
@@ -148,8 +151,8 @@ class VisitDaoTest : DaoTestBase() {
         db.accountDao().save(account("a2", "B", classCategory = "B"))
         dao.save(visit("todo-am", accountId = "a1", type = VisitType.Planned, dateTimeMillis = 100), emptyList())
         dao.save(visit("todo-pm", accountId = "a2", type = VisitType.Planned, shift = Shift.Pm, dateTimeMillis = 200), emptyList())
-        dao.save(visit("done-planned", accountId = "a1", type = VisitType.Planned, completedAtMillis = 300), emptyList())
-        dao.save(visit("done-double", type = VisitType.Unplanned, double = true, syncStatus = SyncStatus.NotSynced, completedAtMillis = 400), emptyList())
+        dao.save(visit("done-planned", accountId = "a1", type = VisitType.Planned, status = VisitStatus.Completed, completedAtMillis = 300), emptyList())
+        dao.save(visit("done-double", type = VisitType.Unplanned, double = true, syncStatus = SyncStatus.NotSynced, status = VisitStatus.Completed, completedAtMillis = 400), emptyList())
         assertEquals(listOf("todo-am", "todo-pm"), dao.requiredPaged(null, null).allRows().map { it.visit.id })
         assertEquals(listOf("todo-pm"), dao.requiredPaged(Shift.Pm, null).allRows().map { it.visit.id })
         assertEquals(listOf("todo-am"), dao.requiredPaged(null, "A").allRows().map { it.visit.id })
@@ -161,16 +164,34 @@ class VisitDaoTest : DaoTestBase() {
         assertEquals(listOf("todo-am", "todo-pm"), dao.startablePaged().allRows().map { it.visit.id }.sorted())
     }
 
+    @Test fun markMissedOnlyMovesScheduledVisitsOfEarlierDays() = runBlocking {
+        dao.save(visit("old", type = VisitType.Planned, dateTimeMillis = 1_000), emptyList())
+        dao.save(visit("today", type = VisitType.Planned, dateTimeMillis = 5_000), emptyList())
+        dao.save(visit("undated", type = VisitType.Planned, dateTimeMillis = 0), emptyList())
+        dao.save(visit("done", type = VisitType.Planned, status = VisitStatus.Completed, dateTimeMillis = 1_000, completedAtMillis = 1_500), emptyList())
+        dao.save(visit("request", type = VisitType.Planning, status = VisitStatus.PendingApproval, dateTimeMillis = 1_000), emptyList())
+        assertEquals(1, dao.markMissed(5_000))
+        assertEquals(VisitStatus.Missed, dao.getById("old")!!.status)
+        assertEquals(VisitStatus.Scheduled, dao.getById("today")!!.status)
+        assertEquals(VisitStatus.Scheduled, dao.getById("undated")!!.status)
+        assertEquals(VisitStatus.Completed, dao.getById("done")!!.status)
+        assertEquals(VisitStatus.PendingApproval, dao.getById("request")!!.status)
+        assertEquals(listOf("old"), dao.missedPaged(null, null).allRows().map { it.visit.id })
+        assertEquals(1, dao.missedCount(null, null).first())
+        assertEquals(listOf("today", "undated"), dao.requiredPaged(null, null).allRows().map { it.visit.id }.sorted())
+        assertEquals(0, dao.markMissed(5_000))
+    }
+
     @Test fun pendingRequestsAreFilteredByShiftAndClass() = runBlocking {
         db.accountDao().save(account("a1", "A", classCategory = "A"))
         db.accountDao().save(account("a2", "B", classCategory = "B"))
-        dao.save(visit("am", accountId = "a1", type = VisitType.Planning, approvalStatus = ApprovalStatus.Pending, requestedAtMillis = 1), emptyList())
-        dao.save(visit("pm", accountId = "a2", type = VisitType.Planning, approvalStatus = ApprovalStatus.Pending, requestedAtMillis = 2, shift = Shift.Pm), emptyList())
+        dao.save(visit("am", accountId = "a1", type = VisitType.Planning, status = VisitStatus.PendingApproval, requestedAtMillis = 1), emptyList())
+        dao.save(visit("pm", accountId = "a2", type = VisitType.Planning, status = VisitStatus.PendingApproval, requestedAtMillis = 2, shift = Shift.Pm), emptyList())
         assertEquals(2, dao.pendingFilteredCount(null, null).first())
         assertEquals(listOf("pm"), dao.pendingPaged(Shift.Pm, null).allRows().map { it.visit.id })
         assertEquals(listOf("am"), dao.pendingPaged(null, "A").allRows().map { it.visit.id })
         assertEquals(0, dao.pendingFilteredCount(Shift.Pm, "A").first())
-        dao.save(visit("done-b", accountId = "a2", completedAtMillis = 9), emptyList())
+        dao.save(visit("done-b", accountId = "a2", status = VisitStatus.Completed, completedAtMillis = 9), emptyList())
         assertEquals(listOf("done-b"), dao.donePaged(null, false, null, "B").allRows().map { it.visit.id })
     }
 

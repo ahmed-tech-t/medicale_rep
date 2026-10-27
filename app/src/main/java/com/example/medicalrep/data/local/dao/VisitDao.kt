@@ -9,11 +9,14 @@ import androidx.room.Transaction
 import com.example.medicalrep.data.local.entity.VisitCustodyEntity
 import com.example.medicalrep.data.local.entity.VisitEntity
 import com.example.medicalrep.data.local.relation.VisitWithDetails
-import com.example.medicalrep.domain.models.ApprovalStatus
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.VisitType
 import kotlinx.coroutines.flow.Flow
+
+/** The optional shift and account class filters the visit lists share; pass null to ignore one. */
+private const val VISIT_SHIFT_AND_CLASS_FILTER =
+    "(:shift IS NULL OR shift = :shift) AND (:classCategory IS NULL OR accountId IN (SELECT id FROM accounts WHERE classCategory = :classCategory))"
 
 @Dao
 abstract class VisitDao : BaseDao<VisitEntity> {
@@ -111,52 +114,74 @@ abstract class VisitDao : BaseDao<VisitEntity> {
         }
     }
 
-    // ---- plan requests waiting for the admin ----
+    // ---- plan requests ----
 
-    /** Requests that are Pending or Rejected, newest first. */
+    /** Requests the admin has not answered yet, newest first. */
     @Transaction
-    @Query("SELECT * FROM visits WHERE type = 'Planning' AND approvalStatus IN ('Pending', 'Rejected') AND (:shift IS NULL OR shift = :shift) AND (:classCategory IS NULL OR accountId IN (SELECT id FROM accounts WHERE classCategory = :classCategory)) ORDER BY requestedAtMillis DESC")
+    @Query("SELECT * FROM visits WHERE status = 'PendingApproval' AND $VISIT_SHIFT_AND_CLASS_FILTER ORDER BY requestedAtMillis DESC")
     abstract fun pendingPaged(shift: Shift?, classCategory: String?): PagingSource<Int, VisitWithDetails>
 
-    @Query("SELECT COUNT(*) FROM visits WHERE type = 'Planning' AND approvalStatus IN ('Pending', 'Rejected') AND (:shift IS NULL OR shift = :shift) AND (:classCategory IS NULL OR accountId IN (SELECT id FROM accounts WHERE classCategory = :classCategory))")
+    @Query("SELECT COUNT(*) FROM visits WHERE status = 'PendingApproval' AND $VISIT_SHIFT_AND_CLASS_FILTER")
     abstract fun pendingFilteredCount(shift: Shift?, classCategory: String?): Flow<Int>
 
-    @Query("SELECT COUNT(*) FROM visits WHERE type = 'Planning' AND approvalStatus = 'Pending'")
+    @Query("SELECT COUNT(*) FROM visits WHERE status = 'PendingApproval'")
     abstract fun countPending(): Flow<Int>
 
-    /** The admin's decision arrives: approved requests become planned visits, rejected ones keep their reason. */
+    /** Requests the admin refused, newest first. */
+    @Transaction
+    @Query("SELECT * FROM visits WHERE status = 'Rejected' AND $VISIT_SHIFT_AND_CLASS_FILTER ORDER BY requestedAtMillis DESC")
+    abstract fun rejectedPaged(shift: Shift?, classCategory: String?): PagingSource<Int, VisitWithDetails>
+
+    @Query("SELECT COUNT(*) FROM visits WHERE status = 'Rejected' AND $VISIT_SHIFT_AND_CLASS_FILTER")
+    abstract fun rejectedFilteredCount(shift: Shift?, classCategory: String?): Flow<Int>
+
+    /** The admin's decision arrives: an approved request becomes a scheduled planned visit, a refused one is Rejected. */
     @Query(
-        "UPDATE visits SET approvalStatus = :status, decisionNote = :note, decidedAtMillis = :decidedAtMillis," +
-            " type = CASE WHEN :status = 'Approved' THEN 'Planned' ELSE type END WHERE backendId = :backendId",
+        "UPDATE visits SET status = CASE WHEN :approved THEN 'Scheduled' ELSE 'Rejected' END, decidedAtMillis = :decidedAtMillis," +
+            " type = CASE WHEN :approved THEN 'Planned' ELSE type END WHERE backendId = :backendId AND status = 'PendingApproval'",
     )
-    abstract suspend fun applyDecision(backendId: String, status: ApprovalStatus, note: String?, decidedAtMillis: Long): Int
+    abstract suspend fun applyDecision(backendId: String, approved: Boolean, decidedAtMillis: Long): Int
 
     /** The rep dismisses a rejected request. */
-    @Query("DELETE FROM visits WHERE id = :id AND approvalStatus = 'Rejected'")
+    @Query("DELETE FROM visits WHERE id = :id AND status = 'Rejected'")
     abstract suspend fun dismissRejected(id: String): Int
 
     /** The rep cancels a request that was not uploaded yet. */
-    @Query("DELETE FROM visits WHERE id = :id AND type = 'Planning' AND syncStatus = 'NotSynced'")
+    @Query("DELETE FROM visits WHERE id = :id AND status = 'PendingApproval' AND syncStatus = 'NotSynced'")
     abstract suspend fun cancelRequest(id: String): Int
 
-    /** Visits still to do: planned, not finished. Every filter is optional (null = ignore). */
+    // ---- lists by status ----
+
+    /** Visits still to do. Every filter is optional (null = ignore). */
     @Transaction
-    @Query("SELECT * FROM visits WHERE type = 'Planned' AND completedAtMillis IS NULL AND (:shift IS NULL OR shift = :shift) AND (:classCategory IS NULL OR accountId IN (SELECT id FROM accounts WHERE classCategory = :classCategory)) ORDER BY dateTimeMillis")
+    @Query("SELECT * FROM visits WHERE status = 'Scheduled' AND $VISIT_SHIFT_AND_CLASS_FILTER ORDER BY dateTimeMillis")
     abstract fun requiredPaged(shift: Shift?, classCategory: String?): PagingSource<Int, VisitWithDetails>
 
-    @Query("SELECT COUNT(*) FROM visits WHERE type = 'Planned' AND completedAtMillis IS NULL AND (:shift IS NULL OR shift = :shift) AND (:classCategory IS NULL OR accountId IN (SELECT id FROM accounts WHERE classCategory = :classCategory))")
+    @Query("SELECT COUNT(*) FROM visits WHERE status = 'Scheduled' AND $VISIT_SHIFT_AND_CLASS_FILTER")
     abstract fun requiredCount(shift: Shift?, classCategory: String?): Flow<Int>
+
+    /** Visits whose day passed without the visit, most recent first. */
+    @Transaction
+    @Query("SELECT * FROM visits WHERE status = 'Missed' AND $VISIT_SHIFT_AND_CLASS_FILTER ORDER BY dateTimeMillis DESC")
+    abstract fun missedPaged(shift: Shift?, classCategory: String?): PagingSource<Int, VisitWithDetails>
+
+    @Query("SELECT COUNT(*) FROM visits WHERE status = 'Missed' AND $VISIT_SHIFT_AND_CLASS_FILTER")
+    abstract fun missedCount(shift: Shift?, classCategory: String?): Flow<Int>
+
+    /** Scheduled visits dated before [beforeMillis] (a day start) were not done: they become Missed. A visit with no date is left alone. */
+    @Query("UPDATE visits SET status = 'Missed' WHERE status = 'Scheduled' AND dateTimeMillis > 0 AND dateTimeMillis < :beforeMillis")
+    abstract suspend fun markMissed(beforeMillis: Long): Int
 
     /** Finished visits, newest first. [doubleOnly] keeps only double visits; the other filters are optional. */
     @Transaction
-    @Query("SELECT * FROM visits WHERE completedAtMillis IS NOT NULL AND (:shift IS NULL OR shift = :shift) AND (:doubleOnly = 0 OR visitMode = 'Double') AND (:syncStatus IS NULL OR syncStatus = :syncStatus) AND (:classCategory IS NULL OR accountId IN (SELECT id FROM accounts WHERE classCategory = :classCategory)) ORDER BY completedAtMillis DESC")
+    @Query("SELECT * FROM visits WHERE status = 'Completed' AND (:shift IS NULL OR shift = :shift) AND (:doubleOnly = 0 OR visitMode = 'Double') AND (:syncStatus IS NULL OR syncStatus = :syncStatus) AND (:classCategory IS NULL OR accountId IN (SELECT id FROM accounts WHERE classCategory = :classCategory)) ORDER BY completedAtMillis DESC")
     abstract fun donePaged(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?, classCategory: String?): PagingSource<Int, VisitWithDetails>
 
-    @Query("SELECT COUNT(*) FROM visits WHERE completedAtMillis IS NOT NULL AND (:shift IS NULL OR shift = :shift) AND (:doubleOnly = 0 OR visitMode = 'Double') AND (:syncStatus IS NULL OR syncStatus = :syncStatus) AND (:classCategory IS NULL OR accountId IN (SELECT id FROM accounts WHERE classCategory = :classCategory))")
+    @Query("SELECT COUNT(*) FROM visits WHERE status = 'Completed' AND (:shift IS NULL OR shift = :shift) AND (:doubleOnly = 0 OR visitMode = 'Double') AND (:syncStatus IS NULL OR syncStatus = :syncStatus) AND (:classCategory IS NULL OR accountId IN (SELECT id FROM accounts WHERE classCategory = :classCategory))")
     abstract fun doneCount(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?, classCategory: String?): Flow<Int>
 
-    /** Only planned visits that are not finished can be started. */
+    /** Only scheduled visits can be started. */
     @Transaction
-    @Query("SELECT * FROM visits WHERE type = 'Planned' AND completedAtMillis IS NULL ORDER BY dateTimeMillis DESC")
+    @Query("SELECT * FROM visits WHERE status = 'Scheduled' ORDER BY dateTimeMillis DESC")
     abstract fun startablePaged(): PagingSource<Int, VisitWithDetails>
 }

@@ -1,7 +1,6 @@
 package com.example.medicalrep.data.seed
 
 import com.example.medicalrep.domain.models.Account
-import com.example.medicalrep.domain.models.ApprovalStatus
 import com.example.medicalrep.domain.models.Custody
 import com.example.medicalrep.domain.models.Order
 import com.example.medicalrep.domain.models.OrderItem
@@ -13,6 +12,7 @@ import com.example.medicalrep.domain.models.User
 import com.example.medicalrep.domain.models.UserRole
 import com.example.medicalrep.domain.models.Visit
 import com.example.medicalrep.domain.models.VisitMode
+import com.example.medicalrep.domain.models.VisitStatus
 import com.example.medicalrep.domain.models.VisitType
 
 /** Everything the debug seed writes into Room. */
@@ -202,9 +202,8 @@ object SeedDataFactory {
         double: Boolean = false,
         durationLabel: String = "",
         completedAtMillis: Long? = null,
-        approvalStatus: ApprovalStatus? = null,
+        status: VisitStatus = VisitStatus.Scheduled,
         requestedAtMillis: Long? = null,
-        decisionNote: String? = null,
         gifts: List<Product> = emptyList(),
         samples: List<Product> = emptyList(),
     ) = Visit(
@@ -219,9 +218,8 @@ object SeedDataFactory {
         syncStatus = syncStatus,
         durationLabel = durationLabel,
         completedAtMillis = completedAtMillis,
-        approvalStatus = approvalStatus,
+        status = status,
         requestedAtMillis = requestedAtMillis,
-        decisionNote = decisionNote,
         visitLatitude = account.latitude,
         visitLongitude = account.longitude,
         accountLatitude = account.latitude,
@@ -237,23 +235,24 @@ object SeedDataFactory {
         val shift = if (n % 2 == 0) Shift.Am else Shift.Pm
         val hours = (n % 10) * HOUR
         when (n % 5) {
-            0 -> visit("v-gen-$n", account, VisitType.Planned, shift, now + (n % 14 + 1) * DAY + hours)
+            // Most are still to come; every fourth of them was scheduled for a day that has passed.
+            0 -> if (n % 4 != 1) visit("v-gen-$n", account, VisitType.Planned, shift, now + (n % 14 + 1) * DAY + hours)
+            else visit("v-gen-$n", account, VisitType.Planned, shift, now - (n % 14 + 1) * DAY - hours, status = VisitStatus.Missed)
             1 -> doneVisit("v-gen-$n", account, shift, now - (n % 30 + 1) * DAY - hours, SyncStatus.Synced, double = false)
             2 -> doneVisit("v-gen-$n", account, shift, now - (n % 30 + 1) * DAY - hours, SyncStatus.NotSynced, double = false)
             3 -> doneVisit("v-gen-$n", account, shift, now - (n % 30 + 1) * DAY - hours, SyncStatus.Synced, double = true)
             else -> visit(
                 "v-gen-$n", account, VisitType.Planning, shift, now + (n % 20 + 1) * DAY,
                 syncStatus = if (n % 2 == 0) SyncStatus.NotSynced else SyncStatus.Synced,
-                approvalStatus = if (n % 4 == 0) ApprovalStatus.Rejected else ApprovalStatus.Pending,
+                status = if (n % 4 == 0) VisitStatus.Rejected else VisitStatus.PendingApproval,
                 requestedAtMillis = now - (n % 6 + 1) * DAY,
-                decisionNote = if (n % 4 == 0) "تم رفض الطلب" else null,
             )
         }
     }
 
     private fun doneVisit(id: String, account: Account, shift: Shift, at: Long, sync: SyncStatus, double: Boolean) = visit(
         id, account, if (double) VisitType.Planned else VisitType.Unplanned, shift, at, sync, double = double,
-        durationLabel = "10:00 د", completedAtMillis = at + 10 * MINUTE,
+        durationLabel = "10:00 د", completedAtMillis = at + 10 * MINUTE, status = VisitStatus.Completed,
     )
 
     private fun visits(now: Long, accounts: List<Account>): List<Visit> {
@@ -269,17 +268,17 @@ object SeedDataFactory {
             visit("v-planned-6", acc(3), VisitType.Planned, Shift.Pm, now + 3 * DAY),
         )
         val done = listOf(
-            visit("v-done-1", acc(1), VisitType.Unplanned, Shift.Am, now - 3 * HOUR, SyncStatus.NotSynced, double = true, durationLabel = "04:35 د", completedAtMillis = now - 3 * HOUR + 5 * MINUTE, gifts = listOf(gift), samples = listOf(sample)),
-            visit("v-done-2", acc(4), VisitType.Unplanned, Shift.Pm, now - DAY, SyncStatus.NotSynced, durationLabel = "12:10 د", completedAtMillis = now - DAY + 12 * MINUTE, gifts = listOf(gift)),
-            visit("v-done-3", acc(8), VisitType.Unplanned, Shift.Am, now - 2 * DAY, SyncStatus.Synced, durationLabel = "06:20 د", completedAtMillis = now - 2 * DAY + 6 * MINUTE, samples = listOf(sample)),
-            visit("v-done-4", acc(6), VisitType.Planned, Shift.Pm, now - 3 * DAY, SyncStatus.Synced, double = true, durationLabel = "15:00 د", completedAtMillis = now - 3 * DAY + 15 * MINUTE),
-            visit("v-done-5", acc(9), VisitType.Unplanned, Shift.Am, now - 4 * DAY, SyncStatus.Synced, durationLabel = "08:45 د", completedAtMillis = now - 4 * DAY + 9 * MINUTE, gifts = listOf(gift)),
-            visit("v-done-6", acc(12), VisitType.Unplanned, Shift.Pm, now - 5 * DAY, SyncStatus.Synced, durationLabel = "05:05 د", completedAtMillis = now - 5 * DAY + 5 * MINUTE),
+            visit("v-done-1", acc(1), VisitType.Unplanned, Shift.Am, now - 3 * HOUR, SyncStatus.NotSynced, double = true, durationLabel = "04:35 د", completedAtMillis = now - 3 * HOUR + 5 * MINUTE, status = VisitStatus.Completed, gifts = listOf(gift), samples = listOf(sample)),
+            visit("v-done-2", acc(4), VisitType.Unplanned, Shift.Pm, now - DAY, SyncStatus.NotSynced, durationLabel = "12:10 د", completedAtMillis = now - DAY + 12 * MINUTE, status = VisitStatus.Completed, gifts = listOf(gift)),
+            visit("v-done-3", acc(8), VisitType.Unplanned, Shift.Am, now - 2 * DAY, SyncStatus.Synced, durationLabel = "06:20 د", completedAtMillis = now - 2 * DAY + 6 * MINUTE, status = VisitStatus.Completed, samples = listOf(sample)),
+            visit("v-done-4", acc(6), VisitType.Planned, Shift.Pm, now - 3 * DAY, SyncStatus.Synced, double = true, durationLabel = "15:00 د", completedAtMillis = now - 3 * DAY + 15 * MINUTE, status = VisitStatus.Completed),
+            visit("v-done-5", acc(9), VisitType.Unplanned, Shift.Am, now - 4 * DAY, SyncStatus.Synced, durationLabel = "08:45 د", completedAtMillis = now - 4 * DAY + 9 * MINUTE, status = VisitStatus.Completed, gifts = listOf(gift)),
+            visit("v-done-6", acc(12), VisitType.Unplanned, Shift.Pm, now - 5 * DAY, SyncStatus.Synced, durationLabel = "05:05 د", completedAtMillis = now - 5 * DAY + 5 * MINUTE, status = VisitStatus.Completed),
         )
         val requests = listOf(
-            visit("v-request-1", acc(11), VisitType.Planning, Shift.Am, now + 4 * DAY, SyncStatus.NotSynced, approvalStatus = ApprovalStatus.Pending, requestedAtMillis = now - HOUR),
-            visit("v-request-2", acc(3), VisitType.Planning, Shift.Pm, now + 5 * DAY, SyncStatus.Synced, approvalStatus = ApprovalStatus.Pending, requestedAtMillis = now - DAY),
-            visit("v-request-3", acc(2), VisitType.Planning, Shift.Am, now + 2 * DAY, SyncStatus.Synced, approvalStatus = ApprovalStatus.Rejected, requestedAtMillis = now - 2 * DAY, decisionNote = "هذه العيادة تمت زيارتها هذا الأسبوع"),
+            visit("v-request-1", acc(11), VisitType.Planning, Shift.Am, now + 4 * DAY, SyncStatus.NotSynced, status = VisitStatus.PendingApproval, requestedAtMillis = now - HOUR),
+            visit("v-request-2", acc(3), VisitType.Planning, Shift.Pm, now + 5 * DAY, SyncStatus.Synced, status = VisitStatus.PendingApproval, requestedAtMillis = now - DAY),
+            visit("v-request-3", acc(2), VisitType.Planning, Shift.Am, now + 2 * DAY, SyncStatus.Synced, status = VisitStatus.Rejected, requestedAtMillis = now - 2 * DAY),
         )
         return planned + done + requests + generatedVisits(now, accounts)
     }

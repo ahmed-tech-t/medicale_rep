@@ -38,10 +38,10 @@ data class Visit(
     val imageNote: String? = null,
     /** Where the saved voice note file is; [voiceNote] holds the bytes of one that is not saved yet. */
     val voiceNotePath: String? = null,
-    val approvalStatus: ApprovalStatus? = null,
+    /** Where the visit stands; null for a form that is not saved yet. */
+    val status: VisitStatus? = null,
     val requestedAtMillis: Long? = null,
     val decidedAtMillis: Long? = null,
-    val decisionNote: String? = null,
     /** When the visit was finished; null while it is still to do. */
     val completedAtMillis: Long? = null,
 )

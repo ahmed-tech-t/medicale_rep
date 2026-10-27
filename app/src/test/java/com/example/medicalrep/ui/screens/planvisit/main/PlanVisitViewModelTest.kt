@@ -10,6 +10,9 @@ import com.example.medicalrep.domain.repo.FakeSession
 import com.example.medicalrep.ui.common.location.LocationStatus
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
+import com.example.medicalrep.domain.models.VisitStatus
+import com.example.medicalrep.domain.models.SyncStatus
+import com.example.medicalrep.domain.models.VisitMode
 import com.example.medicalrep.domain.models.VisitType
 import com.example.medicalrep.ui.navigation.model.MainGraph
 import kotlinx.coroutines.CompletableDeferred
@@ -61,7 +64,12 @@ import org.junit.Test
  * 8. Given a gift row, When + is tapped beyond remaining custody, Then quantity is capped at remaining.
  * 9. Given a row with quantity 1, When − is tapped, Then the row is removed.
  * 10. Given the result step, When the clinic checkbox toggles, Then state follows.
- * 11. When Back, Then NavigationUp. When EndVisit, Then snackbar then NavigationUp.
+ * 11. When Back, Then NavigationUp. When EndVisit, Then the visit is stored, the draft cleared, then snackbar then NavigationUp.
+ * 20. An unplanned visit is a new completed row: account from the chosen place, times, duration, not uploaded; the rep id only when the rep is in users;
+ *     the supervisor id only for a double visit.
+ * 20b. A visit that was stored before (a planned one) keeps its server id and request times when it is completed.
+ * 21. When storing fails, Then the draft stays, an error snackbar shows and the screen does not close; ending again can succeed.
+ * 22. Given a save is running, When EndVisit arrives again, Then it is ignored (stored once).
  * 13. Given the visit moves to the result step, Then the location is captured once from the session: coordinates, the time of the fix and address.
  * 19. Given the saved fix is worse than 20 m (or has no accuracy), Then the result step shows the weak signal warning; a good fix shows none.
  * 14. Given the result step was reached before, When it is reached again, Then the location is not captured again.
@@ -217,6 +225,102 @@ class PlanVisitViewModelTest {
         addImage()
         viewModel.onEvent(PlanVisitEvents.EndVisit)
         assertNull(draftRepo.current.value)
+    }
+
+    private fun readyToEnd() {
+        openResultStep()
+        addVoiceNote()
+        addImage()
+    }
+
+    @Test
+    fun `ending an unplanned visit stores one completed row for the chosen account`() = runTest(dispatcher) {
+        readyToEnd()
+        viewModel.onEvent(PlanVisitEvents.EndVisit)
+        val saved = visitRepo.current.value.single()
+        assertEquals(state.visit.id, saved.id)
+        assertEquals(VisitType.Unplanned, saved.type)
+        assertEquals(VisitStatus.Completed, saved.status)
+        assertEquals(SyncStatus.NotSynced, saved.syncStatus)
+        assertEquals("a1", saved.accountId)
+        assertEquals(30.55, saved.visitLatitude, 0.0)
+        assertTrue(saved.dateTimeMillis!! > 0 && saved.completedAtMillis!! >= saved.dateTimeMillis!!)
+        assertTrue(Regex("\\d\\d:\\d\\d د").matches(saved.durationLabel.orEmpty()))
+        assertNotNull(saved.voiceNote)
+        assertNotNull(saved.imageNote)
+        assertNull(saved.supervisorId)
+        assertNull(saved.repId)
+    }
+
+    @Test
+    fun `ending a visit that was stored before keeps its server id and request times`() = runTest(dispatcher) {
+        visitRepo.current.value = listOf(Visit(id = state.visit.id, backendId = "srv-9", requestedAtMillis = 5L, decidedAtMillis = 6L))
+        readyToEnd()
+        viewModel.onEvent(PlanVisitEvents.EndVisit)
+        val saved = visitRepo.current.value.single()
+        assertEquals("srv-9", saved.backendId)
+        assertEquals(5L, saved.requestedAtMillis)
+        assertEquals(6L, saved.decidedAtMillis)
+        assertEquals(VisitStatus.Completed, saved.status)
+    }
+
+    @Test
+    fun `the rep id is stored only when the rep exists in users`() = runTest(dispatcher) {
+        val repId = session.manager.user.value.id.toString()
+        userRepo.current.value = userRepo.current.value + User(repId, "Ahmed", "Rep", role = UserRole.Rep)
+        readyToEnd()
+        viewModel.onEvent(PlanVisitEvents.EndVisit)
+        assertEquals(repId, visitRepo.current.value.single().repId)
+    }
+
+    @Test
+    fun `a double visit stores the chosen supervisor`() = runTest(dispatcher) {
+        viewModel.onEvent(PlanVisitEvents.SelectDoubleVisit(true))
+        readyToEnd()
+        viewModel.onEvent(PlanVisitEvents.EndVisit)
+        val saved = visitRepo.current.value.single()
+        assertEquals(VisitMode.Double, saved.visitMode)
+        assertEquals("s1", saved.supervisorId)
+    }
+
+    @Test
+    fun `a failed save keeps the draft shows an error and does not close, and a retry works`() = runTest(dispatcher) {
+        val events = collectEvents()
+        draftRepo.current.value = DraftVisit(0, Visit())
+        readyToEnd()
+        visitRepo.failOnSave = true
+        viewModel.onEvent(PlanVisitEvents.EndVisit)
+        assertTrue(visitRepo.current.value.isEmpty())
+        assertNotNull(draftRepo.current.value)
+        assertEquals(1, events.size)
+        assertTrue(events[0] is UiEvent.ShowSnackBar)
+        assertFalse(state.isSaving)
+
+        visitRepo.failOnSave = false
+        viewModel.onEvent(PlanVisitEvents.EndVisit)
+        assertEquals(1, visitRepo.current.value.size)
+        assertNull(draftRepo.current.value)
+        assertEquals(UiEvent.NavigationUp, events.last())
+    }
+
+    @Test
+    fun `tapping end twice while saving stores the visit once`() = runTest(dispatcher) {
+        val events = collectEvents()
+        readyToEnd()
+        val gate = CompletableDeferred<Unit>()
+        visitRepo.saveGate = gate
+        viewModel.onEvent(PlanVisitEvents.EndVisit)
+        assertTrue(state.isSaving)
+        viewModel.onEvent(PlanVisitEvents.EndVisit)
+        gate.complete(Unit)
+        assertEquals(1, visitRepo.current.value.size)
+        assertEquals(1, events.count { it == UiEvent.NavigationUp })
+    }
+
+    @Test
+    fun `choosing a place stores its account id on the visit`() {
+        fillEntityStep()
+        assertEquals("a1", state.visit.accountId)
     }
 
     private fun openResultStep() {

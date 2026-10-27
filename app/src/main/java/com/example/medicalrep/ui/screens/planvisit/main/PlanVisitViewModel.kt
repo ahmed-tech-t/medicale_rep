@@ -22,6 +22,7 @@ import com.example.medicalrep.domain.repo.UserRepo
 import com.example.medicalrep.domain.repo.VisitRepo
 import com.appcore.core.data.local.session.AuthSessionManager
 import com.example.medicalrep.domain.models.lastLocation
+import com.example.medicalrep.ui.mapper.toCompletedVisit
 import com.example.medicalrep.ui.mapper.toDomain
 import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.ProductUi
@@ -48,6 +49,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
+import kotlin.coroutines.cancellation.CancellationException
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -58,7 +60,7 @@ class PlanVisitViewModel @Inject constructor(
     private val session: AuthSessionManager,
     private val draftRepo: DraftVisitRepo,
     private val accountRepo: AccountRepo,
-    userRepo: UserRepo,
+    private val userRepo: UserRepo,
     productRepo: ProductRepo,
     private val visitRepo: VisitRepo,
 ) : BaseViewModel(appSettingsRepo) {
@@ -81,8 +83,8 @@ class PlanVisitViewModel @Inject constructor(
         collectInto(accountRepo.districts()) { state, districts -> state.copy(districtOptions = districts) }
         collectInto(accountRepo.entityTypes()) { state, types -> state.copy(entityTypeOptions = types) }
         collectInto(accountRepo.specialties()) { state, specialties -> state.copy(specialtyOptions = specialties) }
-        collectInto(userRepo.byRole(UserRole.Supervisor)) { state, supervisors ->
-            state.copy(supervisorOptions = supervisors.map { it.displayName })
+        viewModelScope.launch {
+            userRepo.byRole(UserRole.Supervisor).collect { list -> _state.update { it.copy(supervisors = list) } }
         }
         collectInto(productRepo.custodyList(ProductType.Gift)) { state, gifts -> state.copy(giftCatalog = gifts.map { it.toCatalogItem() }) }
         collectInto(productRepo.custodyList(ProductType.Product)) { state, samples ->
@@ -105,14 +107,14 @@ class PlanVisitViewModel @Inject constructor(
 
     /** A new visit starts empty, stamped with now; a planned visit carries its id until its data loads. */
     private fun initialState(): PlanVisitState {
-        val now = System.currentTimeMillis()
+        val openedAtMillis = System.currentTimeMillis()
         val visit = VisitUi(
             id = visitId ?: UUID.randomUUID().toString(),
             type = if (visitId == null) VisitType.Unplanned else VisitType.Planned,
-            date = formatDate(now),
-            time = formatClockTime(now),
+            date = formatDate(openedAtMillis),
+            time = formatClockTime(openedAtMillis),
         )
-        return PlanVisitState(visit = visit, initialVisit = visit)
+        return PlanVisitState(visit = visit, initialVisit = visit, openedAtMillis = openedAtMillis)
     }
 
     /** Fills the form with the saved draft and puts it back on the step it was left on. */
@@ -149,9 +151,7 @@ class PlanVisitViewModel @Inject constructor(
             is PlanVisitEvents.SelectSupervisor -> updateVisit { it.copy(supervisorName = event.value) }
             is PlanVisitEvents.SelectShift -> updateVisit { it.copy(shift = event.shift) }
             is PlanVisitEvents.SelectDoubleVisit -> updateVisit { it.copy(isDoubleVisit = event.isDouble) }
-            is PlanVisitEvents.OpenAddItem ->
-                _state.update { it.copy(overlay = AddItem(event.kind)) }
-
+            is PlanVisitEvents.OpenAddItem -> _state.update { it.copy(overlay = AddItem(event.kind)) }
             PlanVisitEvents.DismissOverlay -> _state.update { it.copy(overlay = PlanVisitOverlay.None) }
             is PlanVisitEvents.ConfirmAddItems -> confirmAddItems(event.items)
             is PlanVisitEvents.ChangeQuantity -> changeQuantity(
@@ -161,11 +161,7 @@ class PlanVisitViewModel @Inject constructor(
             )
 
             is PlanVisitEvents.ToggleClinicOpen -> updateVisit { it.copy(noIssueFound = event.confirmed) }
-            PlanVisitEvents.EndVisit -> if (_state.value.canEndVisit) viewModelScope.launch {
-                draftRepo.discard()
-                sendEvent(ShowSnackBar(StringResource(R.string.unplanned_visit_ended)))
-                sendEvent(UiEvent.NavigationUp)
-            }
+            PlanVisitEvents.EndVisit -> endVisit()
 
             PlanVisitEvents.VoiceNoteRecordingStarted -> _state.update { it.copy(isRecordingVoice = true) }
             is PlanVisitEvents.VoiceNoteRecorded -> {
@@ -185,6 +181,39 @@ class PlanVisitViewModel @Inject constructor(
             PlanVisitEvents.ViewAccountLocationClick -> openAccountLocation()
 
             is PlanVisitEvents.AttachImageResult -> updateVisit { it.copy(imageNote = event.document.uri) }
+        }
+    }
+
+    /**
+     * Stores the finished visit (a planned one replaces its own row, an unplanned one is new), then clears the draft.
+     * When storing fails the draft stays, so nothing the rep entered is lost.
+     */
+    private fun endVisit() {
+        val state = _state.value
+        if (!state.canEndVisit || state.isSaving) return
+        _state.update { it.copy(isSaving = true) }
+        viewModelScope.launch {
+            val visit = state.visit
+            try {
+                visitRepo.save(
+                    visit.toCompletedVisit(
+                        stored = visitRepo.get(visit.id),
+                        repId = session.user.value.id?.toString()?.takeIf { userRepo.get(it) != null },
+                        supervisorId = state.chosenSupervisorId,
+                        startedAtMillis = state.openedAtMillis,
+                        completedAtMillis = System.currentTimeMillis(),
+                    ),
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _state.update { it.copy(isSaving = false) }
+                sendEvent(ShowSnackBar(StringResource(R.string.unplanned_visit_save_failed)))
+                return@launch
+            }
+            draftRepo.discard()
+            sendEvent(ShowSnackBar(StringResource(R.string.unplanned_visit_ended)))
+            sendEvent(UiEvent.NavigationUp)
         }
     }
 
@@ -212,6 +241,7 @@ class PlanVisitViewModel @Inject constructor(
         updateVisit {
             it.copy(
                 placeName = name,
+                accountId = account?.id.orEmpty(),
                 classCategory = account?.classCategory.orEmpty(),
                 address = account?.address.orEmpty(),
                 accountLatitude = account?.latitude ?: 0.0,

@@ -42,12 +42,21 @@ class VisitLogViewModel @Inject constructor(
 
     private val query = _state.map { VisitLogQuery(it.selectedTab, it.filter) }.distinctUntilChanged()
 
-    /** The visits of the selected tab and filter, loaded page by page from Room. */
-    val visits: Flow<PagingData<VisitUi>> = query
-        .flatMapLatest { (tab, filter) ->
+    /** One paged list per tab: a tab never shows the items of the tab before it, and a tab seen before shows its page at once. */
+    private val visitsByTab = VisitLogTab.entries.associateWith(::pagedVisits)
+
+    /** The visits of [tab] with the current filter, loaded page by page from Room. */
+    fun visitsOf(tab: VisitLogTab): Flow<PagingData<VisitUi>> = visitsByTab.getValue(tab)
+
+    /** Only the selected tab uses the filter; the others wait on All, which is where switching tab puts the filter. */
+    private fun pagedVisits(tab: VisitLogTab): Flow<PagingData<VisitUi>> = _state
+        .map { if (it.selectedTab == tab) it.filter else VisitFilter.All }
+        .distinctUntilChanged()
+        .flatMapLatest { filter ->
             when (tab) {
                 VisitLogTab.Required -> visitRepo.requiredVisits(filter.shift, filter.classCategory)
                 VisitLogTab.Done -> visitRepo.doneVisits(filter.shift, filter.doubleOnly, filter.syncStatus)
+                VisitLogTab.Missed -> visitRepo.missedVisits(filter.shift, filter.classCategory)
             }
         }
         .map { page -> page.map { it.toUi() } }
@@ -62,6 +71,7 @@ class VisitLogViewModel @Inject constructor(
                 when (tab) {
                     VisitLogTab.Required -> visitRepo.requiredCount(filter.shift, filter.classCategory)
                     VisitLogTab.Done -> visitRepo.doneCount(filter.shift, filter.doubleOnly, filter.syncStatus)
+                    VisitLogTab.Missed -> visitRepo.missedCount(filter.shift, filter.classCategory)
                 }
             }.collect { count -> _state.update { it.copy(resultCount = count) } }
         }

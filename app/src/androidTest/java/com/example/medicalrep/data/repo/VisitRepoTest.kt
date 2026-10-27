@@ -60,21 +60,22 @@ class VisitRepoTest : RepoTestBase() {
     }
 
     @Test fun approvedRequestBecomesStartableAndRejectedCanBeDismissed() = runTest {
-        repo.save(Visit(id = "p1", type = VisitType.Planning, approvalStatus = ApprovalStatus.Pending, backendId = "b1"))
-        repo.save(Visit(id = "p2", type = VisitType.Planning, approvalStatus = ApprovalStatus.Pending, backendId = "b2"))
+        repo.save(Visit(id = "p1", type = VisitType.Planning, status = VisitStatus.PendingApproval, backendId = "b1"))
+        repo.save(Visit(id = "p2", type = VisitType.Planning, status = VisitStatus.PendingApproval, backendId = "b2"))
         assertEquals(2, repo.pendingCount().first())
-        assertTrue(repo.applyDecision("b1", ApprovalStatus.Approved, null, 9))
-        assertTrue(repo.applyDecision("b2", ApprovalStatus.Rejected, "no", 9))
-        assertFalse(repo.applyDecision("none", ApprovalStatus.Approved, null, 9))
+        assertTrue(repo.applyDecision("b1", true, 9))
+        assertTrue(repo.applyDecision("b2", false, 9))
+        assertFalse(repo.applyDecision("none", true, 9))
         assertEquals(listOf("p1"), repo.startableVisits().asSnapshot().map { it.id })
-        assertEquals(listOf("p2"), repo.pendingRequests().asSnapshot().map { it.id })
+        assertTrue(repo.pendingRequests().asSnapshot().isEmpty())
+        assertEquals(listOf("p2"), repo.rejectedRequests().asSnapshot().map { it.id })
         assertTrue(repo.dismissRejected("p2"))
         assertFalse(repo.dismissRejected("p1"))
     }
 
     @Test fun requiredAndDoneListsAreFilteredInTheDatabase() = runTest {
-        repo.save(Visit(id = "todo", type = VisitType.Planned, shift = Shift.Am))
-        repo.save(Visit(id = "done", type = VisitType.Planned, shift = Shift.Pm, completedAtMillis = 5L))
+        repo.save(Visit(id = "todo", type = VisitType.Planned, shift = Shift.Am, status = VisitStatus.Scheduled))
+        repo.save(Visit(id = "done", type = VisitType.Planned, shift = Shift.Pm, status = VisitStatus.Completed, completedAtMillis = 5L))
         assertEquals(listOf("todo"), repo.requiredVisits().asSnapshot().map { it.id })
         assertEquals(listOf("done"), repo.doneVisits(shift = Shift.Pm).asSnapshot().map { it.id })
         assertEquals(0, repo.doneCount(shift = Shift.Am).first())

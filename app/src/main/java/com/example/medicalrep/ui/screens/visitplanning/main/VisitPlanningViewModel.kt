@@ -44,12 +44,24 @@ class VisitPlanningViewModel @Inject constructor(
 
     private val query = _state.map { VisitPlanningQuery(it.selectedTab, it.filter) }.distinctUntilChanged()
 
-    /** Visits tab: finished visits to plan again. Pending tab: plan requests waiting for (or refused by) the admin. */
-    val visits: Flow<PagingData<VisitUi>> = query
-        .flatMapLatest { (tab, filter) ->
+    /** One paged list per tab: a tab never shows the items of the tab before it, and a tab seen before shows its page at once. */
+    private val visitsByTab = VisitPlanningTab.entries.associateWith(::pagedVisits)
+
+    /**
+     * The visits of [tab], loaded page by page from Room. Visits tab: finished visits to plan again. Pending tab: plan requests
+     * waiting for the admin. Rejected tab: the ones the admin refused.
+     */
+    fun visitsOf(tab: VisitPlanningTab): Flow<PagingData<VisitUi>> = visitsByTab.getValue(tab)
+
+    /** Only the selected tab uses the filter; the others wait on All. */
+    private fun pagedVisits(tab: VisitPlanningTab): Flow<PagingData<VisitUi>> = _state
+        .map { if (it.selectedTab == tab) it.filter else VisitFilter.All }
+        .distinctUntilChanged()
+        .flatMapLatest { filter ->
             when (tab) {
                 VisitPlanningTab.Visits -> visitRepo.doneVisits(shift = filter.shift, classCategory = filter.classCategory)
                 VisitPlanningTab.Pending -> visitRepo.pendingRequests(filter.shift, filter.classCategory)
+                VisitPlanningTab.Rejected -> visitRepo.rejectedRequests(filter.shift, filter.classCategory)
             }
         }
         .map { page -> page.map { it.toUi() } }
@@ -61,6 +73,7 @@ class VisitPlanningViewModel @Inject constructor(
                 when (tab) {
                     VisitPlanningTab.Visits -> visitRepo.doneCount(shift = filter.shift, classCategory = filter.classCategory)
                     VisitPlanningTab.Pending -> visitRepo.pendingRequestCount(filter.shift, filter.classCategory)
+                    VisitPlanningTab.Rejected -> visitRepo.rejectedRequestCount(filter.shift, filter.classCategory)
                 }
             }.collect { count -> _state.update { it.copy(resultCount = count) } }
         }

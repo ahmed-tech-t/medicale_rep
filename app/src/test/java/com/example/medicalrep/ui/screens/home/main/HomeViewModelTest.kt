@@ -24,7 +24,11 @@ import com.example.medicalrep.ui.common.connectivity.ConnectivityObserver
 import kotlinx.coroutines.flow.MutableStateFlow
 import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.Visit
+import com.example.medicalrep.domain.models.VisitStatus
 import com.example.medicalrep.domain.repo.FakeDraftVisitRepo
+import com.example.medicalrep.domain.repo.FakeSession
+import com.example.medicalrep.domain.repo.FakeVisitRepo
+import com.example.medicalrep.ui.utils.startOfDay
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -60,6 +64,8 @@ class HomeViewModelTest {
     private lateinit var viewModel: HomeViewModel
     private val connectivity = MutableStateFlow<ConnectionState>(ConnectionState.Offline)
     private val draftRepo = FakeDraftVisitRepo()
+    private val visitRepo = FakeVisitRepo()
+    private val session = FakeSession()
     private val draft = DraftVisit(step = 1, visit = Visit(id = "draft", placeName = "عيادة د. محمود"))
 
     @Before
@@ -69,13 +75,52 @@ class HomeViewModelTest {
             FakeHomeSettingsRepo,
             CoreConfig(baseUrl = "", isDebug = false, cryptoKeyAlias = "", defaultLanguage = "ar"),
         )
-        viewModel = HomeViewModel(FakeHomeSettingsRepo, settingsManager, LocaleHelper(settingsManager), FakeConnectivityObserver(connectivity), draftRepo)
+        viewModel = newViewModel()
     }
+
+    private fun newViewModel() = HomeViewModel(
+        FakeHomeSettingsRepo, settingsManager, LocaleHelper(settingsManager), FakeConnectivityObserver(connectivity), draftRepo, visitRepo, session.manager,
+    )
 
     @After
     fun tearDown() = Dispatchers.resetMain()
 
     private val state get() = viewModel.state.value
+
+    @Test
+    fun `missed visits are marked the first time home opens on a day`() {
+        val today = startOfDay(System.currentTimeMillis())
+        assertEquals(listOf(today), visitRepo.markMissedCalls)
+        assertEquals(today, session.manager.user.value.missedCheckedDay)
+    }
+
+    @Test
+    fun `opening home again the same day does not mark again`() {
+        newViewModel()
+        newViewModel()
+        assertEquals(1, visitRepo.markMissedCalls.size)
+    }
+
+    @Test
+    fun `a new day marks again and stores that day`() = runTest(dispatcher) {
+        val today = startOfDay(System.currentTimeMillis())
+        session.manager.updateUser { it.copy(missedCheckedDay = today - 24 * 3_600_000L) }
+        newViewModel()
+        assertEquals(listOf(today, today), visitRepo.markMissedCalls)
+        assertEquals(today, session.manager.user.value.missedCheckedDay)
+    }
+
+    @Test
+    fun `scheduled visits of earlier days become missed and today's stay scheduled`() = runTest(dispatcher) {
+        val today = startOfDay(System.currentTimeMillis())
+        val yesterday = Visit(id = "y", status = VisitStatus.Scheduled, dateTimeMillis = today - 3_600_000L)
+        val later = Visit(id = "t", status = VisitStatus.Scheduled, dateTimeMillis = today + 3_600_000L)
+        visitRepo.current.value = listOf(yesterday, later)
+        session.manager.updateUser { it.copy(missedCheckedDay = 0L) }
+        newViewModel()
+        assertEquals(VisitStatus.Missed, visitRepo.get("y")!!.status)
+        assertEquals(VisitStatus.Scheduled, visitRepo.get("t")!!.status)
+    }
 
     @Test
     fun `the pending card follows the saved draft`() {

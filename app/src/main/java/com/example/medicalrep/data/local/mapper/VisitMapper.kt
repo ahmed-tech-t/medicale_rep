@@ -10,6 +10,7 @@ import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.Visit
 import com.example.medicalrep.domain.models.VisitMode
+import com.example.medicalrep.domain.models.VisitStatus
 import com.example.medicalrep.domain.models.VisitType
 
 /**
@@ -49,10 +50,9 @@ fun VisitWithDetails.toDomain(): Visit {
         voiceNotePath = visit.voiceNotePath,
         syncStatus = visit.syncStatus,
         durationLabel = visit.durationLabel,
-        approvalStatus = visit.approvalStatus,
+        status = visit.status,
         requestedAtMillis = visit.requestedAtMillis,
         decidedAtMillis = visit.decidedAtMillis,
-        decisionNote = visit.decisionNote,
         completedAtMillis = visit.completedAtMillis,
     )
 }
@@ -85,10 +85,9 @@ fun Visit.toEntity() = VisitEntity(
     voiceNotePath = voiceNotePath,
     syncStatus = syncStatus ?: SyncStatus.NotSynced,
     durationLabel = durationLabel.orEmpty(),
-    approvalStatus = approvalStatus,
+    status = status ?: VisitStatus.Scheduled,
     requestedAtMillis = requestedAtMillis,
     decidedAtMillis = decidedAtMillis,
-    decisionNote = decisionNote,
     completedAtMillis = completedAtMillis,
 )
 

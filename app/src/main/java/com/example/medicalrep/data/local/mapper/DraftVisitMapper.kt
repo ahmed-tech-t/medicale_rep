@@ -18,6 +18,7 @@ private val draftJson = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 @Serializable
 private data class DraftVisitJson(
     val id: String? = null,
+    val accountId: String? = null,
     val type: String = "Unplanned",
     val city: String = "",
     val region: String = "",
@@ -58,6 +59,7 @@ fun DraftVisit.toEntity(voiceNotePath: String?): DraftVisitEntity {
     val v = visit
     val form = DraftVisitJson(
         id = v.id,
+        accountId = v.accountId,
         type = when (v.type) {
             VisitType.Planning -> "Planning"
             VisitType.Planned -> "Planned"
@@ -94,6 +96,7 @@ fun DraftVisitEntity.toDomain(readVoice: (String) -> ByteArray?): DraftVisit {
         step = step,
         visit = Visit(
             id = form.id,
+            accountId = form.accountId,
             type = when (form.type) {
                 "Planning" -> VisitType.Planning
                 "Planned" -> VisitType.Planned

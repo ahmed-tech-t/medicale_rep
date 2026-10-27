@@ -1,7 +1,6 @@
 package com.example.medicalrep.domain.repo
 
 import androidx.paging.PagingData
-import com.example.medicalrep.domain.models.ApprovalStatus
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.Visit
@@ -31,23 +30,38 @@ interface VisitRepo {
         classCategory: String? = null,
     ): Flow<Int>
 
-    /** Plan requests that are Pending or Rejected. */
+    /** Scheduled visits whose day passed without the visit. */
+    fun missedVisits(shift: Shift? = null, classCategory: String? = null): Flow<PagingData<Visit>>
+    fun missedCount(shift: Shift? = null, classCategory: String? = null): Flow<Int>
+
+    /** Scheduled visits dated before [beforeMillis] (a day start) become Missed; returns how many. */
+    suspend fun markMissed(beforeMillis: Long): Int
+
+    /** Plan requests the admin has not answered yet. */
     fun pendingRequests(shift: Shift? = null, classCategory: String? = null): Flow<PagingData<Visit>>
 
     /** How many requests [pendingRequests] lists for the same filters. */
     fun pendingRequestCount(shift: Shift? = null, classCategory: String? = null): Flow<Int>
     fun pendingCount(): Flow<Int>
 
+    /** Plan requests the admin refused. */
+    fun rejectedRequests(shift: Shift? = null, classCategory: String? = null): Flow<PagingData<Visit>>
+    fun rejectedRequestCount(shift: Shift? = null, classCategory: String? = null): Flow<Int>
+
     /** Only planned visits can be started. */
     fun startableVisits(): Flow<PagingData<Visit>>
 
     suspend fun get(id: String): Visit?
 
-    /** Saves the visit with its samples and gifts; a [Visit.voiceNote] is written to a file and its path stored. */
+    /**
+     * Saves the visit with its samples and gifts; a [Visit.voiceNote] is written to a file and its path stored,
+     * and a picked [Visit.imageNote] is copied into the app's own files so it does not depend on the source Uri.
+     */
     suspend fun save(visit: Visit)
     suspend fun delete(id: String)
 
-    suspend fun applyDecision(backendId: String, status: ApprovalStatus, note: String?, decidedAtMillis: Long): Boolean
+    /** The admin approved ([approved]) or refused a request; false when no pending request has that [backendId]. */
+    suspend fun applyDecision(backendId: String, approved: Boolean, decidedAtMillis: Long): Boolean
     suspend fun dismissRejected(id: String): Boolean
     suspend fun cancelRequest(id: String): Boolean
 

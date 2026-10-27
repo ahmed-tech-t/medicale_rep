@@ -27,6 +27,7 @@ fun Visit.toUi(): VisitUi {
     return VisitUi(
         id = id.orEmpty(),
         backendId = backendId.orEmpty(),
+        accountId = accountId.orEmpty(),
         date = date ?: dateTimeMillis?.let(::formatDate).orEmpty(),
         time = time ?: dateTimeMillis?.let(::formatClockTime).orEmpty(),
         city = city.orEmpty(),

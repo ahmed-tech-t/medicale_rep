@@ -4,7 +4,6 @@ import com.example.medicalrep.data.local.entity.VisitCustodyEntity
 import com.example.medicalrep.data.local.relation.CustodyWithPending
 import com.example.medicalrep.data.local.relation.VisitWithDetails
 import com.example.medicalrep.domain.models.Account
-import com.example.medicalrep.domain.models.ApprovalStatus
 import com.example.medicalrep.domain.models.Custody
 import com.example.medicalrep.domain.models.Product
 import com.example.medicalrep.domain.models.ProductType
@@ -16,6 +15,7 @@ import com.example.medicalrep.domain.models.User
 import com.example.medicalrep.domain.models.UserRole
 import com.example.medicalrep.domain.models.Visit
 import com.example.medicalrep.domain.models.VisitMode
+import com.example.medicalrep.domain.models.VisitStatus
 import com.example.medicalrep.domain.models.VisitType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -86,7 +86,7 @@ class EntityMappersTest {
             id = "v1", backendId = "b1", repId = "r1", supervisorId = "s1", accountId = "a1", dateTimeMillis = 1000L,
             shift = Shift.Pm, type = VisitType.Planning, visitMode = VisitMode.Double, visitLatitude = 1.0, visitLongitude = 2.0,
             travelSeconds = 60, noIssueFound = false, imageNote = "img", voiceNotePath = "voice.m4a", syncStatus = SyncStatus.Synced,
-            durationLabel = "10 min", approvalStatus = ApprovalStatus.Rejected, requestedAtMillis = 1L, decidedAtMillis = 2L, decisionNote = "no",
+            durationLabel = "10 min", status = VisitStatus.Rejected, requestedAtMillis = 1L, decidedAtMillis = 2L,
         )
         val back = VisitWithDetails(visit.toEntity(), null, null, emptyList(), emptyList()).toDomain()
         assertEquals(visit.copy(gifts = emptyList(), products = emptyList()), back)

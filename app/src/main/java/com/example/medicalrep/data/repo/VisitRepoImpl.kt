@@ -6,7 +6,6 @@ import com.example.medicalrep.data.local.mapper.toEntity
 import com.example.medicalrep.data.local.mapper.toLines
 import com.example.medicalrep.data.local.media.MediaFileStorage
 import com.example.medicalrep.data.local.search.normalizeSearch
-import com.example.medicalrep.domain.models.ApprovalStatus
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.Visit
@@ -37,8 +36,20 @@ class VisitRepoImpl @Inject constructor(
     override fun doneCount(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?, classCategory: String?) =
         dao.doneCount(shift, doubleOnly, syncStatus, classCategory)
 
+    override fun missedVisits(shift: Shift?, classCategory: String?) =
+        pagedFlow({ dao.missedPaged(shift, classCategory) }) { it.toDomain() }
+
+    override fun missedCount(shift: Shift?, classCategory: String?) = dao.missedCount(shift, classCategory)
+
+    override suspend fun markMissed(beforeMillis: Long) = dao.markMissed(beforeMillis)
+
     override fun pendingRequests(shift: Shift?, classCategory: String?) =
         pagedFlow({ dao.pendingPaged(shift, classCategory) }) { it.toDomain() }
+
+    override fun rejectedRequests(shift: Shift?, classCategory: String?) =
+        pagedFlow({ dao.rejectedPaged(shift, classCategory) }) { it.toDomain() }
+
+    override fun rejectedRequestCount(shift: Shift?, classCategory: String?) = dao.rejectedFilteredCount(shift, classCategory)
 
     override fun pendingRequestCount(shift: Shift?, classCategory: String?) = dao.pendingFilteredCount(shift, classCategory)
 
@@ -51,16 +62,20 @@ class VisitRepoImpl @Inject constructor(
     override suspend fun save(visit: Visit) {
         val id = requireNotNull(visit.id) { "A stored visit needs an id" }
         val voiceNotePath = visit.voiceNote?.let { media.save("voice_$id.m4a", it) } ?: visit.voiceNotePath
-        dao.save(visit.copy(voiceNotePath = voiceNotePath).toEntity(), visit.toLines())
+        val imageNote = visit.imageNote?.let { media.copy("image_$id.jpg", it) }
+        dao.save(visit.copy(voiceNotePath = voiceNotePath, imageNote = imageNote).toEntity(), visit.toLines())
     }
 
     override suspend fun delete(id: String) {
-        dao.getById(id)?.voiceNotePath?.let(media::delete)
+        dao.getById(id)?.let { saved ->
+            saved.voiceNotePath?.let(media::delete)
+            saved.imageNote?.let(media::deleteUri)
+        }
         dao.deleteById(id)
     }
 
-    override suspend fun applyDecision(backendId: String, status: ApprovalStatus, note: String?, decidedAtMillis: Long) =
-        dao.applyDecision(backendId, status, note, decidedAtMillis) > 0
+    override suspend fun applyDecision(backendId: String, approved: Boolean, decidedAtMillis: Long) =
+        dao.applyDecision(backendId, approved, decidedAtMillis) > 0
 
     override suspend fun dismissRejected(id: String) = dao.dismissRejected(id) > 0
 
