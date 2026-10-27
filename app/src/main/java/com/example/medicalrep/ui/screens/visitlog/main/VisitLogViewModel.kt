@@ -56,7 +56,6 @@ class VisitLogViewModel @Inject constructor(
             when (tab) {
                 VisitLogTab.Required -> visitRepo.requiredVisits(filter.shift, filter.classCategory)
                 VisitLogTab.Done -> visitRepo.doneVisits(filter.shift, filter.doubleOnly, filter.syncStatus)
-                VisitLogTab.Missed -> visitRepo.missedVisits(filter.shift, filter.classCategory)
             }
         }
         .map { page -> page.map { it.toUi() } }
@@ -71,7 +70,6 @@ class VisitLogViewModel @Inject constructor(
                 when (tab) {
                     VisitLogTab.Required -> visitRepo.requiredCount(filter.shift, filter.classCategory)
                     VisitLogTab.Done -> visitRepo.doneCount(filter.shift, filter.doubleOnly, filter.syncStatus)
-                    VisitLogTab.Missed -> visitRepo.missedCount(filter.shift, filter.classCategory)
                 }
             }.collect { count -> _state.update { it.copy(resultCount = count) } }
         }

@@ -57,7 +57,6 @@ fun VisitLogUi(
                     when (tab) {
                         VisitLogTab.Required -> R.string.visit_log_tab_required
                         VisitLogTab.Done -> R.string.visit_log_tab_done
-                        VisitLogTab.Missed -> R.string.visit_log_tab_missed
                     },
                 )
             },
@@ -81,7 +80,7 @@ fun VisitLogUi(
                             FilterMenu(
                                 expanded = state.overlay == VisitLogOverlay.Filter,
                                 options = when (state.selectedTab) {
-                                    VisitLogTab.Required, VisitLogTab.Missed -> plannedVisitFilterOptions
+                                    VisitLogTab.Required -> plannedVisitFilterOptions
                                     VisitLogTab.Done -> doneVisitFilterOptions
                                 },
                                 selected = state.filter,
@@ -131,13 +130,6 @@ private fun VisitLogItem(
 
         VisitLogTab.Done -> CompletedVisitCard(
             model = visit,
-            onClick = { onEvent(VisitLogEvents.OpenVisit(visit.id)) },
-            modifier = modifier,
-        )
-
-        VisitLogTab.Missed -> PlannedVisitCard(
-            model = visit,
-            onAction = null,
             onClick = { onEvent(VisitLogEvents.OpenVisit(visit.id)) },
             modifier = modifier,
         )

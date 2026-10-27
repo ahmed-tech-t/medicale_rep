@@ -49,7 +49,7 @@ class VisitPlanningViewModel @Inject constructor(
 
     /**
      * The visits of [tab], loaded page by page from Room. Visits tab: finished visits to plan again. Pending tab: plan requests
-     * waiting for the admin. Rejected tab: the ones the admin refused.
+     * waiting for the admin.
      */
     fun visitsOf(tab: VisitPlanningTab): Flow<PagingData<VisitUi>> = visitsByTab.getValue(tab)
 
@@ -61,7 +61,6 @@ class VisitPlanningViewModel @Inject constructor(
             when (tab) {
                 VisitPlanningTab.Visits -> visitRepo.doneVisits(shift = filter.shift, classCategory = filter.classCategory)
                 VisitPlanningTab.Pending -> visitRepo.pendingRequests(filter.shift, filter.classCategory)
-                VisitPlanningTab.Rejected -> visitRepo.rejectedRequests(filter.shift, filter.classCategory)
             }
         }
         .map { page -> page.map { it.toUi() } }
@@ -73,7 +72,6 @@ class VisitPlanningViewModel @Inject constructor(
                 when (tab) {
                     VisitPlanningTab.Visits -> visitRepo.doneCount(shift = filter.shift, classCategory = filter.classCategory)
                     VisitPlanningTab.Pending -> visitRepo.pendingRequestCount(filter.shift, filter.classCategory)
-                    VisitPlanningTab.Rejected -> visitRepo.rejectedRequestCount(filter.shift, filter.classCategory)
                 }
             }.collect { count -> _state.update { it.copy(resultCount = count) } }
         }

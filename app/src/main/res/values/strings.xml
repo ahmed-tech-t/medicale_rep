@@ -281,7 +281,6 @@
     <string name="visit_log_title">Visit log</string>
     <string name="visit_log_tab_required">Required</string>
     <string name="visit_log_tab_done">Done</string>
-    <string name="visit_log_tab_missed">Missed</string>
     <string name="visit_log_results_format">%1$d results</string>
     <string name="visit_log_id_format">ID:%1$s</string>
     <string name="visit_log_items_format">%1$d products + %2$d gifts</string>
@@ -299,7 +298,6 @@
     <!-- Visit planning -->
     <string name="visit_planning_title">Visit planning</string>
     <string name="visit_planning_tab_pending">Pending approval</string>
-    <string name="visit_planning_tab_rejected">Rejected</string>
     <string name="visit_planning_tab_visits">Visits</string>
     <string name="visit_planning_out_of_plan">Visit outside the plan (planning)</string>
     <string name="visit_planning_requested">Visit requests saved. They wait for approval.</string>

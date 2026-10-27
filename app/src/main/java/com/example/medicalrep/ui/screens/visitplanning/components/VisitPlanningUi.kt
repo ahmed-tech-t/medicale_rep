@@ -80,7 +80,6 @@ fun VisitPlanningUi(
                         when (tab) {
                             VisitPlanningTab.Visits -> R.string.visit_planning_tab_visits
                             VisitPlanningTab.Pending -> R.string.visit_planning_tab_pending
-                            VisitPlanningTab.Rejected -> R.string.visit_planning_tab_rejected
                         },
                     )
                 },
@@ -113,7 +112,7 @@ fun VisitPlanningUi(
                     items(count = visits.itemCount, key = visits.itemKey { it.id }) { index ->
                         visits[index]?.let { visit ->
                             when (state.selectedTab) {
-                                VisitPlanningTab.Pending, VisitPlanningTab.Rejected -> PendingVisitCard(visit = visit, modifier = Modifier.animateItem())
+                                VisitPlanningTab.Pending -> PendingVisitCard(visit = visit, modifier = Modifier.animateItem())
                                 VisitPlanningTab.Visits -> SelectableVisitCard(
                                     visit = visit,
                                     selected = visit.id in state.selectedIds,

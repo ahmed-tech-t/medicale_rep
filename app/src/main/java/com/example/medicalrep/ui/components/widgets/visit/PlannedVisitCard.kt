@@ -1,6 +1,5 @@
 package com.example.medicalrep.ui.components.widgets.visit
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,16 +34,13 @@ import com.example.medicalrep.ui.ui.theme.Ink
 @Composable
 fun PlannedVisitCard(
     model: VisitUi,
-    /** The Start button; null hides it (a missed visit can no longer be started). */
-    onAction: (() -> Unit)?,
+    onAction: () -> Unit,
     modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null,
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .visitCardChrome(elevation = 2.dp, shadowAlpha = 0.02f)
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -85,22 +81,20 @@ fun PlannedVisitCard(
                 )
             }
         }
-        if (onAction != null) {
-            NexoraButton(
-                text = stringResource(R.string.visit_action_start),
-                onClick = onAction,
-                fillMaxWidth = false,
-                compact = true,
-                leadingIcon = {
-                    NexoraIcon(
-                        painter = painterResource(R.drawable.ic_arrow_visit),
-                        contentDescription = null,
-                        modifier = Modifier.size(11.dp),
-                        tint = Color.White,
-                    )
-                },
-            )
-        }
+        NexoraButton(
+            text = stringResource(R.string.visit_action_start),
+            onClick = onAction,
+            fillMaxWidth = false,
+            compact = true,
+            leadingIcon = {
+                NexoraIcon(
+                    painter = painterResource(R.drawable.ic_arrow_visit),
+                    contentDescription = null,
+                    modifier = Modifier.size(11.dp),
+                    tint = Color.White,
+                )
+            },
+        )
     }
 }
 

@@ -34,7 +34,6 @@ import org.junit.Test
 /**
  * 1. Given the screen opens, Then Visits is selected, the repo is asked for done visits and the count is theirs.
  * 2. When the Pending tab is selected, Then the repo is asked for pending requests and the count follows.
- * 2b. When the Rejected tab is selected, Then the repo is asked for rejected requests and the count follows.
  * 3. Filters (shift, class) reach the repo for the selected tab, the count follows, the icon is on; the filter stays on tab switch.
  * 4. When a visit is toggled, Then it is selected; toggling again clears it; several can be selected; it survives a tab switch.
  * 5. When Set appointment, Then the schedule sheet opens; Dismiss closes it; a date change is stored.
@@ -108,20 +107,6 @@ class VisitPlanningViewModelTest {
         val lists = VisitPlanningTab.entries.map { viewModel.visitsOf(it) }
         assertEquals(VisitPlanningTab.entries.size, lists.toSet().size)
         assertTrue(VisitPlanningTab.entries.all { viewModel.visitsOf(it) === viewModel.visitsOf(it) })
-    }
-
-    @Test
-    fun `rejected tab asks for rejected requests and the count follows`() = runTest(dispatcher) {
-        collectVisits()
-        viewModel.onEvent(VisitPlanningEvents.SelectTab(VisitPlanningTab.Rejected))
-        runCurrent()
-        assertEquals(listOf<Pair<Shift?, String?>>(null to null), repo.rejectedRequestsAsked)
-        assertEquals(1, state.resultCount)
-        viewModel.onEvent(VisitPlanningEvents.OpenFilter)
-        viewModel.onEvent(VisitPlanningEvents.SelectFilter(VisitFilter.Morning))
-        runCurrent()
-        assertEquals(Shift.Am to null, repo.rejectedRequestsAsked.last())
-        assertEquals(0, state.resultCount)
     }
 
     @Test
