@@ -22,3 +22,6 @@ build/
 .externalNativeBuild
 .cxx
 local.properties
+
+# Claude skills lock
+skills-lock.json
