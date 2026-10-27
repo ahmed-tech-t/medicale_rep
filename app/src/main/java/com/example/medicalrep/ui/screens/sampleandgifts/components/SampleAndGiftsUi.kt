@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,15 +54,18 @@ fun SampleAndGiftsUi(
             selectedIndex = state.selectedTab.ordinal,
             onSelect = { onEvent(SampleAndGiftsEvents.SelectTab(SampleAndGiftsTab.entries[it])) },
         )
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(spacing.spaceSmallPlus),
-            verticalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
-        ) {
-            items(count = items.itemCount, key = items.itemKey { it.id }) { index ->
-                items[index]?.let { SampleAndGiftsItemCard(item = it) }
+        key(state.selectedTab) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(spacing.spaceSmallPlus),
+                verticalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
+            ) {
+                items(count = items.itemCount, key = items.itemKey { it.id }) { index ->
+                    items[index]?.let { SampleAndGiftsItemCard(item = it) }
+                }
             }
         }
+
     }
 }
 

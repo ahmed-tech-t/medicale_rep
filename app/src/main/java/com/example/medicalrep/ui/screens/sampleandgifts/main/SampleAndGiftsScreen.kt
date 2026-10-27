@@ -25,7 +25,7 @@ fun SampleAndGiftsScreen(
         navigationUp = navigationUp,
     )
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val items = viewModel.items.collectAsLazyPagingItems()
+    val items = viewModel.itemsOf(state.selectedTab).collectAsLazyPagingItems()
 
     SampleAndGiftsUi(
         state = state,
