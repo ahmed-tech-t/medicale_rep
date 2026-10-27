@@ -170,6 +170,7 @@
     <string name="unplanned_datetime_hint">Recorded automatically from the server (Default)</string>
     <string name="unplanned_section_location">Location and region</string>
     <string name="unplanned_section_place_specialty">Place name and specialty</string>
+    <string name="unplanned_section_place">Place name</string>
     <string name="unplanned_place_list_hint">List appears based on the selected region and type</string>
     <string name="unplanned_place_select_hint">Select place / doctor from the list</string>
     <string name="unplanned_specialty_select_hint">Select specialty</string>

@@ -15,7 +15,7 @@ object AddAccountFakes {
             districtOptions = options.districtOptions,
             entityTypeOptions = options.entityTypeOptions,
             classOptions = listOf("A", "B", "C"),
-            specialtyOptions = options.specialtyOptions,
+            specialtyOptions = listOf("باطنة وجهاز هضمي", "أطفال", "جلدية"),
         )
     }
 }

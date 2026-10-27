@@ -60,7 +60,6 @@ object PlanVisitFakes {
         districtOptions = listOf("البر الشرقى", "البر الغربى", "وسط البلد"),
         entityTypeOptions = listOf("عيادة خاصة", "مستشفى", "صيدلية"),
         placeOptions = listOf("عيادة د. محمود عبد الرحمن", "عيادة د. هاني المسيري", "مستشفى الجامعة"),
-        specialtyOptions = listOf("باطنة وجهاز هضمي", "أطفال", "جلدية"),
         supervisors = listOf(User("sup-1", "د. وائل نصار", "مشرف"), User("sup-2", "د. سارة أحمد", "مشرف")),
     )
 }

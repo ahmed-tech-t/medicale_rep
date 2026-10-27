@@ -16,7 +16,6 @@ sealed interface PlanVisitEvents {
     data class SelectDistrict(val value: String) : PlanVisitEvents
     data class SelectEntityType(val value: String) : PlanVisitEvents
     data class SelectPlace(val value: String) : PlanVisitEvents
-    data class SelectSpecialty(val value: String) : PlanVisitEvents
     data class SelectSupervisor(val value: String) : PlanVisitEvents
     data class SelectShift(val shift: Shift) : PlanVisitEvents
     data class SelectDoubleVisit(val isDouble: Boolean) : PlanVisitEvents

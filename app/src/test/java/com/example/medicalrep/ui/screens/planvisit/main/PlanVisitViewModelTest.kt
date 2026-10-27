@@ -54,7 +54,7 @@ import org.junit.Test
  * 1. Given a new visit, Then it starts on the entity step with the Figma sample data and no overlay.
  * 2. Given entity step, When Next twice, Then result step; When Next again, Then it stays (upper bound).
  *    When Previous on entity step, Then it stays (lower bound).
- * 3. Given entity step, When city/district/type/place/specialty/supervisor/shift/visit type change,
+ * 3. Given entity step, When city/district/type/place/supervisor/shift/visit type change,
  *    Then the visit reflects each selection.
  * 4. Given gifts step, When add gift is opened, Then overlay is AddItem(Gift); dismiss closes it.
  * 5. Given the add-item sheet, When confirming a new item, Then it is appended and the sheet closes;
@@ -123,7 +123,6 @@ class PlanVisitViewModelTest {
         viewModel.onEvent(PlanVisitEvents.SelectDistrict("وسط البلد"))
         viewModel.onEvent(PlanVisitEvents.SelectEntityType("صيدلية"))
         viewModel.onEvent(PlanVisitEvents.SelectPlace("مستشفى الجامعة"))
-        viewModel.onEvent(PlanVisitEvents.SelectSpecialty("أطفال"))
         viewModel.onEvent(PlanVisitEvents.SelectSupervisor("د. سارة أحمد"))
     }
 
@@ -410,7 +409,6 @@ class PlanVisitViewModelTest {
         assertEquals(listOf("منوف", "قويسنا"), state.cityOptions)
         assertEquals(listOf("وسط البلد", "البر الشرقى"), state.districtOptions)
         assertEquals(listOf("صيدلية", "عيادة"), state.entityTypeOptions)
-        assertEquals(listOf("أطفال", "باطنة"), state.specialtyOptions)
         assertEquals(listOf("د. سارة أحمد"), state.supervisorOptions)
         assertEquals(listOf("gift-mug", "gift-notebook"), state.giftCatalog.map { it.id })
         assertEquals(listOf("sample-1"), state.productCatalog.map { it.id })
@@ -439,6 +437,28 @@ class PlanVisitViewModelTest {
     }
 
     @Test
+    fun `choosing a place fills the specialty from its account and the rep cannot change it`() {
+        viewModel.onEvent(PlanVisitEvents.SelectPlace("مستشفى الجامعة"))
+        assertEquals("أطفال", state.visit.specialty)
+        viewModel.onEvent(PlanVisitEvents.SelectPlace("عيادة د. هاني"))
+        assertEquals("باطنة", state.visit.specialty)
+        viewModel.onEvent(PlanVisitEvents.SelectPlace("مكان غير موجود"))
+        assertEquals("", state.visit.specialty)
+    }
+
+    @Test
+    fun `step 1 does not need a specialty, so an account without one still goes on`() {
+        accountRepo.current.value = accountRepo.current.value +
+            Account("a3", name = "مركز بلا تخصص", city = "منوف", district = "وسط البلد", entityType = "صيدلية")
+        viewModel.onEvent(PlanVisitEvents.SelectCity("منوف"))
+        viewModel.onEvent(PlanVisitEvents.SelectDistrict("وسط البلد"))
+        viewModel.onEvent(PlanVisitEvents.SelectEntityType("صيدلية"))
+        viewModel.onEvent(PlanVisitEvents.SelectPlace("مركز بلا تخصص"))
+        assertEquals("", state.visit.specialty)
+        assertEquals(true, state.canGoNext)
+    }
+
+    @Test
     fun `options follow the stored data`() {
         accountRepo.current.value = accountRepo.current.value + Account("a3", name = "مركز", city = "الباجور", district = "x", entityType = "مركز طبي", specialty = "عظام")
         assertTrue("الباجور" in state.cityOptions)
@@ -455,7 +475,6 @@ class PlanVisitViewModelTest {
             PlanVisitEvents.SelectDistrict("وسط البلد"),
             PlanVisitEvents.SelectEntityType("صيدلية"),
             PlanVisitEvents.SelectPlace("مستشفى الجامعة"),
-            PlanVisitEvents.SelectSpecialty("أطفال"),
         )
         viewModel.onEvent(PlanVisitEvents.SelectDoubleVisit(true))
         fills.forEach { fill ->
@@ -477,7 +496,6 @@ class PlanVisitViewModelTest {
         viewModel.onEvent(PlanVisitEvents.SelectDistrict("وسط البلد"))
         viewModel.onEvent(PlanVisitEvents.SelectEntityType("صيدلية"))
         viewModel.onEvent(PlanVisitEvents.SelectPlace("مستشفى الجامعة"))
-        viewModel.onEvent(PlanVisitEvents.SelectSpecialty("أطفال"))
         assertEquals(true, state.canGoNext)
         viewModel.onEvent(PlanVisitEvents.SelectDoubleVisit(true))
         assertEquals(false, state.canGoNext)
@@ -544,7 +562,6 @@ class PlanVisitViewModelTest {
         viewModel.onEvent(PlanVisitEvents.SelectDistrict("وسط البلد"))
         viewModel.onEvent(PlanVisitEvents.SelectEntityType("صيدلية"))
         viewModel.onEvent(PlanVisitEvents.SelectPlace("مستشفى الجامعة"))
-        viewModel.onEvent(PlanVisitEvents.SelectSpecialty("أطفال"))
         viewModel.onEvent(PlanVisitEvents.SelectSupervisor("د. سارة أحمد"))
         viewModel.onEvent(PlanVisitEvents.SelectShift(Shift.Pm))
         viewModel.onEvent(PlanVisitEvents.SelectDoubleVisit(false))

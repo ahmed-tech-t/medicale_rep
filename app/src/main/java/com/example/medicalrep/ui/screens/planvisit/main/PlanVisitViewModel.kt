@@ -82,7 +82,6 @@ class PlanVisitViewModel @Inject constructor(
         collectInto(accountRepo.cities()) { state, cities -> state.copy(cityOptions = cities) }
         collectInto(accountRepo.districts()) { state, districts -> state.copy(districtOptions = districts) }
         collectInto(accountRepo.entityTypes()) { state, types -> state.copy(entityTypeOptions = types) }
-        collectInto(accountRepo.specialties()) { state, specialties -> state.copy(specialtyOptions = specialties) }
         viewModelScope.launch {
             userRepo.byRole(UserRole.Supervisor).collect { list -> _state.update { it.copy(supervisors = list) } }
         }
@@ -147,7 +146,6 @@ class PlanVisitViewModel @Inject constructor(
             is PlanVisitEvents.SelectDistrict -> updateVisit { it.copy(region = event.value) }
             is PlanVisitEvents.SelectEntityType -> updateVisit { it.copy(account = event.value) }
             is PlanVisitEvents.SelectPlace -> selectPlace(event.value)
-            is PlanVisitEvents.SelectSpecialty -> updateVisit { it.copy(specialty = event.value) }
             is PlanVisitEvents.SelectSupervisor -> updateVisit { it.copy(supervisorName = event.value) }
             is PlanVisitEvents.SelectShift -> updateVisit { it.copy(shift = event.shift) }
             is PlanVisitEvents.SelectDoubleVisit -> updateVisit { it.copy(isDoubleVisit = event.isDouble) }
@@ -235,13 +233,14 @@ class PlanVisitViewModel @Inject constructor(
         }
     }
 
-    /** Choosing a place also fills what belongs to its account: class, address and where it is. */
+    /** Choosing a place also fills what belongs to its account: specialty, class, address and where it is. */
     private fun selectPlace(name: String) {
         val account = placeAccounts.firstOrNull { it.name == name }
         updateVisit {
             it.copy(
                 placeName = name,
                 accountId = account?.id.orEmpty(),
+                specialty = account?.specialty.orEmpty(),
                 classCategory = account?.classCategory.orEmpty(),
                 address = account?.address.orEmpty(),
                 accountLatitude = account?.latitude ?: 0.0,

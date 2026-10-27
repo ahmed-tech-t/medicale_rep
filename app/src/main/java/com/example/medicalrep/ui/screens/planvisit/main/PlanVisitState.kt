@@ -48,7 +48,6 @@ data class PlanVisitState(
     val districtOptions: List<String> = emptyList(),
     val entityTypeOptions: List<String> = emptyList(),
     val placeOptions: List<String> = emptyList(),
-    val specialtyOptions: List<String> = emptyList(),
     /** The supervisors the form can choose from; a double visit stores the id of the chosen one. */
     val supervisors: List<User> = emptyList(),
     /** When the form opened: the visit started then. */
@@ -65,11 +64,11 @@ data class PlanVisitState(
 
     /** Back asks to save only while a visit in progress was changed; the finished result step just leaves. */
     val asksToSave: Boolean get() = visit != initialVisit && currentStep != PlanVisitStep.Result
-    /** Step 1 is done: every search field is chosen; the supervisor only matters for a double visit. */
+    /** Step 1 is done: city, district, type and place are chosen (the specialty comes from the place); the supervisor only matters for a double visit. */
     val isEntityComplete: Boolean
         get() = with(visit) {
             city.isNotBlank() && region.isNotBlank() && account.isNotBlank() && placeName.isNotBlank() &&
-                specialty.isNotBlank() && (!isDoubleVisit || supervisorName.isNotBlank())
+                (!isDoubleVisit || supervisorName.isNotBlank())
         }
 
     /** Step 1 must be complete; step 2 (gifts and products) is optional. */

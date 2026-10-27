@@ -170,6 +170,7 @@
     <string name="unplanned_datetime_hint">يسجل تلقائياً من السيرفر (Default)</string>
     <string name="unplanned_section_location">تحديد المكان والمنطقة الجغرافية</string>
     <string name="unplanned_section_place_specialty">اسم المكان والتخصص</string>
+    <string name="unplanned_section_place">اسم المكان</string>
     <string name="unplanned_place_list_hint">تظهر القائمة بناءً على المنطقة والنوع المختارين</string>
     <string name="unplanned_place_select_hint">اختر اسم المكان / الطبيب من القائمة</string>
     <string name="unplanned_specialty_select_hint">اختر التخصص</string>

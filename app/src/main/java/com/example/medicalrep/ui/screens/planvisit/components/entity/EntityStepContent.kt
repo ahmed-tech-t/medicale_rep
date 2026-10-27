@@ -45,7 +45,7 @@ import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 import com.example.medicalrep.ui.ui.theme.Slate100
 import com.example.medicalrep.ui.ui.theme.Slate500
 
-/** Step 1 (Figma 33:5735): date/time, location, entity type, place + specialty, shift, visit type. */
+/** Step 1 (Figma 33:5735): date/time, location, entity type, place (its specialty comes with it), shift, visit type. */
 @Composable
 fun EntityStepContent(
     state: PlanVisitState,
@@ -57,7 +57,6 @@ fun EntityStepContent(
     var showRegionPopup by remember { mutableStateOf(false) }
     var showAccountPopup by remember { mutableStateOf(false) }
     var showplaceNamePopup by remember { mutableStateOf(false) }
-    var showSpecialtyPopup by remember { mutableStateOf(false) }
     var showSupervisorNamePopup by remember { mutableStateOf(false) }
 
     Column(
@@ -165,7 +164,7 @@ fun EntityStepContent(
 
         StepCard {
             Column(verticalArrangement = Arrangement.spacedBy(spacing.spaceExtraSmall)) {
-                StepCardTitle(stringResource(R.string.unplanned_section_place_specialty))
+                StepCardTitle(stringResource(R.string.unplanned_section_place))
                 NexoraText(
                     text = stringResource(R.string.unplanned_place_list_hint),
                     style = MaterialTheme.typography.labelSmall,
@@ -207,25 +206,6 @@ fun EntityStepContent(
                     onViewMap = { onEvent(PlanVisitEvents.ViewAccountLocationClick) },
                     enabled = visit.placeName.isNotBlank()
                 )
-
-            LabelWrapperComponent(
-                title = stringResource(R.string.unplanned_specialty_select_hint),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                SearchFieldComponent(
-                    enabled = visit.type == VisitType.Unplanned,
-                    modifier = Modifier.fillMaxWidth(),
-                    value = visit.specialty,
-                    options = state.specialtyOptions.toSearchItems(),
-                    onSelect = {
-                        onEvent(PlanVisitEvents.SelectSpecialty(it.name))
-                        showSpecialtyPopup = false
-                    },
-                    placeholder = stringResource(R.string.enter_specialty),
-                    showPopup = showSpecialtyPopup,
-                    onClick = { showSpecialtyPopup = !showSpecialtyPopup }
-                )
-            }
         }
 
         StepCard {
