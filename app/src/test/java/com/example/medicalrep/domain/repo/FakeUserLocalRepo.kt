@@ -4,7 +4,7 @@ import com.appcore.core.domain.repo.UserLocalRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
-/** In-memory user cache for tests. */
+/** In-memory user cache for tests; [clear] goes back to [default]. */
 class FakeUserLocalRepo<T>(private val default: T) : UserLocalRepo<T> {
     val current = MutableStateFlow(default)
 

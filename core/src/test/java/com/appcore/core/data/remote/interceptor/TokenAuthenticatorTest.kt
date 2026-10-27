@@ -1,6 +1,8 @@
 package com.appcore.core.data.remote.interceptor
 
+import com.appcore.core.data.local.datastore.model.UserDS
 import com.appcore.core.data.local.session.AuthSessionManager
+import com.appcore.core.data.local.session.FakeUserLocalRepo
 import com.appcore.core.domain.repo.AuthSessionLocalRepo
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
@@ -33,7 +35,7 @@ class TokenAuthenticatorTest {
 
     private fun signedInSession(): AuthSessionManager {
         val repo = FakeRepo().apply { access = "old-access"; refresh = "old-refresh" }
-        return AuthSessionManager(repo, emptySet()).also { runBlocking { it.initialize() } }
+        return AuthSessionManager(repo, FakeUserLocalRepo(UserDS()), emptySet()).also { runBlocking { it.initialize() } }
     }
 
     private fun unauthorized(): Response = Response.Builder()

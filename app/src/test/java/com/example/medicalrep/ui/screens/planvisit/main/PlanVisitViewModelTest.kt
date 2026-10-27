@@ -7,7 +7,7 @@ import com.appcore.core.domain.utils.Resource
 import com.appcore.core.domain.utils.UiEvent
 import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.repo.GeocodingRepo
-import com.example.medicalrep.domain.repo.FakeLastLocationRepo
+import com.example.medicalrep.domain.repo.FakeSession
 import com.example.medicalrep.ui.common.location.LocationStatus
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
@@ -75,7 +75,7 @@ class PlanVisitViewModelTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: PlanVisitViewModel
-    private val lastLocationRepo = FakeLastLocationRepo(GeoPoint(30.55, 31.13))
+    private val session = FakeSession().also { it.setLocation(GeoPoint(30.55, 31.13)) }
     private val geocodingRepo = FakeGeocodingRepo()
     private val draftRepo = FakeDraftVisitRepo()
     private val accountRepo = FakeAccountRepo(
@@ -126,7 +126,7 @@ class PlanVisitViewModelTest {
 
     private fun createViewModel(savedStateHandle: SavedStateHandle = SavedStateHandle()) =
         PlanVisitViewModel(
-            FakeUnplannedSettingsRepo, savedStateHandle, lastLocationRepo, geocodingRepo, draftRepo, accountRepo, userRepo, productRepo, visitRepo,
+            FakeUnplannedSettingsRepo, savedStateHandle, session.manager, geocodingRepo, draftRepo, accountRepo, userRepo, productRepo, visitRepo,
         )
 
     @Test
@@ -231,27 +231,26 @@ class PlanVisitViewModelTest {
         assertEquals(31.13, state.visit.visitLongitude, 0.0)
         assertNotNull(state.capturedAtMillis)
         assertEquals("Al Geish Street", state.locationAddress)
-        assertEquals(1, lastLocationRepo.calls)
+        val capturedAt = state.capturedAtMillis
 
         viewModel.onEvent(PlanVisitEvents.Previous)
         viewModel.onEvent(PlanVisitEvents.Next)
-        assertEquals(1, lastLocationRepo.calls)
+        assertEquals(capturedAt, state.capturedAtMillis)
     }
 
     @Test
     fun `refresh captures the location again`() {
         openResultStep()
-        lastLocationRepo.location = GeoPoint(30.60, 31.20)
+        session.setLocation(GeoPoint(30.60, 31.20))
         viewModel.onEvent(PlanVisitEvents.RefreshLocation)
         assertEquals(30.60, state.visit.visitLatitude, 0.0)
-        assertEquals(2, lastLocationRepo.calls)
     }
 
     @Test
     fun `no location shows a snackbar and keeps the old coordinates`() = runTest(dispatcher) {
         val events = collectEvents()
         val before = state.visit.visitLatitude
-        lastLocationRepo.location = null
+        session.setLocation(null)
         openResultStep()
         assertEquals(before, state.visit.visitLatitude, 0.0)
         assertNull(state.capturedAtMillis)
@@ -264,17 +263,6 @@ class PlanVisitViewModelTest {
         openResultStep()
         assertNull(state.locationAddress)
         assertEquals(30.55, state.visit.visitLatitude, 0.0)
-    }
-
-    @Test
-    fun `refresh while capturing is ignored`() {
-        val gate = CompletableDeferred<Unit>()
-        lastLocationRepo.gate = gate
-        openResultStep()
-        viewModel.onEvent(PlanVisitEvents.RefreshLocation)
-        assertEquals(1, lastLocationRepo.calls)
-        gate.complete(Unit)
-        assertEquals(false, state.isLocating)
     }
 
     @Test

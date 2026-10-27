@@ -104,10 +104,5 @@ internal abstract class CoreStorageModule {
                 default = UserDS(),
             )
 
-        /** The cached profile belongs to the signed-in user, so it goes with the session. */
-        @Provides
-        @IntoSet
-        fun provideClearUserOnSessionCleared(userLocalRepo: UserLocalRepo<UserDS>): SessionClearListener =
-            SessionClearListener { userLocalRepo.clear() }
     }
 }

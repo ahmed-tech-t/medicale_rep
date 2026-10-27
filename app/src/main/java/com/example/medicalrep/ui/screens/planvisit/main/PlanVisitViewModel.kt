@@ -23,7 +23,8 @@ import com.example.medicalrep.domain.repo.GeocodingRepo
 import com.example.medicalrep.domain.repo.ProductRepo
 import com.example.medicalrep.domain.repo.UserRepo
 import com.example.medicalrep.domain.repo.VisitRepo
-import com.example.medicalrep.domain.repo.LastLocationRepo
+import com.appcore.core.data.local.session.AuthSessionManager
+import com.example.medicalrep.domain.models.lastLocation
 import com.example.medicalrep.ui.mapper.toDomain
 import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.ProductUi
@@ -57,7 +58,7 @@ import javax.inject.Inject
 class PlanVisitViewModel @Inject constructor(
     appSettingsRepo: AppSettingsRepo,
     savedStateHandle: SavedStateHandle,
-    private val lastLocationRepo: LastLocationRepo,
+    private val session: AuthSessionManager,
     private val geocodingRepo: GeocodingRepo,
     private val draftRepo: DraftVisitRepo,
     private val accountRepo: AccountRepo,
@@ -290,7 +291,7 @@ class PlanVisitViewModel @Inject constructor(
         if (_state.value.isLocating) return
         _state.update { it.copy(isLocating = true) }
         viewModelScope.launch {
-            val location = lastLocationRepo.current()
+            val location = session.user.value.lastLocation
             if (location == null) {
                 _state.update { it.copy(isLocating = false) }
                 sendEvent(ShowSnackBar(StringResource(R.string.visit_location_unavailable)))

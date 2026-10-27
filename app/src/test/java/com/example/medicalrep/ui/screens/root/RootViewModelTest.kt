@@ -1,7 +1,9 @@
 package com.example.medicalrep.ui.screens.root
 
 import com.appcore.core.config.CoreConfig
+import com.appcore.core.data.local.datastore.model.UserDS
 import com.appcore.core.data.local.session.AuthSessionManager
+import com.example.medicalrep.domain.repo.FakeUserLocalRepo
 import com.appcore.core.data.local.settings.AppSettingsManager
 import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
@@ -43,7 +45,7 @@ class RootViewModelTest {
     fun setUp() {
         Dispatchers.setMain(dispatcher)
         val settingsRepo = FakeSettingsRepo
-        sessionManager = AuthSessionManager(FakeSessionRepo, emptySet())
+        sessionManager = AuthSessionManager(FakeSessionRepo, FakeUserLocalRepo(UserDS()), emptySet())
         val settingsManager = AppSettingsManager(
             settingsRepo,
             CoreConfig(baseUrl = "", isDebug = false, cryptoKeyAlias = "", defaultLanguage = "ar"),

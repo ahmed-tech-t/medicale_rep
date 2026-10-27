@@ -9,7 +9,7 @@ import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.models.RouteResult
 import com.example.medicalrep.domain.repo.GeocodingRepo
 import com.example.medicalrep.domain.repo.RouteRepo
-import com.example.medicalrep.domain.repo.FakeLastLocationRepo
+import com.example.medicalrep.domain.repo.FakeSession
 import com.example.medicalrep.ui.common.location.LocationStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -51,7 +51,7 @@ class AccountDirectionsViewModelTest {
     private val near = GeoPoint(latitude = 0.0001, longitude = 0.0) // about 11 m
     private val routeRepo = FakeRouteRepo()
     private val geocodingRepo = FakeGeocodingRepo()
-    private val lastLocationRepo = FakeLastLocationRepo()
+    private val session = FakeSession()
 
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -60,7 +60,7 @@ class AccountDirectionsViewModelTest {
     fun tearDown() = Dispatchers.resetMain()
 
     private fun createViewModel(userLocation: GeoPoint?): AccountDirectionsViewModel {
-        lastLocationRepo.location = userLocation
+        session.setLocation(userLocation)
         return AccountDirectionsViewModel(
             FakeSettingsRepo,
             SavedStateHandle(
@@ -70,7 +70,7 @@ class AccountDirectionsViewModelTest {
                     "accountName" to "Clinic",
                 )
             ),
-            lastLocationRepo,
+            session.manager,
             routeRepo,
             geocodingRepo,
         )
@@ -141,13 +141,13 @@ class AccountDirectionsViewModelTest {
     @Test
     fun `refresh reads the location again and keeps the old one without a new fix`() {
         val viewModel = createViewModel(far)
-        lastLocationRepo.location = near
+        session.setLocation(near)
         viewModel.onEvent(AccountDirectionsEvents.RefreshLocation)
         assertEquals(near, viewModel.state.value.userLocation)
         assertTrue(viewModel.state.value.isAtAccount)
         assertNull(viewModel.state.value.route)
 
-        lastLocationRepo.location = null
+        session.setLocation(null)
         viewModel.onEvent(AccountDirectionsEvents.RefreshLocation)
         assertEquals(near, viewModel.state.value.userLocation)
         assertFalse(viewModel.state.value.isLocating)

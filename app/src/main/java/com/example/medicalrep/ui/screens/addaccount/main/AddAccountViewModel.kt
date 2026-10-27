@@ -10,7 +10,8 @@ import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.repo.AccountRepo
-import com.example.medicalrep.domain.repo.LastLocationRepo
+import com.appcore.core.data.local.session.AuthSessionManager
+import com.example.medicalrep.domain.models.lastLocation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +26,7 @@ import javax.inject.Inject
 class AddAccountViewModel @Inject constructor(
     appSettingsRepo: AppSettingsRepo,
     private val accountRepo: AccountRepo,
-    lastLocationRepo: LastLocationRepo,
+    session: AuthSessionManager,
 ) : BaseViewModel(appSettingsRepo) {
 
     private val _state = MutableStateFlow(AddAccountState())
@@ -37,7 +38,7 @@ class AddAccountViewModel @Inject constructor(
         collectInto(accountRepo.entityTypes()) { state, types -> state.copy(entityTypeOptions = types) }
         collectInto(accountRepo.specialties()) { state, specialties -> state.copy(specialtyOptions = specialties) }
         viewModelScope.launch {
-            lastLocationRepo.current()?.let { location -> _state.update { it.copy(userLocation = location) } }
+            session.user.value.lastLocation?.let { location -> _state.update { it.copy(userLocation = location) } }
         }
     }
 

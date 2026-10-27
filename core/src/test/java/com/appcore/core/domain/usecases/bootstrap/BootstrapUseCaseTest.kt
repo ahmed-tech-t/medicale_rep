@@ -1,7 +1,9 @@
 package com.appcore.core.domain.usecases.bootstrap
 
 import com.appcore.core.config.CoreConfig
+import com.appcore.core.data.local.datastore.model.UserDS
 import com.appcore.core.data.local.session.AuthSessionManager
+import com.appcore.core.data.local.session.FakeUserLocalRepo
 import com.appcore.core.data.local.settings.AppSettingsManager
 import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.models.UserAuthStatus
@@ -49,7 +51,7 @@ class BootstrapUseCaseTest {
     private fun useCase(sessionRepo: FakeSessionRepo, showOnBoarding: Boolean = false): BootstrapUseCase {
         val settingsRepo = FakeSettingsRepo(showOnBoarding)
         return BootstrapUseCase(
-            authSessionManager = AuthSessionManager(sessionRepo, emptySet()),
+            authSessionManager = AuthSessionManager(sessionRepo, FakeUserLocalRepo(UserDS()), emptySet()),
             appSettingsManager = AppSettingsManager(settingsRepo, config),
             appSettingsRepo = settingsRepo,
         )

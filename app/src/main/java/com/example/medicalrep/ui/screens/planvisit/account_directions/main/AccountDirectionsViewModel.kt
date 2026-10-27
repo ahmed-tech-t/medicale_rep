@@ -10,7 +10,8 @@ import com.appcore.core.ui.utils.BaseViewModel
 import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.repo.GeocodingRepo
 import com.example.medicalrep.domain.repo.RouteRepo
-import com.example.medicalrep.domain.repo.LastLocationRepo
+import com.appcore.core.data.local.session.AuthSessionManager
+import com.example.medicalrep.domain.models.lastLocation
 import com.example.medicalrep.ui.navigation.model.MainGraph
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +25,7 @@ import javax.inject.Inject
 class AccountDirectionsViewModel @Inject constructor(
     appSettingsRepo: AppSettingsRepo,
     savedStateHandle: SavedStateHandle,
-    private val lastLocationRepo: LastLocationRepo,
+    private val session: AuthSessionManager,
     private val routeRepo: RouteRepo,
     private val geocodingRepo: GeocodingRepo,
 ) : BaseViewModel(appSettingsRepo) {
@@ -48,7 +49,7 @@ class AccountDirectionsViewModel @Inject constructor(
         if (_state.value.isLocating) return
         _state.update { it.copy(isLocating = true) }
         viewModelScope.launch {
-            val user = lastLocationRepo.current()
+            val user = session.user.value.lastLocation
             if (user == null) {
                 _state.update { it.copy(isLocating = false) }
                 return@launch
