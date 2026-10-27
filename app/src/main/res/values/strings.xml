@@ -90,7 +90,7 @@
     <!-- Home / attendance -->
     <string name="home_today_visits">Today\'s visits</string>
     <string name="no_visits_today">No visits today</string>
-    <string name="home_more">More</string>
+    <string name="home_more">View all</string>
     <string name="attendance_recorded">Attendance recorded</string>
     <string name="attendance_start_shift">Start shift</string>
     <string name="attendance_end_shift">End shift</string>
@@ -132,16 +132,6 @@
     <!-- Statics -->
     <string name="statics_title">Statistics and reports</string>
     <string name="statics_section_visits">Visit and plan statistics</string>
-    <string name="statics_metric_today">Today\'s visits</string>
-    <string name="statics_metric_completed">Completed visits</string>
-    <string name="statics_metric_unplanned">Unplanned visits</string>
-    <string name="statics_section_custody">Rep custody summary (meds and gifts)</string>
-    <string name="statics_custody_samples_title">Medicine and product samples</string>
-    <string name="statics_custody_gifts_title">Promotional gifts</string>
-    <string name="statics_custody_samples_received_format">Received: %1$d packs (%2$d SKUs)</string>
-    <string name="statics_custody_gifts_received_format">Received: %1$d pieces (%2$d SKUs)</string>
-    <string name="statics_custody_remaining_format">Remaining: %1$d</string>
-    <string name="statics_custody_dispatched_format">Dispatched: %1$d</string>
     <string name="statics_section_accounts">Account distribution by category</string>
     <string name="statics_account_clinic">Clinic</string>
     <string name="statics_account_pharmacy">Pharmacy</string>
@@ -271,10 +261,17 @@
     <string name="terms_changes_body">These terms may be updated from time to time. Continuing to use the app means you accept the latest version.</string>
     <string name="language">Language</string>
     <string name="drawer_id_format">ID: %1$s</string>
-    <string name="home_section_visit_stats">Visit statistics</string>
     <string name="statics_metric_clinics">Clinics</string>
-    <string name="statics_metric_doctors">Doctors</string>
     <string name="home_add_visit">Add visit</string>
+    <string name="home_add_visit_hint">Record a new visit</string>
+    <string name="home_plan_visits">Plan visits</string>
+    <string name="home_plan_visits_hint">Plan your day</string>
+    <string name="home_samples_gifts">Samples and gifts</string>
+    <string name="home_samples_gifts_hint">Manage your stock</string>
+    <string name="home_accounts">Doctors and accounts</string>
+    <string name="home_accounts_hint">View details</string>
+    <string name="home_week_progress">Week\'s progress</string>
+    <string name="home_completed_visits">Completed visits</string>
 
 
     <!-- Visit log -->

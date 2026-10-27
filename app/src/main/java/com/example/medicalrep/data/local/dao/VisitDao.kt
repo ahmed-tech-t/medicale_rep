@@ -180,6 +180,15 @@ abstract class VisitDao : BaseDao<VisitEntity> {
     @Query("SELECT COUNT(*) FROM visits WHERE status = 'Completed' AND (:shift IS NULL OR shift = :shift) AND (:doubleOnly = 0 OR visitMode = 'Double') AND (:syncStatus IS NULL OR syncStatus = :syncStatus) AND (:classCategory IS NULL OR accountId IN (SELECT id FROM accounts WHERE classCategory = :classCategory))")
     abstract fun doneCount(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?, classCategory: String?): Flow<Int>
 
+    /** The visits still to do in a day (from included, to not included): soonest first, at most [limit]. */
+    @Transaction
+    @Query("SELECT * FROM visits WHERE status = 'Scheduled' AND dateTimeMillis >= :fromMillis AND dateTimeMillis < :toMillis ORDER BY dateTimeMillis LIMIT :limit")
+    abstract fun scheduledBetween(fromMillis: Long, toMillis: Long, limit: Int): Flow<List<VisitWithDetails>>
+
+    /** Visits waiting for upload. */
+    @Query("SELECT COUNT(*) FROM visits WHERE syncStatus = 'NotSynced'")
+    abstract fun countNotSynced(): Flow<Int>
+
     /** Only scheduled visits can be started. */
     @Transaction
     @Query("SELECT * FROM visits WHERE status = 'Scheduled' ORDER BY dateTimeMillis DESC")

@@ -86,6 +86,20 @@ class FakeVisitRepo(initial: List<Visit> = emptyList()) : VisitRepo {
         return late.size
     }
 
+    /** The (from, to, limit) of every `todayVisits` call, in order. */
+    val todayRequests = mutableListOf<Triple<Long, Long, Int>>()
+
+    override fun todayVisits(fromMillis: Long, toMillis: Long, limit: Int): Flow<List<Visit>> {
+        todayRequests += Triple(fromMillis, toMillis, limit)
+        return current.map { list ->
+            list.filter { it.status == VisitStatus.Scheduled && (it.dateTimeMillis ?: 0L) in fromMillis until toMillis }
+                .sortedBy { it.dateTimeMillis }
+                .take(limit)
+        }
+    }
+
+    override fun notSyncedCount(): Flow<Int> = current.map { list -> list.count { it.syncStatus == SyncStatus.NotSynced } }
+
     override fun visits(query: String): Flow<PagingData<Visit>> = current.map { PagingData.from(it) }
 
     override fun visitsFiltered(type: VisitType?, syncStatus: SyncStatus?, repId: String?, fromMillis: Long, toMillis: Long): Flow<PagingData<Visit>> =

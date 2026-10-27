@@ -6,7 +6,6 @@ import com.appcore.core.data.local.settings.LocaleHelper
 import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
-import com.example.medicalrep.ui.models.StaticsMetricUi
 import com.example.medicalrep.ui.navigation.model.MainGraph
 import com.example.medicalrep.ui.screens.home.components.nav_drawer.NavDrawerItem
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +23,14 @@ import com.example.medicalrep.ui.common.connectivity.ConnectivityObserver
 import kotlinx.coroutines.flow.MutableStateFlow
 import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.Visit
+import com.example.medicalrep.domain.models.SyncStatus
+import com.example.medicalrep.domain.models.VisitProgress
 import com.example.medicalrep.domain.models.VisitStatus
+import com.example.medicalrep.domain.repo.FakeStatisticsRepo
+import com.appcore.core.data.local.datastore.model.UserDS
+import com.example.medicalrep.ui.utils.startOfNextDay
+import com.example.medicalrep.ui.utils.startOfNextWeek
+import com.example.medicalrep.ui.utils.startOfWeek
 import com.example.medicalrep.domain.repo.FakeDraftVisitRepo
 import com.example.medicalrep.domain.repo.FakeSession
 import com.example.medicalrep.domain.repo.FakeVisitRepo
@@ -40,16 +46,19 @@ import org.junit.Test
 
 /**
  * TDD cases (Given / When / Then):
- * 1. Given a new Home, When it opens, Then it shows the user, an active visit, today's visits,
- *    four visit metrics (today, completed, clinics, doctors), custody summary and a closed drawer.
+ * 1. Given a new Home, When it opens, Then it shows the session user (name, role), the saved street, today's date,
+ *    the week's progress, today's visits and a closed drawer.
+ * 1b. Today's visits are today's Scheduled visits, soonest first, at most three; the progress is asked for the
+ *     Saturday-to-Friday week; the number of visits to upload follows the data.
+ * 1c. The quick actions open Visit planning, Samples & gifts and Accounts; Add visit asks first when a draft is pending;
+ *     View all opens My visits.
  * 2. Given the drawer is closed, When the menu is tapped, Then the drawer opens.
  * 3. Given the drawer is open, When it is dismissed, Then it closes.
  * 4. Given the drawer is open, When the "Add account" row is tapped, Then the drawer closes
  *    and the add account screen opens.
  * 5. Given Arabic, When the language row is tapped, Then language becomes "en", the drawer closes
  *    and the settings manager publishes "en". Tapping again returns to "ar".
- * 6. Given Home, When sync / continue / cancel / more is tapped,
- *    Then each sends exactly one "coming soon" snackbar.
+ * 6. Given Home, When View all is tapped, Then My visits opens; the sync button does nothing yet.
  * 6b. Given Home, When a today's visit is started, Then it opens the visit screen with that visit id.
  * 8. Given the network changes, Then the connection state starts Offline, follows Online/Offline, and shouldSync
  *    is true only while Online with visits to upload.
@@ -65,7 +74,8 @@ class HomeViewModelTest {
     private val connectivity = MutableStateFlow<ConnectionState>(ConnectionState.Offline)
     private val draftRepo = FakeDraftVisitRepo()
     private val visitRepo = FakeVisitRepo()
-    private val session = FakeSession()
+    private val statisticsRepo = FakeStatisticsRepo()
+    private val session = FakeSession(UserDS(id = 7, firstName = "Ahmed", lastName = "Mohamed", roleName = "Rep Track", lastAddress = "Union Square"))
     private val draft = DraftVisit(step = 1, visit = Visit(id = "draft", placeName = "عيادة د. محمود"))
 
     @Before
@@ -79,7 +89,7 @@ class HomeViewModelTest {
     }
 
     private fun newViewModel() = HomeViewModel(
-        FakeHomeSettingsRepo, settingsManager, LocaleHelper(settingsManager), FakeConnectivityObserver(connectivity), draftRepo, visitRepo, session.manager,
+        FakeHomeSettingsRepo, settingsManager, LocaleHelper(settingsManager), FakeConnectivityObserver(connectivity), draftRepo, visitRepo, statisticsRepo, session.manager,
     )
 
     @After
@@ -187,7 +197,11 @@ class HomeViewModelTest {
 
         connectivity.value = ConnectionState.Online
         assertEquals(ConnectionState.Online, state.connection)
-        assertEquals(state.toSyncVisits.isNotEmpty(), state.shouldSync)
+        assertFalse(state.shouldSync) // nothing to upload
+
+        visitRepo.current.value = listOf(Visit(id = "n", status = VisitStatus.Completed, syncStatus = SyncStatus.NotSynced))
+        assertEquals(1, state.toSyncCount)
+        assertTrue(state.shouldSync)
 
         connectivity.value = ConnectionState.Offline
         assertEquals(ConnectionState.Offline, state.connection)
@@ -195,22 +209,67 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `initial state matches the design sections`() {
-        assertEquals("أحمد محمد", state.user.displayName)
+    fun `initial state shows the session user, the saved street and today's date`() {
+        assertEquals("Ahmed Mohamed", state.user.displayName)
+        assertEquals("Rep Track", state.user.roleTitle)
+        assertEquals("Union Square", state.address)
+        assertEquals(startOfDay(System.currentTimeMillis()), startOfDay(state.dateMillis))
         assertNull(state.activeVisit)
-        assertEquals(2, state.todayVisits.size)
-        assertEquals(
-            listOf(
-                StaticsMetricUi.Today::class,
-                StaticsMetricUi.Completed::class,
-                StaticsMetricUi.Clinics::class,
-                StaticsMetricUi.Doctors::class,
-            ),
-            state.visitMetrics.map { it::class },
-        )
-        assertTrue(state.custodySummary.isNotEmpty())
+        assertTrue(state.todayVisits.isEmpty())
+        assertEquals(VisitProgress(), state.progress)
         assertEquals("ar", state.language)
         assertFalse(state.isDrawerOpen)
+    }
+
+    @Test
+    fun `the user and the street follow the session`() = runTest(dispatcher) {
+        session.manager.updateUser { it.copy(firstName = "Sara", lastAddress = null) }
+        assertEquals("Sara Mohamed", state.user.displayName)
+        assertNull(state.address)
+    }
+
+    @Test
+    fun `today's visits are the scheduled ones of today, soonest first, at most three`() {
+        val today = startOfDay(System.currentTimeMillis())
+        fun visit(id: String, atHour: Int, status: VisitStatus = VisitStatus.Scheduled, dayOffset: Long = 0) =
+            Visit(id = id, status = status, dateTimeMillis = today + dayOffset * 24 * HOUR + atHour * HOUR)
+        visitRepo.current.value = listOf(
+            visit("c", 14), visit("a", 9), visit("b", 11), visit("d", 16),
+            visit("done", 8, VisitStatus.Completed), visit("tomorrow", 9, dayOffset = 1), visit("yesterday", 9, dayOffset = -1),
+        )
+        assertEquals(listOf("a", "b", "c"), state.todayVisits.map { it.id })
+        val (from, to, limit) = visitRepo.todayRequests.single()
+        assertEquals(today, from)
+        assertEquals(startOfNextDay(today), to)
+        assertEquals(3, limit)
+    }
+
+    @Test
+    fun `the progress is asked for the Saturday to Friday week and follows the repo`() {
+        val now = System.currentTimeMillis()
+        assertEquals(listOf(startOfWeek(now) to startOfNextWeek(now)), statisticsRepo.requestedProgressRanges)
+        statisticsRepo.progress.value = VisitProgress(completed = 10, planned = 26)
+        assertEquals(10, state.progress.completed)
+        assertEquals(26, state.progress.planned)
+        assertEquals(38, state.progress.percent)
+    }
+
+    @Test
+    fun `quick actions open planning, samples and gifts and accounts, and view all opens my visits`() = runTest(dispatcher) {
+        val events = collectEvents()
+        viewModel.onEvent(HomeEvents.OnPlanVisitsClick)
+        viewModel.onEvent(HomeEvents.OnSamplesAndGiftsClick)
+        viewModel.onEvent(HomeEvents.OnAccountsClick)
+        viewModel.onEvent(HomeEvents.OnTodayMoreClick)
+        assertEquals(
+            listOf<UiEvent>(
+                UiEvent.Navigate(MainGraph.VisitPlanning),
+                UiEvent.Navigate(MainGraph.SampleAndGifts),
+                UiEvent.Navigate(MainGraph.Accounts),
+                UiEvent.Navigate(MainGraph.VisitLog),
+            ),
+            events,
+        )
     }
 
     @Test
@@ -255,15 +314,10 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `unbuilt actions each show one coming soon snackbar`() = runTest(dispatcher) {
+    fun `the sync button does nothing yet`() = runTest(dispatcher) {
         val events = collectEvents()
-        val actions = listOf(
-            HomeEvents.OnSyncClick,
-            HomeEvents.OnTodayMoreClick,
-        )
-        actions.forEach(viewModel::onEvent)
-        assertEquals(actions.size, events.size)
-        assertTrue(events.all { it is UiEvent.ShowSnackBar })
+        viewModel.onEvent(HomeEvents.OnSyncClick)
+        assertTrue(events.isEmpty())
     }
 
     @Test
@@ -274,7 +328,7 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `add visit FAB and drawer row open the unplanned visit screen`() = runTest(dispatcher) {
+    fun `add visit action and drawer row open the unplanned visit screen`() = runTest(dispatcher) {
         val events = collectEvents()
         viewModel.onEvent(HomeEvents.OnAddVisitClick)
         viewModel.onEvent(HomeEvents.OnMenuClick)
@@ -379,6 +433,8 @@ class HomeViewModelTest {
         return events
     }
 }
+
+private const val HOUR = 3_600_000L
 
 private object FakeHomeSettingsRepo : AppSettingsRepo {
     override fun getSettings(): Flow<AppSettings> = emptyFlow()

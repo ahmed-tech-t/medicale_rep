@@ -2,8 +2,7 @@ package com.example.medicalrep.ui.screens.home.main
 
 import androidx.compose.runtime.Immutable
 import com.example.medicalrep.domain.models.ConnectionState
-import com.example.medicalrep.ui.models.StaticsGiftsItemUi
-import com.example.medicalrep.ui.models.StaticsMetricUi
+import com.example.medicalrep.domain.models.VisitProgress
 import com.example.medicalrep.ui.models.UserUi
 import com.example.medicalrep.ui.models.VisitUi
 
@@ -20,15 +19,20 @@ sealed interface HomeOverlay {
 data class HomeState(
     val user: UserUi = UserUi(),
     val connection: ConnectionState = ConnectionState.Offline,
+    /** The street the rep is on; null when it is not known. */
+    val address: String? = null,
+    /** The day Home was opened, for the date line. */
+    val dateMillis: Long = 0L,
+    /** The visits done out of the visits planned this week. */
+    val progress: VisitProgress = VisitProgress(),
     val activeVisit: VisitUi? = null,
     val todayVisits: List<VisitUi> = listOf(),
-    val toSyncVisits: List<VisitUi> = listOf(),
-    val visitMetrics: List<StaticsMetricUi> = listOf(),
-    val custodySummary: List<StaticsGiftsItemUi> = listOf(),
+    /** How many visits wait for upload. */
+    val toSyncCount: Int = 0,
     val language: String = "ar",
     val isDrawerOpen: Boolean = false,
     val overlay: HomeOverlay = HomeOverlay.None,
 ) {
 
-    val shouldSync: Boolean = connection == ConnectionState.Online && toSyncVisits.isNotEmpty()
+    val shouldSync: Boolean get() = connection == ConnectionState.Online && toSyncCount > 0
 }

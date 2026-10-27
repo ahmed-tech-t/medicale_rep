@@ -55,6 +55,11 @@ class VisitRepoImpl @Inject constructor(
 
     override fun pendingCount(): Flow<Int> = dao.countPending()
 
+    override fun todayVisits(fromMillis: Long, toMillis: Long, limit: Int): Flow<List<Visit>> =
+        dao.scheduledBetween(fromMillis, toMillis, limit).map { list -> list.map { it.toDomain() } }
+
+    override fun notSyncedCount(): Flow<Int> = dao.countNotSynced()
+
     override fun startableVisits() = pagedFlow({ dao.startablePaged() }) { it.toDomain() }
 
     override suspend fun get(id: String): Visit? = dao.getWithDetails(id)?.toDomain()

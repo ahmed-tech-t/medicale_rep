@@ -12,6 +12,9 @@ sealed interface HomeEvents {
     data class OnStartVisit(val visitId: String) : HomeEvents
     data object OnTodayMoreClick : HomeEvents
     data object OnAddVisitClick : HomeEvents
+    data object OnPlanVisitsClick : HomeEvents
+    data object OnSamplesAndGiftsClick : HomeEvents
+    data object OnAccountsClick : HomeEvents
     data object OnPendingVisitConfirm : HomeEvents
     data object OnDiscardPendingConfirm : HomeEvents
     data object OnOverlayDismiss : HomeEvents

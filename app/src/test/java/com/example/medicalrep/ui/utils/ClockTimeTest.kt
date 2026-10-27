@@ -26,6 +26,15 @@ class ClockTimeTest {
         Calendar.getInstance().apply { clear(); set(2026, month, day, hour, minute, 0) }.timeInMillis
 
     @Test
+    fun `the next day starts 23 to 25 hours after the day start`() {
+        val today = startOfDay(at(27, 15))
+        val next = startOfNextDay(at(27, 15))
+        assertEquals(at(28), next)
+        assertEquals(next, startOfNextDay(today))
+        assertTrue(next - today in 23 * 3_600_000L..25 * 3_600_000L)
+    }
+
+    @Test
     fun `the week starts on the Saturday at midnight`() {
         val saturday = at(24)
         assertEquals(saturday, startOfWeek(at(27, 15, 30))) // Tuesday

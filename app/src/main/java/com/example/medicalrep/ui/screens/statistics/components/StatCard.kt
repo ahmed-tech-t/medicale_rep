@@ -26,11 +26,18 @@ data class StatItem(val label: String, val value: String)
 @Composable
 fun StatCard(item: StatItem, modifier: Modifier = Modifier) {
     NexoraCard(modifier = modifier, borderColor = Slate200) {
-        Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall)) {
-            NexoraText(text = item.label, style = MaterialTheme.typography.labelLarge, color = Slate500)
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall)
+        ) {
+            NexoraText(
+                text = item.label,
+                style = MaterialTheme.typography.labelLarge,
+                color = Slate500
+            )
             NexoraText(
                 text = item.value,
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
                 color = Ink,
             )
         }
@@ -40,5 +47,10 @@ fun StatCard(item: StatItem, modifier: Modifier = Modifier) {
 @Preview(showBackground = true, locale = "ar")
 @Composable
 private fun StatCardPreview() {
-    MedicalRepTheme { StatCard(item = StatItem("الأطباء", "14"), modifier = Modifier.padding(spacing.spaceMedium)) }
+    MedicalRepTheme {
+        StatCard(
+            item = StatItem("الأطباء", "14"),
+            modifier = Modifier.padding(spacing.spaceMedium)
+        )
+    }
 }

@@ -5,18 +5,19 @@ import com.appcore.core.data.local.settings.AppSettingsManager
 import com.appcore.core.data.local.settings.LocaleHelper
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
-import com.appcore.core.domain.utils.UiText
 import com.appcore.core.ui.utils.BaseViewModel
-import com.example.medicalrep.R
-import com.example.medicalrep.domain.models.ConnectionState
 import com.example.medicalrep.domain.repo.DraftVisitRepo
+import com.example.medicalrep.domain.models.Visit
+import com.example.medicalrep.domain.repo.StatisticsRepo
 import com.example.medicalrep.domain.repo.VisitRepo
 import com.example.medicalrep.ui.utils.startOfDay
+import com.example.medicalrep.ui.utils.startOfNextDay
+import com.example.medicalrep.ui.utils.startOfNextWeek
+import com.example.medicalrep.ui.utils.startOfWeek
 import com.appcore.core.data.local.session.AuthSessionManager
 import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.common.connectivity.ConnectivityObserver
 import com.example.medicalrep.ui.navigation.model.MainGraph
-import com.example.medicalrep.ui.preview.HomeSamples
 import com.example.medicalrep.ui.screens.home.components.nav_drawer.NavDrawerItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -26,6 +27,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/** Home lists the next few visits of the day; the rest are under View all. */
+private const val TODAY_VISITS_LIMIT = 3
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     appSettingsRepo: AppSettingsRepo,
@@ -34,14 +38,15 @@ class HomeViewModel @Inject constructor(
     connectivityObserver: ConnectivityObserver,
     private val draftVisitRepo: DraftVisitRepo,
     private val visitRepo: VisitRepo,
+    statisticsRepo: StatisticsRepo,
     private val session: AuthSessionManager,
 ) : BaseViewModel(appSettingsRepo) {
 
+    /** When Home opened: today and this week are fixed from then. */
+    private val openedAtMillis = System.currentTimeMillis()
+
     // Offline until the observer reports the real network state.
-    private val _state = MutableStateFlow(
-        HomeSamples.homeState(language = appSettingsManager.getLanguageSync())
-            .copy(connection = ConnectionState.Offline, activeVisit = null),
-    )
+    private val _state = MutableStateFlow(HomeState(language = appSettingsManager.getLanguageSync(), dateMillis = openedAtMillis))
     val state: StateFlow<HomeState> = _state.asStateFlow()
 
     init {
@@ -51,6 +56,20 @@ class HomeViewModel @Inject constructor(
         }
         viewModelScope.launch {
             connectivityObserver.connection.collect { connection -> _state.update { it.copy(connection = connection) } }
+        }
+        viewModelScope.launch {
+            session.user.collect { user -> _state.update { it.copy(user = user.toUi(), address = user.lastAddress) } }
+        }
+        viewModelScope.launch {
+            statisticsRepo.progress(startOfWeek(openedAtMillis), startOfNextWeek(openedAtMillis))
+                .collect { progress -> _state.update { it.copy(progress = progress) } }
+        }
+        viewModelScope.launch {
+            visitRepo.todayVisits(startOfDay(openedAtMillis), startOfNextDay(openedAtMillis), TODAY_VISITS_LIMIT)
+                .collect { visits -> _state.update { it.copy(todayVisits = visits.map(Visit::toUi)) } }
+        }
+        viewModelScope.launch {
+            visitRepo.notSyncedCount().collect { count -> _state.update { it.copy(toSyncCount = count) } }
         }
     }
 
@@ -93,10 +112,11 @@ class HomeViewModel @Inject constructor(
                 _state.update { it.copy(overlay = HomeOverlay.None) }
             }
             HomeEvents.OnOverlayDismiss -> _state.update { it.copy(overlay = HomeOverlay.None) }
-            HomeEvents.OnSyncClick->{}
-            HomeEvents.OnTodayMoreClick ->{
-                sendEvent(UiEvent.Navigate(MainGraph.VisitLog))
-            }
+            HomeEvents.OnSyncClick -> Unit
+            HomeEvents.OnPlanVisitsClick -> sendEvent(UiEvent.Navigate(MainGraph.VisitPlanning))
+            HomeEvents.OnSamplesAndGiftsClick -> sendEvent(UiEvent.Navigate(MainGraph.SampleAndGifts))
+            HomeEvents.OnAccountsClick -> sendEvent(UiEvent.Navigate(MainGraph.Accounts))
+            HomeEvents.OnTodayMoreClick -> sendEvent(UiEvent.Navigate(MainGraph.VisitLog))
         }
     }
 
@@ -124,10 +144,6 @@ class HomeViewModel @Inject constructor(
 
     private fun openPlanVisit() {
         sendEvent(UiEvent.Navigate(MainGraph.PlanVisit()))
-    }
-
-    private fun showComingSoon() {
-        sendEvent(UiEvent.ShowSnackBar(UiText.StringResource(R.string.placeholder_coming_soon)))
     }
 
     private fun switchLanguage() {

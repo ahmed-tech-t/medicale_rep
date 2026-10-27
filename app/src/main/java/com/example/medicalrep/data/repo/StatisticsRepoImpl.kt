@@ -8,6 +8,7 @@ import com.example.medicalrep.domain.models.ClassShare
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Statistics
 import com.example.medicalrep.domain.models.StockCount
+import com.example.medicalrep.domain.models.VisitProgress
 import com.example.medicalrep.domain.repo.StatisticsRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -18,17 +19,21 @@ class StatisticsRepoImpl @Inject constructor(
     private val custodyDao: CustodyDao,
 ) : StatisticsRepo {
 
+    override fun progress(fromMillis: Long, toMillis: Long): Flow<VisitProgress> = combine(
+        dao.completedBetween(fromMillis, toMillis),
+        dao.plannedBetween(fromMillis, toMillis),
+    ) { completed, planned -> VisitProgress(completed = completed, planned = planned) }
+
     override fun between(fromMillis: Long, toMillis: Long): Flow<Statistics> {
         val visits = combine(
-            dao.completedBetween(fromMillis, toMillis),
-            dao.plannedBetween(fromMillis, toMillis),
+            progress(fromMillis, toMillis),
             dao.visitedAccountsByType(fromMillis, toMillis),
             dao.visitedDoctors(fromMillis, toMillis),
-        ) { completed, planned, types, doctors ->
+        ) { progress, types, doctors ->
             val accountsOf = types.associate { it.accountType to it.accounts }
             Statistics(
-                completedVisits = completed,
-                plannedVisits = planned,
+                completedVisits = progress.completed,
+                plannedVisits = progress.planned,
                 doctors = doctors,
                 clinics = accountsOf[AccountType.Clinic] ?: 0,
                 hospitals = accountsOf[AccountType.Hospital] ?: 0,

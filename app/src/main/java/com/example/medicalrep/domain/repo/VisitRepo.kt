@@ -48,6 +48,12 @@ interface VisitRepo {
     fun rejectedRequests(shift: Shift? = null, classCategory: String? = null): Flow<PagingData<Visit>>
     fun rejectedRequestCount(shift: Shift? = null, classCategory: String? = null): Flow<Int>
 
+    /** The visits still to do in the range (from included, to not included), soonest first, at most [limit]. */
+    fun todayVisits(fromMillis: Long, toMillis: Long, limit: Int): Flow<List<Visit>>
+
+    /** How many visits wait for upload. */
+    fun notSyncedCount(): Flow<Int>
+
     /** Only planned visits can be started. */
     fun startableVisits(): Flow<PagingData<Visit>>
 

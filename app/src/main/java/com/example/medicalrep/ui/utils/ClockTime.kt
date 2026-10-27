@@ -20,6 +20,18 @@ fun startOfDay(millis: Long): Long = Calendar.getInstance().apply {
     set(Calendar.MILLISECOND, 0)
 }.timeInMillis
 
+/** The first millisecond of the day after the one [millis] falls on (a day is 23 to 25 hours around a clock change). */
+fun startOfNextDay(millis: Long): Long = Calendar.getInstance().apply {
+    timeInMillis = startOfDay(millis)
+    add(Calendar.DAY_OF_YEAR, 1)
+}.timeInMillis
+
+/** The weekday and date like "الاثنين، 26 أكتوبر" or "Monday, October 26", in the app language. */
+fun formatWeekdayDate(millis: Long): String {
+    val pattern = android.text.format.DateFormat.getBestDateTimePattern(Locale.getDefault(), "EEEEdMMMM")
+    return SimpleDateFormat(pattern, Locale.getDefault()).format(Date(millis))
+}
+
 /** The Saturday at midnight that starts the week [millis] falls in (the week runs Saturday to Friday). */
 fun startOfWeek(millis: Long): Long = Calendar.getInstance().apply {
     timeInMillis = startOfDay(millis)

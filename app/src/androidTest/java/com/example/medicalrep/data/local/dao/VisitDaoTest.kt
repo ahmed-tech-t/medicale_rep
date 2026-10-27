@@ -164,6 +164,25 @@ class VisitDaoTest : DaoTestBase() {
         assertEquals(listOf("todo-am", "todo-pm"), dao.startablePaged().allRows().map { it.visit.id }.sorted())
     }
 
+    @Test fun scheduledBetweenGivesTheRangesToDoVisitsSoonestFirstUpToTheLimit() = runBlocking {
+        dao.save(visit("late", dateTimeMillis = 1_900), emptyList())
+        dao.save(visit("early", dateTimeMillis = 1_100), emptyList())
+        dao.save(visit("middle", dateTimeMillis = 1_500), emptyList())
+        dao.save(visit("end-excluded", dateTimeMillis = 2_000), emptyList())
+        dao.save(visit("before", dateTimeMillis = 999), emptyList())
+        dao.save(visit("done", status = VisitStatus.Completed, dateTimeMillis = 1_200, completedAtMillis = 1_300), emptyList())
+        dao.save(visit("missed", status = VisitStatus.Missed, dateTimeMillis = 1_200), emptyList())
+        assertEquals(listOf("early", "middle", "late"), dao.scheduledBetween(1_000, 2_000, 10).first().map { it.visit.id })
+        assertEquals(listOf("early", "middle"), dao.scheduledBetween(1_000, 2_000, 2).first().map { it.visit.id })
+    }
+
+    @Test fun countNotSyncedCountsEveryVisitWaitingForUpload() = runBlocking {
+        dao.save(visit("a", syncStatus = SyncStatus.NotSynced), emptyList())
+        dao.save(visit("b", syncStatus = SyncStatus.NotSynced, status = VisitStatus.Completed, completedAtMillis = 1), emptyList())
+        dao.save(visit("c", syncStatus = SyncStatus.Synced), emptyList())
+        assertEquals(2, dao.countNotSynced().first())
+    }
+
     @Test fun markMissedOnlyMovesScheduledVisitsOfEarlierDays() = runBlocking {
         dao.save(visit("old", type = VisitType.Planned, dateTimeMillis = 1_000), emptyList())
         dao.save(visit("today", type = VisitType.Planned, dateTimeMillis = 5_000), emptyList())

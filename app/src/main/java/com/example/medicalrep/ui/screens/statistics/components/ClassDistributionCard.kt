@@ -26,6 +26,7 @@ import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.components.widgets.NexoraChip
 import com.example.medicalrep.domain.models.ClassShare
 import com.example.medicalrep.domain.models.Statistics
+import com.example.medicalrep.ui.screens.home.components.ProgressBarComponent
 import com.example.medicalrep.ui.screens.statistics.utils.StatisticsFakes
 import com.example.medicalrep.ui.ui.theme.Brand
 import com.example.medicalrep.ui.ui.theme.Ink
@@ -68,14 +69,12 @@ private fun ClassRow(share: ClassShare, percent: Int, modifier: Modifier = Modif
             )
             NexoraText(text = "$percent%", style = MaterialTheme.typography.labelMedium, color = Slate400)
         }
-        LinearProgressIndicator(
-            progress = { percent / 100f },
+        ProgressBarComponent(
+            percentage = percent / 100f,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(8.dp)
                 .clip(RoundedCornerShape(radii.pill)),
-            color = Brand,
-            trackColor = Slate100,
         )
     }
 }

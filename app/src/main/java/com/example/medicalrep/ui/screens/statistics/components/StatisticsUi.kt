@@ -4,8 +4,6 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -22,6 +20,7 @@ import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.chrome.AppHeader
 import com.example.medicalrep.ui.components.primitives.NexoraText
+import com.example.medicalrep.ui.components.widgets.TwoPerRow
 import com.example.medicalrep.domain.models.Statistics
 import com.example.medicalrep.domain.models.StockCount
 import com.example.medicalrep.ui.screens.statistics.main.StatisticsEvents
@@ -105,17 +104,6 @@ private fun StockCards(statistics: Statistics) {
         )
     }
     TwoPerRow(items = cards) { (title, stock), cardModifier -> StatBreakdownCard(title = title, columns = stock, modifier = cardModifier) }
-}
-
-/** The cards two to a row; a last card alone keeps half the width. */
-@Composable
-private fun <T> TwoPerRow(items: List<T>, card: @Composable (T, Modifier) -> Unit) {
-    items.chunked(2).forEach { row ->
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus)) {
-            row.forEach { item -> card(item, Modifier.weight(1f)) }
-            if (row.size == 1) Spacer(Modifier.weight(1f))
-        }
-    }
 }
 
 @Composable

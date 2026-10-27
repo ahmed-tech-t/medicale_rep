@@ -28,19 +28,32 @@ data class StatColumn(val label: String, val value: Int)
 @Composable
 fun StatBreakdownCard(title: String, columns: List<StatColumn>, modifier: Modifier = Modifier) {
     NexoraCard(modifier = modifier, borderColor = Slate200) {
-        Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.spaceMedium)) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall)
+        ) {
             NexoraText(
                 text = title,
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.ExtraBold),
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.ExtraBold),
                 color = Ink,
             )
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 columns.forEach { column ->
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall)) {
-                        NexoraText(text = column.label, style = MaterialTheme.typography.labelSmall, color = Slate400)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall)
+                    ) {
+                        NexoraText(
+                            text = column.label,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Slate400
+                        )
                         NexoraText(
                             text = column.value.toString(),
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
+                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.ExtraBold),
                             color = Ink,
                         )
                     }
@@ -56,7 +69,11 @@ private fun StatBreakdownCardPreview() {
     MedicalRepTheme {
         StatBreakdownCard(
             title = "عينات الأدوية",
-            columns = listOf(StatColumn("المستلم", 250), StatColumn("المستخدم", 165), StatColumn("المتبقي", 85)),
+            columns = listOf(
+                StatColumn("المستلم", 250),
+                StatColumn("المستخدم", 165),
+                StatColumn("المتبقي", 85)
+            ),
             modifier = Modifier.padding(spacing.spaceMedium),
         )
     }

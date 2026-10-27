@@ -3,9 +3,8 @@ package com.example.medicalrep.ui.preview
 import com.example.medicalrep.domain.models.ConnectionState
 import com.example.medicalrep.domain.models.User
 import com.example.medicalrep.domain.models.Visit
+import com.example.medicalrep.domain.models.VisitProgress
 import com.example.medicalrep.ui.mapper.toUi
-import com.example.medicalrep.ui.models.StaticsGiftsFakes
-import com.example.medicalrep.ui.models.StaticsMetricUi
 import com.example.medicalrep.ui.screens.home.main.HomeState
 
 /** Shared Home sample data for Previews, ViewModel fake state, and tests. */
@@ -42,27 +41,16 @@ object HomeSamples {
         VisitSamples.unplanned(id = "today-2", placeName = "د. هاني المسيري", account = "عيادة باطنة"),
     )
 
-    fun toSyncVisits(): List<Visit> = listOf(
-        VisitSamples.unplanned(id = "sync-1", placeName = "د. سارة أحمد", account = "عيادة أطفال"),
-        VisitSamples.unplanned(id = "sync-2", placeName = "د. كريم فؤاد", account = "عيادة جلدية"),
-    )
-
-    fun visitMetrics(): List<StaticsMetricUi> = listOf(
-        StaticsMetricUi.Today(value = 26),
-        StaticsMetricUi.Completed(value = 10),
-        StaticsMetricUi.Clinics(value = 14),
-        StaticsMetricUi.Doctors(value = 14),
-    )
-
-    /** Full Home as in Figma 33:8059: online, 2 visits to sync, active visit, today visits, stats, custody. */
+    /** Full Home as in the design: online, a pending visit, 2 visits to upload, the week's progress and today's visits. */
     fun homeState(language: String = "ar"): HomeState = HomeState(
         user = user().toUi(),
         connection = ConnectionState.Online,
+        address = "Stockton St, Union Square",
+        dateMillis = 1_792_000_000_000L,
+        progress = VisitProgress(completed = 10, planned = 26),
         activeVisit = activeVisit().toUi(),
         todayVisits = todayVisits().map { it.toUi() },
-        toSyncVisits = toSyncVisits().map { it.toUi() },
-        visitMetrics = visitMetrics(),
-        custodySummary = StaticsGiftsFakes.items,
+        toSyncCount = 2,
         language = language,
     )
 }
