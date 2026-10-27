@@ -44,8 +44,8 @@ class ProductRepoTest : RepoTestBase() {
     @Test fun custodyRemainingSubtractsVisitsNotUploadedYet() = runTest {
         repo.saveCustody(listOf(Custody("c1", "Pen", ProductType.Gift, received = 10, dispatched = 2)))
         val visits = VisitRepoImpl(db.visitDao(), media)
-        visits.save(Visit(id = "v1", syncStatus = SyncStatus.NotSynced, gifts = listOf(Product(id = "c1", quantity = 3))))
-        visits.save(Visit(id = "v2", syncStatus = SyncStatus.Synced, gifts = listOf(Product(id = "c1", quantity = 4))))
+        visits.save(Visit(id = "v1", status = VisitStatus.Scheduled, syncStatus = SyncStatus.NotSynced, gifts = listOf(Product(id = "c1", quantity = 3))))
+        visits.save(Visit(id = "v2", status = VisitStatus.Scheduled, syncStatus = SyncStatus.Synced, gifts = listOf(Product(id = "c1", quantity = 4))))
         assertEquals(5, repo.getCustody("c1")?.remaining)
         assertEquals(5, repo.custody().asSnapshot().single().remaining)
         assertNull(repo.getCustody("none"))

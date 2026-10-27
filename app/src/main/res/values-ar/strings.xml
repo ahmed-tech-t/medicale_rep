@@ -286,7 +286,7 @@
     <string name="visit_log_items_format">%1$d منتج + %2$d هدية</string>
     <string name="cd_filter">تصفية</string>
     <!-- Products -->
-    <string name="products_search_hint">ابحث هنا.....</string>
+    <string name="products_search_hint">ابحث هنا ..</string>
     <string name="product_price_format">السعر : %1$d</string>
     <string name="product_discount_format">الخصم : %1$d%%</string>
     <string name="products_action_add">اضافة</string>

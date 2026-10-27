@@ -99,7 +99,7 @@ class EntityMappersTest {
         val gift = Custody("c1", "Pen", ProductType.Gift, received = 10, dispatched = 2).toEntity()
         val sample = Custody("c2", "Drug", ProductType.Product, received = 5).toEntity()
         val details = VisitWithDetails(
-            visit = Visit(id = "v1", accountId = "a1", supervisorId = "s1").toEntity(),
+            visit = Visit(id = "v1", accountId = "a1", supervisorId = "s1", status = VisitStatus.Scheduled).toEntity(),
             account = account,
             supervisor = supervisor,
             custody = listOf(gift, sample),
@@ -129,7 +129,7 @@ class EntityMappersTest {
 
     @Test
     fun `missing visit fields get defaults and zero time reads back as null`() {
-        val entity = Visit(id = "v1").toEntity()
+        val entity = Visit(id = "v1", status = VisitStatus.Scheduled).toEntity()
         assertEquals(Shift.Am, entity.shift)
         assertEquals(VisitType.Unplanned, entity.type)
         assertEquals(VisitMode.Single, entity.visitMode)
@@ -140,6 +140,18 @@ class EntityMappersTest {
 
     @Test
     fun `visit without id is rejected`() {
-        assertTrue(runCatching { Visit().toEntity() }.isFailure)
+        assertTrue(runCatching { Visit(status = VisitStatus.Scheduled).toEntity() }.isFailure)
+    }
+
+    @Test
+    fun `visit without a status is rejected instead of silently becoming scheduled`() {
+        val error = runCatching { Visit(id = "v1").toEntity() }.exceptionOrNull()
+        assertTrue(error is IllegalArgumentException)
+        assertTrue(error!!.message!!.contains("status"))
+    }
+
+    @Test
+    fun `every status is stored as it is`() {
+        VisitStatus.entries.forEach { assertEquals(it, Visit(id = "v1", status = it).toEntity().status) }
     }
 }

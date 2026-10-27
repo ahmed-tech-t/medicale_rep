@@ -19,7 +19,7 @@ class VisitRepoTest : RepoTestBase() {
         AccountRepoImpl(db.accountDao()).save(Account("a1", name = "Clinic", city = "Cairo"))
         UserRepoImpl(db.userDao()).save(User("s1", "Boss", "Sup", role = UserRole.Supervisor))
         ProductRepoImpl(db.productDao(), db.custodyDao()).saveCustody(listOf(Custody("c1", "Pen", ProductType.Gift, received = 10)))
-        repo.save(Visit(id = "v1", accountId = "a1", supervisorId = "s1", gifts = listOf(Product(id = "c1", quantity = 2))))
+        repo.save(Visit(id = "v1", status = VisitStatus.Scheduled, accountId = "a1", supervisorId = "s1", gifts = listOf(Product(id = "c1", quantity = 2))))
         val visit = repo.get("v1")!!
         assertEquals("Clinic", visit.account)
         assertEquals("Cairo", visit.city)
@@ -29,22 +29,22 @@ class VisitRepoTest : RepoTestBase() {
     }
 
     @Test fun pagingGivesTwentyThenMore() = runTest {
-        (1..60).forEach { repo.save(Visit(id = "v$it", dateTimeMillis = it * 1000L)) }
+        (1..60).forEach { repo.save(Visit(id = "v$it", status = VisitStatus.Scheduled, dateTimeMillis = it * 1000L)) }
         assertTrue(repo.visits().asSnapshot().size in 20..40)
         assertTrue(repo.visits().asSnapshot { scrollTo(index = 30) }.size > 20)
     }
 
     @Test fun searchFindsByAccountInAnyArabicForm() = runTest {
         AccountRepoImpl(db.accountDao()).save(Account("a1", name = "صيدلية الإيمان"))
-        repo.save(Visit(id = "v1", accountId = "a1"))
-        repo.save(Visit(id = "v2"))
+        repo.save(Visit(id = "v1", status = VisitStatus.Scheduled, accountId = "a1"))
+        repo.save(Visit(id = "v2", status = VisitStatus.Scheduled))
         assertEquals(listOf("v1"), repo.visits("صيدليه الايمان").asSnapshot().map { it.id })
         assertEquals(2, repo.visits("").asSnapshot().size)
         assertTrue(repo.visits("zzz").asSnapshot().isEmpty())
     }
 
     @Test fun voiceNoteIsSavedToAFileAndRemovedWithTheVisit() = runTest {
-        repo.save(Visit(id = "v1", voiceNote = byteArrayOf(1, 2, 3)))
+        repo.save(Visit(id = "v1", status = VisitStatus.Scheduled, voiceNote = byteArrayOf(1, 2, 3)))
         val path = repo.get("v1")!!.voiceNotePath!!
         assertArrayEquals(byteArrayOf(1, 2, 3), media.read(path))
         repo.delete("v1")
@@ -53,7 +53,7 @@ class VisitRepoTest : RepoTestBase() {
     }
 
     @Test fun savingWithoutNewBytesKeepsTheOldVoiceNotePath() = runTest {
-        repo.save(Visit(id = "v1", voiceNote = byteArrayOf(1)))
+        repo.save(Visit(id = "v1", status = VisitStatus.Scheduled, voiceNote = byteArrayOf(1)))
         val path = repo.get("v1")!!.voiceNotePath
         repo.save(repo.get("v1")!!.copy(noIssueFound = false))
         assertEquals(path, repo.get("v1")!!.voiceNotePath)
@@ -83,7 +83,7 @@ class VisitRepoTest : RepoTestBase() {
     }
 
     @Test fun cancelOnlyBeforeUploadAndMarkSynced() = runTest {
-        repo.save(Visit(id = "v1", type = VisitType.Planning, syncStatus = SyncStatus.NotSynced))
+        repo.save(Visit(id = "v1", status = VisitStatus.Scheduled, type = VisitType.Planning, syncStatus = SyncStatus.NotSynced))
         assertEquals(listOf("v1"), repo.notSynced().map { it.id })
         repo.markSynced("v1", "srv")
         assertTrue(repo.notSynced().isEmpty())

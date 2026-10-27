@@ -142,6 +142,7 @@ private fun <T : SearchableItem> SearchFieldBodyComponent(
                         text = stringResource(R.string.products_search_hint),
                         style = MaterialTheme.typography.bodyMedium,
                         color = Slate400,
+                        maxLines = 1
                     )
                 }
                 BasicTextField(

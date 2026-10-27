@@ -10,7 +10,6 @@ import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.Visit
 import com.example.medicalrep.domain.models.VisitMode
-import com.example.medicalrep.domain.models.VisitStatus
 import com.example.medicalrep.domain.models.VisitType
 
 /**
@@ -85,7 +84,7 @@ fun Visit.toEntity() = VisitEntity(
     voiceNotePath = voiceNotePath,
     syncStatus = syncStatus ?: SyncStatus.NotSynced,
     durationLabel = durationLabel.orEmpty(),
-    status = status ?: VisitStatus.Scheduled,
+    status = requireNotNull(status) { "A stored visit needs a status" },
     requestedAtMillis = requestedAtMillis,
     decidedAtMillis = decidedAtMillis,
     completedAtMillis = completedAtMillis,
