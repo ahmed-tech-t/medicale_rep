@@ -16,7 +16,6 @@ import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.chrome.AppHeader
 import com.example.medicalrep.ui.screens.map_rep_tracking.main.MapRepTrackingEvents
 import com.example.medicalrep.ui.screens.map_rep_tracking.main.MapRepTrackingState
-import com.example.medicalrep.ui.screens.map_rep_tracking.models.TrackUserMapMarker
 import com.example.medicalrep.ui.screens.map_rep_tracking.utils.MapRepTrackingFakes
 import com.example.medicalrep.ui.screens.map_rep_tracking.utils.travelSegments
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
@@ -28,11 +27,7 @@ fun MapRepTrackingUi(
     onEvent: (MapRepTrackingEvents) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val visitMarkers = remember(state.visits) {
-        state.visits.mapIndexed { index, visit ->
-            TrackUserMapMarker(index, visit.visitLatitude, visit.visitLongitude, visit.id)
-        }
-    }
+    val visitMarkers = remember(state.visits) { state.visitMarkers }
     val segments = remember(visitMarkers, state.routePoints) { travelSegments(visitMarkers, state.routePoints) }
     Column(modifier = modifier.fillMaxSize()) {
         AppHeader(
@@ -43,6 +38,8 @@ fun MapRepTrackingUi(
             GoogleMapComponent(
                 visitss = visitMarkers,
                 repTrack = state.routePoints,
+                trackStart = state.trackStart,
+                trackEnd = state.trackEnd,
                 segments = segments,
                 roadRoute = state.route.data?.points.orEmpty(),
                 onMarkerClick = { onEvent(MapRepTrackingEvents.MarkerClicked(it)) },

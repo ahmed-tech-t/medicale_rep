@@ -4,6 +4,7 @@ import android.net.Uri
 import com.example.medicalrep.R
 import com.example.medicalrep.domain.models.AttachmentPill
 import com.example.medicalrep.domain.models.Product
+import com.example.medicalrep.domain.models.Rep
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.StatMetric
@@ -14,6 +15,7 @@ import com.example.medicalrep.domain.models.VisitType
 import com.example.medicalrep.ui.models.AttachmentPillUiModel
 import com.example.medicalrep.ui.models.ConnectionStatusUiModel
 import com.example.medicalrep.ui.models.ProductUi
+import com.example.medicalrep.ui.models.RepUi
 import com.example.medicalrep.ui.models.StatMetricUiModel
 import com.example.medicalrep.ui.models.UserUi
 import com.example.medicalrep.ui.models.VisitUi
@@ -56,6 +58,8 @@ fun Visit.toUi(): VisitUi {
 }
 
 
+
+fun Rep.toUi(): RepUi = RepUi(id = id, displayName = displayName, employeeCode = employeeCode)
 
 fun StatMetric.toUi(): StatMetricUiModel = StatMetricUiModel(
     id = id,

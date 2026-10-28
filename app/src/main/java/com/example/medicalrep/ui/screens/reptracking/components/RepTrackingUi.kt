@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -28,8 +27,8 @@ import com.example.medicalrep.ui.components.primitives.NexoraButton
 import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.components.widgets.DateField
 import com.example.medicalrep.ui.components.widgets.SearchFieldComponent
-import com.example.medicalrep.ui.components.widgets.toSearchItems
 import com.example.medicalrep.ui.screens.home.components.StaticsMetricCard
+import com.example.medicalrep.ui.screens.home.components.WeekProgressCard
 import com.example.medicalrep.ui.screens.reptracking.main.RepTrackingEvents
 import com.example.medicalrep.ui.screens.reptracking.main.RepTrackingState
 import com.example.medicalrep.ui.screens.reptracking.utils.RepTrackingFakes
@@ -63,10 +62,10 @@ fun RepTrackingUi(
             verticalArrangement = Arrangement.spacedBy(spacing.spaceMedium),
         ) {
             SearchFieldComponent(
-                value = state.selectedRep,
-                options = state.reps.toSearchItems(),
+                value = state.selectedRepName,
+                options = state.reps,
                 onSelect = {
-                    onEvent(RepTrackingEvents.SelectRep(it.name))
+                    onEvent(RepTrackingEvents.SelectRep(it.id))
                     showPopup = false
                 },
                 placeholder = stringResource(R.string.rep_tracking_change),
@@ -77,6 +76,8 @@ fun RepTrackingUi(
                 dateMillis = state.dateMillis,
                 onDateChange = { onEvent(RepTrackingEvents.DateChanged(it)) },
             )
+
+            WeekProgressCard(progress = state.progress, title = stringResource(R.string.rep_tracking_day_progress))
 
             SectionLabel(stringResource(R.string.rep_tracking_period_summary))
             Row(horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmall)) {
@@ -97,7 +98,11 @@ fun RepTrackingUi(
                     value = state.giftsCount,
                     modifier = Modifier.weight(1f),
                 )
-                Spacer(modifier = Modifier.weight(1f))
+                StaticsMetricCard(
+                    label = stringResource(R.string.rep_tracking_missed),
+                    value = state.progress.missed,
+                    modifier = Modifier.weight(1f),
+                )
             }
 
             NexoraButton(

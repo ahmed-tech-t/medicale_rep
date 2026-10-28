@@ -4,6 +4,7 @@ import com.example.medicalrep.domain.repo.AccountRepo
 import com.example.medicalrep.domain.repo.OrderRepo
 import com.example.medicalrep.domain.repo.ProductRepo
 import com.example.medicalrep.domain.repo.SyncInfoRepo
+import com.example.medicalrep.domain.repo.TrackPointRepo
 import com.example.medicalrep.domain.repo.RepRepo
 import com.example.medicalrep.domain.repo.VisitRepo
 import javax.inject.Inject
@@ -20,6 +21,7 @@ class DebugSeeder @Inject constructor(
     private val productRepo: ProductRepo,
     private val visitRepo: VisitRepo,
     private val orderRepo: OrderRepo,
+    private val trackPointRepo: TrackPointRepo,
     private val syncInfoRepo: SyncInfoRepo,
 ) {
 
@@ -33,10 +35,11 @@ class DebugSeeder @Inject constructor(
         productRepo.saveCustody(data.custody)
         data.visits.forEach { visitRepo.save(it) }
         data.orders.forEach { orderRepo.save(it) }
+        data.trackPoints.forEach { trackPointRepo.add(it) }
         syncInfoRepo.set(SEED_KEY, now)
     }
 
     companion object {
-        const val SEED_KEY = "debug_seed_v1"
+        const val SEED_KEY = "debug_seed_v2"
     }
 }

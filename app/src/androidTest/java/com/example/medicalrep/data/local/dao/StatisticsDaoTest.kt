@@ -45,6 +45,18 @@ class StatisticsDaoTest : DaoTestBase() {
         assertEquals(3, dao.plannedBetween(FROM, TO).first())
     }
 
+    @Test fun countOfRepCountsOneRepAndOneStatusInTheRangeOnly() = runBlocking {
+        save(visit("done-1", repId = "r1", status = VisitStatus.Completed, dateTimeMillis = FROM))
+        save(visit("done-2", repId = "r1", status = VisitStatus.Completed, dateTimeMillis = 1_500))
+        save(visit("done-other", repId = "r2", status = VisitStatus.Completed, dateTimeMillis = 1_500))
+        save(visit("done-tomorrow", repId = "r1", status = VisitStatus.Completed, dateTimeMillis = TO))
+        save(visit("missed", repId = "r1", status = VisitStatus.Missed, dateTimeMillis = 1_500))
+        assertEquals(2, dao.countOfRep("r1", VisitStatus.Completed, FROM, TO).first())
+        assertEquals(1, dao.countOfRep("r1", VisitStatus.Missed, FROM, TO).first())
+        assertEquals(0, dao.countOfRep("r1", VisitStatus.Scheduled, FROM, TO).first())
+        assertEquals(0, dao.countOfRep("nobody", VisitStatus.Completed, FROM, TO).first())
+    }
+
     @Test fun accountsOfTodaysVisitsAreCountedOncePerTypeAndDoctorsNeedASpecialty() = runBlocking {
         db.accountDao().save(account("clinic-1", "clinic", specialty = "Cardio"))
         db.accountDao().save(account("clinic-2", "clinic"))

@@ -90,4 +90,12 @@ class VisitRepoTest : RepoTestBase() {
         assertEquals("srv", repo.get("v1")!!.backendId)
         assertFalse(repo.cancelRequest("v1"))
     }
+
+    @Test fun doneOnDayGivesTheRepsFinishedVisitsOfTheDay() = runTest {
+        repo.save(Visit(id = "mine", repId = "r1", status = VisitStatus.Completed, dateTimeMillis = 1_500, completedAtMillis = 1_600))
+        repo.save(Visit(id = "theirs", repId = "r2", status = VisitStatus.Completed, dateTimeMillis = 1_500, completedAtMillis = 1_600))
+        repo.save(Visit(id = "todo", repId = "r1", status = VisitStatus.Scheduled, dateTimeMillis = 1_500))
+        assertEquals(listOf("mine"), repo.doneOnDay("r1", 1_000, 2_000).first().map { it.id })
+        assertTrue(repo.doneOnDay("r1", 2_000, 3_000).first().isEmpty())
+    }
 }

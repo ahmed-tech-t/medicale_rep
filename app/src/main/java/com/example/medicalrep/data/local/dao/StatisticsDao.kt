@@ -3,6 +3,7 @@ package com.example.medicalrep.data.local.dao
 import androidx.room.Dao
 import androidx.room.Query
 import com.example.medicalrep.domain.models.AccountType
+import com.example.medicalrep.domain.models.VisitStatus
 import kotlinx.coroutines.flow.Flow
 
 /** How many accounts of one type [accountType] (null when it is not one of the kinds) are in the result. */
@@ -25,6 +26,10 @@ interface StatisticsDao {
     /** The visits planned in the range: still to do, done, or missed. */
     @Query("SELECT COUNT(*) FROM visits WHERE status IN ('Scheduled', 'Completed', 'Missed') AND dateTimeMillis >= :fromMillis AND dateTimeMillis < :toMillis")
     fun plannedBetween(fromMillis: Long, toMillis: Long): Flow<Int>
+
+    /** One rep's visits of one status in the range. */
+    @Query("SELECT COUNT(*) FROM visits WHERE repId = :repId AND status = :status AND dateTimeMillis >= :fromMillis AND dateTimeMillis < :toMillis")
+    fun countOfRep(repId: String, status: VisitStatus, fromMillis: Long, toMillis: Long): Flow<Int>
 
     @Query("SELECT a.accountType AS accountType, COUNT(DISTINCT a.id) AS accounts $VISITED GROUP BY a.accountType")
     fun visitedAccountsByType(fromMillis: Long, toMillis: Long): Flow<List<TypeCountRow>>

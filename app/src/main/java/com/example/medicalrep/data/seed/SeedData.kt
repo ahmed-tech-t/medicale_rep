@@ -8,12 +8,15 @@ import com.example.medicalrep.domain.models.Product
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
+import com.example.medicalrep.domain.models.TrackPoint
 import com.example.medicalrep.domain.models.Rep
 import com.example.medicalrep.domain.models.RepRole
 import com.example.medicalrep.domain.models.Visit
 import com.example.medicalrep.domain.models.VisitMode
 import com.example.medicalrep.domain.models.VisitStatus
 import com.example.medicalrep.domain.models.VisitType
+import kotlin.math.cos
+import kotlin.math.sin
 
 /** Everything the debug seed writes into Room. */
 data class SeedData(
@@ -23,27 +26,35 @@ data class SeedData(
     val custody: List<Custody>,
     val visits: List<Visit>,
     val orders: List<Order>,
+    val trackPoints: List<TrackPoint>,
 )
 
 private const val HOUR = 3_600_000L
 private const val DAY = 24 * HOUR
 private const val MINUTE = 60_000L
+private const val TRACK_DAYS = 5
+private const val TRACK_STEP = 90 * MINUTE
+private const val VISIT_LENGTH = 15 * MINUTE
+private const val ROAD_POINTS = 14
+private const val WOBBLE = 0.012
 
 /** Builds the debug sample data relative to [nowMillis], so planned visits are always upcoming and done ones past. */
 object SeedDataFactory {
 
     fun build(nowMillis: Long): SeedData {
-        val reps = reps()
         val accounts = accounts()
         val custody = custody()
         val products = products()
+        val reps = reps()
+        val visits = visits(nowMillis, accounts) + trackVisits(nowMillis, reps, accounts)
         return SeedData(
             reps = reps,
             accounts = accounts,
             products = products,
             custody = custody,
-            visits = visits(nowMillis, accounts),
+            visits = visits,
             orders = orders(nowMillis, accounts, products),
+            trackPoints = trackPoints(visits, accounts),
         )
     }
 
@@ -200,6 +211,7 @@ object SeedDataFactory {
         dateTimeMillis: Long,
         syncStatus: SyncStatus = SyncStatus.Synced,
         double: Boolean = false,
+        repId: String = "rep-1",
         durationLabel: String = "",
         completedAtMillis: Long? = null,
         status: VisitStatus = VisitStatus.Scheduled,
@@ -209,7 +221,7 @@ object SeedDataFactory {
     ) = Visit(
         id = id,
         accountId = account.id,
-        repId = "rep-1",
+        repId = repId,
         supervisorId = if (double) account.supervisorId else null,
         type = type,
         shift = shift,
@@ -253,6 +265,100 @@ object SeedDataFactory {
     private fun doneVisit(id: String, account: Account, shift: Shift, at: Long, sync: SyncStatus, double: Boolean) = visit(
         id, account, if (double) VisitType.Planned else VisitType.Unplanned, shift, at, sync, double = double,
         durationLabel = "10:00 د", completedAtMillis = at + 10 * MINUTE, status = VisitStatus.Completed,
+    )
+
+    /**
+     * The last five days (today included) of every rep: three or four visits done one after the other, each 90 minutes
+     * after the one before, ending before [now]. Ids are `v-track-{rep}-{days ago}-{n}`.
+     */
+    private fun trackVisits(now: Long, reps: List<Rep>, accounts: List<Account>): List<Visit> {
+        val gift = line("gift-1", ProductType.Gift, "مج حراري + قلم معدني بشعار الشركة", 1)
+        val sample = line("sample-1", ProductType.Product, "GastroCure 40mg (عينة)", 2)
+        return reps.filter { it.role == RepRole.Rep }.flatMapIndexed { repIndex, rep ->
+            (0 until TRACK_DAYS).flatMap { day ->
+                val count = 3 + (repIndex + day) % 2
+                (0 until count).map { n ->
+                    val start = now - day * DAY - (count - n) * TRACK_STEP
+                    visit(
+                        id = "v-track-${rep.id}-$day-$n",
+                        account = accounts[(repIndex * 15 + day * 3 + n * 2) % accounts.size],
+                        type = if (n % 2 == 0) VisitType.Planned else VisitType.Unplanned,
+                        shift = if (n < count / 2) Shift.Am else Shift.Pm,
+                        dateTimeMillis = start,
+                        repId = rep.id,
+                        durationLabel = "15:00 د",
+                        completedAtMillis = start + VISIT_LENGTH,
+                        status = VisitStatus.Completed,
+                        gifts = if (n % 2 == 0) listOf(gift) else emptyList(),
+                        samples = if (n % 3 == 0) listOf(sample) else emptyList(),
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * The GPS track of each rep-day of [trackVisits]: four points while leaving, three at the place of each visit (with its
+     * id), and a point every five minutes on the way to the next one, a little off the straight line.
+     */
+    private fun trackPoints(visits: List<Visit>, accounts: List<Account>): List<TrackPoint> {
+        val places = accounts.associateBy { it.id }
+        fun Visit.place() = places.getValue(requireNotNull(accountId))
+        return visits.filter { requireNotNull(it.id).startsWith("v-track-") }
+            .groupBy { requireNotNull(it.id).substringBeforeLast('-') }
+            .values
+            .flatMap { day ->
+                val stops = day.sortedBy { it.dateTimeMillis }
+                val first = stops.first().place()
+                // The rep leaves from a point about two kilometres away from the first place.
+                val leaving = (1..4).map { i ->
+                    point(stops.first(), first.latitude - 0.02, first.longitude - 0.015, first.latitude, first.longitude, i / 5.0, stops.first().dateTimeMillis!! - (5 - i) * 5 * MINUTE, visitId = null)
+                }
+                val atPlaces = stops.flatMap { visit ->
+                    val place = visit.place()
+                    listOf(0L, 7 * MINUTE, VISIT_LENGTH).map { offset ->
+                        point(visit, place.latitude, place.longitude, place.latitude, place.longitude, 1.0, visit.dateTimeMillis!! + offset, visitId = visit.id)
+                    }
+                }
+                val onTheWay = stops.zipWithNext().flatMap { (from, to) ->
+                    val start = from.place()
+                    val end = to.place()
+                    (1..ROAD_POINTS).map { i ->
+                        val share = i / (ROAD_POINTS + 1.0)
+                        val time = from.completedAtMillis!! + i * 5 * MINUTE
+                        // A small wobble, so the track is not a straight line.
+                        val wobble = share * (1 - share)
+                        point(from, start.latitude, start.longitude, end.latitude, end.longitude, share, time, visitId = null, wobble = wobble)
+                    }
+                }
+                // After the last visit the rep drives off, ending about two kilometres from it.
+                val last = stops.last()
+                val lastPlace = last.place()
+                val returning = (1..4).map { i ->
+                    point(last, lastPlace.latitude, lastPlace.longitude, lastPlace.latitude + 0.02, lastPlace.longitude + 0.015, i / 4.0, last.completedAtMillis!! + i * 5 * MINUTE, visitId = null)
+                }
+                leaving + atPlaces + onTheWay + returning
+            }
+    }
+
+    /** A point [share] of the way from ([fromLatitude], [fromLongitude]) to ([toLatitude], [toLongitude]). */
+    private fun point(
+        visit: Visit,
+        fromLatitude: Double,
+        fromLongitude: Double,
+        toLatitude: Double,
+        toLongitude: Double,
+        share: Double,
+        timeMillis: Long,
+        visitId: String?,
+        wobble: Double = 0.0,
+    ) = TrackPoint(
+        repId = requireNotNull(visit.repId),
+        visitId = visitId,
+        latitude = fromLatitude + (toLatitude - fromLatitude) * share + wobble * WOBBLE * sin(timeMillis / MINUTE.toDouble()),
+        longitude = fromLongitude + (toLongitude - fromLongitude) * share + wobble * WOBBLE * cos(timeMillis / MINUTE.toDouble()),
+        timeMillis = timeMillis,
+        syncStatus = SyncStatus.Synced,
     )
 
     private fun visits(now: Long, accounts: List<Account>): List<Visit> {

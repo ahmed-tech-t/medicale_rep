@@ -214,6 +214,17 @@ class VisitDaoTest : DaoTestBase() {
         assertEquals(listOf("done-b"), dao.donePaged(null, false, null, "B").allRows().map { it.visit.id })
     }
 
+    @Test fun doneBetweenIsTheRepsFinishedVisitsOfTheDayInTimeOrder() = runBlocking {
+        dao.save(visit("late", repId = "r1", status = VisitStatus.Completed, dateTimeMillis = 1_800, completedAtMillis = 1_900), emptyList())
+        dao.save(visit("early", repId = "r1", status = VisitStatus.Completed, dateTimeMillis = 1_100, completedAtMillis = 1_200), emptyList())
+        dao.save(visit("other-rep", repId = "r2", status = VisitStatus.Completed, dateTimeMillis = 1_500, completedAtMillis = 1_600), emptyList())
+        dao.save(visit("todo", repId = "r1", status = VisitStatus.Scheduled, dateTimeMillis = 1_500), emptyList())
+        dao.save(visit("next-day", repId = "r1", status = VisitStatus.Completed, dateTimeMillis = 2_000, completedAtMillis = 2_100), emptyList())
+        dao.save(visit("day-before", repId = "r1", status = VisitStatus.Completed, dateTimeMillis = 999, completedAtMillis = 999), emptyList())
+        assertEquals(listOf("early", "late"), dao.doneBetween("r1", 1_000, 2_000).first().map { it.visit.id })
+        assertTrue(dao.doneBetween("nobody", 1_000, 2_000).first().isEmpty())
+    }
+
     @Test fun clearEmptiesTable() = runBlocking {
         dao.save(visit("v1"), emptyList())
         dao.clear()

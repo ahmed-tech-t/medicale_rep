@@ -185,6 +185,11 @@ abstract class VisitDao : BaseDao<VisitEntity> {
     @Query("SELECT * FROM visits WHERE status = 'Scheduled' AND dateTimeMillis >= :fromMillis AND dateTimeMillis < :toMillis ORDER BY dateTimeMillis LIMIT :limit")
     abstract fun scheduledBetween(fromMillis: Long, toMillis: Long, limit: Int): Flow<List<VisitWithDetails>>
 
+    /** The visits one rep finished in a range (from included, to not included), in time order. */
+    @Transaction
+    @Query("SELECT * FROM visits WHERE status = 'Completed' AND repId = :repId AND dateTimeMillis >= :fromMillis AND dateTimeMillis < :toMillis ORDER BY dateTimeMillis")
+    abstract fun doneBetween(repId: String, fromMillis: Long, toMillis: Long): Flow<List<VisitWithDetails>>
+
     /** Visits waiting for upload. */
     @Query("SELECT COUNT(*) FROM visits WHERE syncStatus = 'NotSynced'")
     abstract fun countNotSynced(): Flow<Int>

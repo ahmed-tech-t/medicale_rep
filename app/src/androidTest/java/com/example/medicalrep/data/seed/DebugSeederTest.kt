@@ -8,6 +8,7 @@ import com.example.medicalrep.data.repo.ProductRepoImpl
 import com.example.medicalrep.data.repo.RepoTestBase
 import com.example.medicalrep.data.repo.SyncInfoRepoImpl
 import com.example.medicalrep.data.repo.RepRepoImpl
+import com.example.medicalrep.data.repo.TrackPointRepoImpl
 import com.example.medicalrep.data.repo.VisitRepoImpl
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -30,6 +31,7 @@ class DebugSeederTest : RepoTestBase() {
             ProductRepoImpl(db.productDao(), db.custodyDao()),
             VisitRepoImpl(db.visitDao(), media),
             OrderRepoImpl(db.orderDao()),
+            TrackPointRepoImpl(db.trackPointDao()),
             syncInfo,
         )
 
@@ -39,6 +41,7 @@ class DebugSeederTest : RepoTestBase() {
         assertNotNull(syncInfo.get(DebugSeeder.SEED_KEY))
         val expected = SeedDataFactory.build(1_792_000_000_000L)
         assertEquals(expected.visits.size, db.visitDao().getAll().first().size)
+        assertEquals(expected.trackPoints.size, db.trackPointDao().getByRepAndDay("rep-1", 0, Long.MAX_VALUE).first().size + db.trackPointDao().getByRepAndDay("rep-2", 0, Long.MAX_VALUE).first().size + db.trackPointDao().getByRepAndDay("rep-3", 0, Long.MAX_VALUE).first().size)
         assertEquals(expected.orders.map { it.number }, db.orderDao().getAll().first().map { it.order.number }.sorted())
         assertEquals(expected.accounts.map { it.city }.toSet().sorted(), accounts.cities().first())
         seeder.seedIfEmpty(now = 1_792_000_000_000L + 1)

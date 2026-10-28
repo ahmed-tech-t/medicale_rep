@@ -338,6 +338,8 @@
     <string name="rep_tracking_total_visits">إجمالي الزيارات</string>
     <string name="rep_tracking_products">المنتجات</string>
     <string name="rep_tracking_gifts">الهدايا</string>
+    <string name="rep_tracking_day_progress">تقدّم اليوم</string>
+    <string name="rep_tracking_missed">زيارات فائتة</string>
     <string name="rep_tracking_view_route">عرض خط السير على الخريطة</string>
     <string name="map_rep_tracking_title">خط سير المندوب</string>
     <string name="rep_tracking_log_title">سجل الزيارات وما تم تنفيذه</string>

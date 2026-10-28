@@ -33,9 +33,13 @@ import com.example.medicalrep.ui.ui.theme.Slate300
 import com.example.medicalrep.ui.ui.theme.Slate400
 import com.example.medicalrep.ui.ui.theme.Slate500
 
-/** The visits done out of the visits planned this week, as numbers, a percent and a bar. */
+/** The visits done out of the visits planned this week (or in the period [title] names), as numbers, a percent and a bar. */
 @Composable
-fun WeekProgressCard(progress: VisitProgress, modifier: Modifier = Modifier) {
+fun WeekProgressCard(
+    progress: VisitProgress,
+    modifier: Modifier = Modifier,
+    title: String = stringResource(R.string.home_week_progress),
+) {
     NexoraCard(modifier = modifier, containerColor = BrandTint.copy(alpha = .4f), borderColor = BrandBorder) {
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -48,7 +52,7 @@ fun WeekProgressCard(progress: VisitProgress, modifier: Modifier = Modifier) {
             ) {
                 Column {
                     NexoraText(
-                        text = stringResource(R.string.home_week_progress),
+                        text = title,
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.ExtraBold),
                         color = Brand,
                     )

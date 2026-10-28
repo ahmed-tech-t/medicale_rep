@@ -31,7 +31,7 @@ class SeedDataTest {
     fun `there is enough data to test lists and paging`() {
         assertEquals(50, data.accounts.size)
         assertEquals(200, data.products.size)
-        assertEquals(100, data.visits.size)
+        assertTrue(data.visits.size >= 100)
         // Every kind of visit is well represented, so every tab and filter has several pages' worth of variety.
         assertTrue(data.visits.count { it.status == VisitStatus.Scheduled } >= 15)
         assertTrue(data.visits.count { it.status == VisitStatus.Completed } >= 40)
@@ -165,7 +165,84 @@ class SeedDataTest {
         assertTrue(data.visits.count { it.status == VisitStatus.Rejected } >= 3)
     }
 
+    @Test
+    fun `every rep has a track on each of the last five days with three or four visits on it`() {
+        reps().forEach { rep ->
+            (0 until 5).forEach { day ->
+                val visits = trackVisits(rep.id, day)
+                assertTrue("${rep.id} day $day: ${visits.size} visits", visits.size in 3..4)
+                assertTrue("${rep.id} day $day: ${pointsOf(rep.id, day).size} points", pointsOf(rep.id, day).size >= 10)
+                assertEquals(visits.size, visits.map { it.accountId }.toSet().size)
+            }
+        }
+    }
+
+    @Test
+    fun `the track of a day goes through the place of each visit while it was done`() {
+        val accounts = data.accounts.associateBy { it.id }
+        reps().forEach { rep ->
+            (0 until 5).forEach { day ->
+                val points = pointsOf(rep.id, day)
+                trackVisits(rep.id, day).forEach { visit ->
+                    val account = accounts.getValue(requireNotNull(visit.accountId))
+                    val atVisit = points.filter { it.visitId == visit.id }
+                    assertTrue(atVisit.isNotEmpty())
+                    atVisit.forEach {
+                        assertEquals(account.latitude, it.latitude, 0.0)
+                        assertEquals(account.longitude, it.longitude, 0.0)
+                        assertTrue(it.timeMillis >= visit.dateTimeMillis!! && it.timeMillis <= visit.completedAtMillis!!)
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `the rep moves between two visits and starts moving before the first one`() {
+        reps().forEach { rep ->
+            (0 until 5).forEach { day ->
+                val points = pointsOf(rep.id, day)
+                val visits = trackVisits(rep.id, day).sortedBy { it.dateTimeMillis }
+                assertTrue(points.any { it.visitId == null && it.timeMillis < visits.first().dateTimeMillis!! })
+                visits.zipWithNext().forEach { (previous, next) ->
+                    assertTrue(next.dateTimeMillis!! > previous.completedAtMillis!!)
+                    val between = points.filter { it.timeMillis > previous.completedAtMillis!! && it.timeMillis < next.dateTimeMillis!! }
+                    assertTrue(between.size >= 5 && between.all { it.visitId == null })
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `the track starts and ends away from the places of the visits`() {
+        val places = data.accounts.associateBy { it.id }
+        reps().forEach { rep ->
+            (0 until 5).forEach { day ->
+                val points = pointsOf(rep.id, day).sortedBy { it.timeMillis }
+                val visitPlaces = trackVisits(rep.id, day).map { places.getValue(requireNotNull(it.accountId)) }
+                listOf(points.first(), points.last()).forEach { end ->
+                    assertTrue(visitPlaces.none { it.latitude == end.latitude && it.longitude == end.longitude })
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `track points belong to reps, are in the past and never share a rep and a time`() {
+        val repIds = reps().map { it.id }.toSet()
+        assertTrue(data.trackPoints.all { it.repId in repIds && it.timeMillis <= now })
+        assertEquals(data.trackPoints.size, data.trackPoints.map { it.repId to it.timeMillis }.toSet().size)
+    }
+
+    private fun reps() = data.reps.filter { it.role == RepRole.Rep }
+
+    private fun trackVisits(repId: String, day: Int) = data.visits.filter { it.id.orEmpty().startsWith("v-track-$repId-$day-") }
+
+    private fun pointsOf(repId: String, day: Int) =
+        data.trackPoints.filter { it.repId == repId && it.timeMillis > now - (day + 1) * DAY && it.timeMillis <= now - day * DAY }
+
     private companion object {
         const val HOUR = 3_600_000L
+        const val DAY = 24 * HOUR
     }
 }

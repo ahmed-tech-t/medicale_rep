@@ -1,8 +1,10 @@
 package com.example.medicalrep.ui.screens.reptracking.utils
 
 import com.example.medicalrep.domain.models.ProductType
+import com.example.medicalrep.domain.models.VisitProgress
 import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.ProductUi
+import com.example.medicalrep.ui.models.RepUi
 import com.example.medicalrep.ui.models.VisitUi
 import com.example.medicalrep.ui.preview.VisitSamples
 import com.example.medicalrep.ui.screens.reptracking.main.RepTrackingState
@@ -30,9 +32,10 @@ object RepTrackingFakes {
     )
 
     fun state(): RepTrackingState = RepTrackingState(
-        reps = listOf("أحمد محمد (ميديكال ريب)", "سارة علي (ميديكال ريب)"),
-        selectedRep = "أحمد محمد (ميديكال ريب)",
+        reps = listOf(RepUi("rep-1", "أحمد محمد"), RepUi("rep-2", "سارة علي")),
+        selectedRepId = "rep-1",
         dateMillis = 1_791_072_000_000L,
         visits = visits(),
+        progress = VisitProgress(completed = 2, planned = 5, missed = 1),
     )
 }

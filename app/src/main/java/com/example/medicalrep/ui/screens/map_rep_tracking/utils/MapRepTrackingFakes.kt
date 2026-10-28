@@ -36,7 +36,7 @@ object MapRepTrackingFakes {
         ))
             // Visits sit on the route: Tahrir, Nasr City, Heliopolis, New Cairo.
             .zip(listOf(route[0], route[5], route[7], route.last())) { visit, point ->
-                visit.copy(visitLatitude = point.latitude, visitLongitude = point.longitude)
+                visit.copy(accountLatitude = point.latitude, accountLongitude = point.longitude)
             }
         return MapRepTrackingState(
             visits = visits,

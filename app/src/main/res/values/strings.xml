@@ -339,6 +339,8 @@
     <string name="rep_tracking_total_visits">Total visits</string>
     <string name="rep_tracking_products">Products</string>
     <string name="rep_tracking_gifts">Gifts</string>
+    <string name="rep_tracking_day_progress">Day\'s progress</string>
+    <string name="rep_tracking_missed">Missed visits</string>
     <string name="rep_tracking_view_route">View route on map</string>
     <string name="map_rep_tracking_title">Rep route</string>
     <string name="rep_tracking_log_title">Visit log and what was done</string>

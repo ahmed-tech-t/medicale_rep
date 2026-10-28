@@ -98,6 +98,17 @@ class FakeVisitRepo(initial: List<Visit> = emptyList()) : VisitRepo {
         }
     }
 
+    /** Every `doneOnDay` call, in order. */
+    val doneOnDayRequests = mutableListOf<RepDayRequest>()
+
+    override fun doneOnDay(repId: String, fromMillis: Long, toMillis: Long): Flow<List<Visit>> {
+        doneOnDayRequests += RepDayRequest(repId, fromMillis, toMillis)
+        return current.map { list ->
+            list.filter { it.status == VisitStatus.Completed && it.repId == repId && (it.dateTimeMillis ?: 0L) in fromMillis until toMillis }
+                .sortedBy { it.dateTimeMillis }
+        }
+    }
+
     override fun notSyncedCount(): Flow<Int> = current.map { list -> list.count { it.syncStatus == SyncStatus.NotSynced } }
 
     override fun visits(query: String): Flow<PagingData<Visit>> = current.map { PagingData.from(it) }

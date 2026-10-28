@@ -9,6 +9,7 @@ import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Statistics
 import com.example.medicalrep.domain.models.StockCount
 import com.example.medicalrep.domain.models.VisitProgress
+import com.example.medicalrep.domain.models.VisitStatus
 import com.example.medicalrep.domain.repo.StatisticsRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -23,6 +24,12 @@ class StatisticsRepoImpl @Inject constructor(
         dao.completedBetween(fromMillis, toMillis),
         dao.plannedBetween(fromMillis, toMillis),
     ) { completed, planned -> VisitProgress(completed = completed, planned = planned) }
+
+    override fun progressOf(repId: String, fromMillis: Long, toMillis: Long): Flow<VisitProgress> = combine(
+        dao.countOfRep(repId, VisitStatus.Completed, fromMillis, toMillis),
+        dao.countOfRep(repId, VisitStatus.Scheduled, fromMillis, toMillis),
+        dao.countOfRep(repId, VisitStatus.Missed, fromMillis, toMillis),
+    ) { completed, scheduled, missed -> VisitProgress(completed = completed, planned = completed + scheduled + missed, missed = missed) }
 
     override fun between(fromMillis: Long, toMillis: Long): Flow<Statistics> {
         val visits = combine(

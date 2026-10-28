@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -27,9 +28,11 @@ import com.example.medicalrep.ui.screens.map_rep_tracking.utils.MapRepTrackingFa
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 import com.example.medicalrep.ui.utils.vectorToBitmapDescriptor
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.Dash
 import com.google.android.gms.maps.model.Gap
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
@@ -43,11 +46,16 @@ import com.google.maps.android.compose.rememberMarkerState
 
 
 
+/** Space kept around the day's points when the camera fits them (the visit card covers the bottom). */
+private const val BOUNDS_PADDING_PX = 200
+
 @Composable
 fun GoogleMapComponent(
     modifier: Modifier = Modifier,
     visitss: List<TrackUserMapMarker>,
     repTrack: List<TrackUserMapMarker>,
+    trackStart: GeoPoint?,
+    trackEnd: GeoPoint?,
     segments: List<TravelSegment> = emptyList(),
     roadRoute: List<GeoPoint> = emptyList(),
     onMarkerClick: (String) -> Unit,
@@ -69,17 +77,21 @@ fun GoogleMapComponent(
     val haloIcon = remember(context) {
         context.vectorToBitmapDescriptor(R.drawable.ic_map_marker_halo)
     }
+    // The icons are circles, so their centre (not the bottom edge, the default) sits on the visit's place.
+    val circleAnchor = Offset(0.5f, 0.5f)
 
-    LaunchedEffect(visitss) {
-        val target = visitss.firstOrNull() ?: return@LaunchedEffect
-        cameraPositionState.animate(
-            update = CameraUpdateFactory.newLatLngZoom(
-                LatLng(target.latitude, target.longitude),
-                15f,
-            ),
-            durationMs = 500,
-        )
-
+    // Show the whole day: every visit and the track from its start to its end. The camera can only fit bounds once the map is laid out.
+    LaunchedEffect(isMapReady, visitss, repTrack) {
+        if (!isMapReady) return@LaunchedEffect
+        val points = (visitss + repTrack).map { LatLng(it.latitude, it.longitude) }
+        val first = points.firstOrNull() ?: return@LaunchedEffect
+        val update = if (points.size == 1) {
+            CameraUpdateFactory.newLatLngZoom(first, 15f)
+        } else {
+            val bounds = LatLngBounds.Builder().apply { points.forEach { include(it) } }.build()
+            CameraUpdateFactory.newLatLngBounds(bounds, BOUNDS_PADDING_PX)
+        }
+        cameraPositionState.animate(update = update, durationMs = 500)
     }
 
     GoogleMap(
@@ -128,7 +140,11 @@ fun GoogleMapComponent(
                 }
             }
 
-            visitss.forEachIndexed { index, marker ->
+            // The start and end of the rep's track, under the visit pins.
+            trackStart?.let { TrackEndMarker(it, startMarkerIcon, circleAnchor) }
+            trackEnd?.let { TrackEndMarker(it, endMarkerIcon, circleAnchor) }
+
+            visitss.forEach { marker ->
                 key(marker.id) {
                     val position = LatLng(marker.latitude, marker.longitude)
                     // Highlight only the selected marker: a halo drawn just below it.
@@ -136,6 +152,7 @@ fun GoogleMapComponent(
                         Marker(
                             state = rememberMarkerState(position = position),
                             icon = haloIcon,
+                            anchor = circleAnchor,
                             zIndex = 0f,
                             onClick = {
                                 onMarkerClick(marker.visitId)
@@ -146,7 +163,8 @@ fun GoogleMapComponent(
                     Marker(
                         state = rememberMarkerState(position = position),
                         zIndex = 1f,
-                        icon = if (index == 0) startMarkerIcon else if (index == visitss.lastIndex) endMarkerIcon else markerIcon,
+                        anchor = circleAnchor,
+                        icon = markerIcon,
                         onClick = {
                             onMarkerClick(marker.visitId)
                             true
@@ -158,6 +176,17 @@ fun GoogleMapComponent(
     }
 }
 
+/** The start or the end of the rep's track: a round icon centred on the point, under the visit pins. */
+@Composable
+private fun TrackEndMarker(point: GeoPoint, icon: BitmapDescriptor?, anchor: Offset) {
+    Marker(
+        state = rememberMarkerState(position = LatLng(point.latitude, point.longitude)),
+        icon = icon,
+        anchor = anchor,
+        zIndex = 0.8f,
+    )
+}
+
 @Preview(showBackground = true)
 @Composable
 private fun GoogleMapComponentPreview() {
@@ -166,6 +195,8 @@ private fun GoogleMapComponentPreview() {
         GoogleMapComponent(
             visitss = listOf(route.first(), route[route.size / 2], route.last()),
             repTrack = route,
+            trackStart = route.first().let { GeoPoint(it.latitude, it.longitude) },
+            trackEnd = route.last().let { GeoPoint(it.latitude, it.longitude) },
             onMarkerClick = {},
         )
     }

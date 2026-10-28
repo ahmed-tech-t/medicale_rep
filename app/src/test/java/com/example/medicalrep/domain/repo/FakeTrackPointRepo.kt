@@ -2,12 +2,20 @@ package com.example.medicalrep.domain.repo
 
 import com.example.medicalrep.domain.models.TrackPoint
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 
 /** Records the points added; set [failOnAdd] to make `add` throw, like a failed insert. */
 class FakeTrackPointRepo : TrackPointRepo {
     val added = mutableListOf<TrackPoint>()
     var failOnAdd = false
+
+    /** The points `byRepAndDay` reads from. */
+    val stored = MutableStateFlow<List<TrackPoint>>(emptyList())
+
+    /** Every `byRepAndDay` call, in order. */
+    val dayRequests = mutableListOf<RepDayRequest>()
 
     override suspend fun add(point: TrackPoint) {
         if (failOnAdd) error("insert failed")
@@ -15,7 +23,11 @@ class FakeTrackPointRepo : TrackPointRepo {
     }
 
     override fun byVisit(visitId: String): Flow<List<TrackPoint>> = flowOf(emptyList())
-    override fun byRepAndDay(repId: String, fromMillis: Long, toMillis: Long): Flow<List<TrackPoint>> = flowOf(emptyList())
+    override fun byRepAndDay(repId: String, fromMillis: Long, toMillis: Long): Flow<List<TrackPoint>> {
+        dayRequests += RepDayRequest(repId, fromMillis, toMillis)
+        // Like the database: both ends are included, points come in time order.
+        return stored.map { list -> list.filter { it.repId == repId && it.timeMillis in fromMillis..toMillis }.sortedBy { it.timeMillis } }
+    }
     override suspend fun replaceForRepAndDay(repId: String, fromMillis: Long, toMillis: Long, points: List<TrackPoint>) = Unit
     override suspend fun notSynced(): List<TrackPoint> = added.toList()
     override suspend fun markSynced(id: Long, backendId: String?) = Unit
