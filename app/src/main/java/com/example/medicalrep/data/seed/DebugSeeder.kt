@@ -4,7 +4,7 @@ import com.example.medicalrep.domain.repo.AccountRepo
 import com.example.medicalrep.domain.repo.OrderRepo
 import com.example.medicalrep.domain.repo.ProductRepo
 import com.example.medicalrep.domain.repo.SyncInfoRepo
-import com.example.medicalrep.domain.repo.UserRepo
+import com.example.medicalrep.domain.repo.RepRepo
 import com.example.medicalrep.domain.repo.VisitRepo
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -15,7 +15,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class DebugSeeder @Inject constructor(
-    private val userRepo: UserRepo,
+    private val repRepo: RepRepo,
     private val accountRepo: AccountRepo,
     private val productRepo: ProductRepo,
     private val visitRepo: VisitRepo,
@@ -26,8 +26,8 @@ class DebugSeeder @Inject constructor(
     suspend fun seedIfEmpty(now: Long = System.currentTimeMillis()) {
         if (syncInfoRepo.get(SEED_KEY) != null) return
         val data = SeedDataFactory.build(now)
-        // Order matters: visits and orders point at users and accounts.
-        data.users.forEach { userRepo.save(it) }
+        // Order matters: visits and orders point at reps and accounts.
+        data.reps.forEach { repRepo.save(it) }
         data.accounts.forEach { accountRepo.save(it) }
         productRepo.saveProducts(data.products)
         productRepo.saveCustody(data.custody)
@@ -37,6 +37,6 @@ class DebugSeeder @Inject constructor(
     }
 
     companion object {
-        const val SEED_KEY = "debug_seed_v6"
+        const val SEED_KEY = "debug_seed_v1"
     }
 }

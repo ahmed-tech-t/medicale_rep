@@ -69,7 +69,7 @@ class OrderDaoTest : DaoTestBase() {
 
     @Test fun searchByAccountRepAndDate() = runBlocking {
         db.accountDao().save(account("a1", "صيدلية الإيمان", "Cairo"))
-        db.userDao().save(user("r1", "Mona"))
+        db.repDao().save(rep("r1", "Mona"))
         dao.save(order("o1", accountId = "a1", repId = "r1"), emptyList())
         dao.save(order("o2"), emptyList())
         assertEquals(listOf("o1"), dao.search(normalizeSearch("صيدليه الايمان")).allRows().map { it.order.id })
@@ -82,7 +82,7 @@ class OrderDaoTest : DaoTestBase() {
 
     @Test fun filtersAreOptional() = runBlocking {
         db.accountDao().save(account("a1"))
-        db.userDao().save(user("r1"))
+        db.repDao().save(rep("r1"))
         dao.save(order("o1", accountId = "a1", createdAtMillis = 100), emptyList())
         dao.save(order("o2", repId = "r1", syncStatus = SyncStatus.Synced, createdAtMillis = 200), emptyList())
         dao.markSynced("o2", "b")
@@ -142,10 +142,10 @@ class OrderDaoTest : DaoTestBase() {
 
     @Test fun renamingAccountOrRepRefreshesSearchText() = runBlocking {
         db.accountDao().save(account("a1", "Old Clinic"))
-        db.userDao().save(user("r1", "Old Rep"))
+        db.repDao().save(rep("r1", "Old Rep"))
         dao.save(order("o1", accountId = "a1", repId = "r1"), emptyList())
         db.accountDao().save(account("a1", "New Clinic"))
-        db.userDao().save(user("r1", "New Rep"))
+        db.repDao().save(rep("r1", "New Rep"))
         assertEquals(1, dao.search("new clinic").allRows().size)
         assertEquals(1, dao.search("new rep").allRows().size)
         assertTrue(dao.search("old clinic").allRows().isEmpty())

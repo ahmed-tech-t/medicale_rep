@@ -32,11 +32,11 @@ import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.Visit
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.Custody
-import com.example.medicalrep.domain.models.User
-import com.example.medicalrep.domain.models.UserRole
+import com.example.medicalrep.domain.models.Rep
+import com.example.medicalrep.domain.models.RepRole
 import com.example.medicalrep.domain.repo.FakeAccountRepo
 import com.example.medicalrep.domain.repo.FakeProductRepo
-import com.example.medicalrep.domain.repo.FakeUserRepo
+import com.example.medicalrep.domain.repo.FakeRepRepo
 import com.example.medicalrep.domain.repo.FakeVisitRepo
 import com.example.medicalrep.domain.repo.FakeDraftVisitRepo
 import com.appcore.core.ui.utils.document_picker.PickedDocument
@@ -65,7 +65,7 @@ import org.junit.Test
  * 9. Given a row with quantity 1, When − is tapped, Then the row is removed.
  * 10. Given the result step, When the clinic checkbox toggles, Then state follows.
  * 11. When Back, Then NavigationUp. When EndVisit, Then the visit is stored, the draft cleared, then snackbar then NavigationUp.
- * 20. An unplanned visit is a new completed row: account from the chosen place, times, duration, not uploaded; the rep id only when the rep is in users;
+ * 20. An unplanned visit is a new completed row: account from the chosen place, times, duration, not uploaded; the rep id is the signed-in rep's;
  *     the supervisor id only for a double visit.
  * 20b. A visit that was stored before (a planned one) keeps its server id and request times when it is completed.
  * 21. When storing fails, Then the draft stays, an error snackbar shows and the screen does not close; ending again can succeed.
@@ -96,7 +96,7 @@ class PlanVisitViewModelTest {
             Account("a2", name = "عيادة د. هاني", city = "قويسنا", district = "البر الشرقى", entityType = "عيادة", specialty = "باطنة"),
         ),
     )
-    private val userRepo = FakeUserRepo(listOf(User("s1", "د. سارة أحمد", "مشرف", role = UserRole.Supervisor)))
+    private val repRepo = FakeRepRepo(listOf(Rep("s1", "د. سارة أحمد", role = RepRole.Supervisor)))
     private val productRepo = FakeProductRepo(
         custody = listOf(
             Custody("gift-mug", "مج حراري", ProductType.Gift, received = 8, dispatched = 3),
@@ -134,7 +134,7 @@ class PlanVisitViewModelTest {
 
     private fun createViewModel(savedStateHandle: SavedStateHandle = SavedStateHandle()) =
         PlanVisitViewModel(
-            FakeUnplannedSettingsRepo, savedStateHandle, session.manager, draftRepo, accountRepo, userRepo, productRepo, visitRepo,
+            FakeUnplannedSettingsRepo, savedStateHandle, session.manager, draftRepo, accountRepo, repRepo, productRepo, visitRepo,
         )
 
     @Test
@@ -248,7 +248,7 @@ class PlanVisitViewModelTest {
         assertNotNull(saved.voiceNote)
         assertNotNull(saved.imageNote)
         assertNull(saved.supervisorId)
-        assertNull(saved.repId)
+        assertEquals(session.manager.user.value.id.toString(), saved.repId)
     }
 
     @Test
@@ -264,12 +264,11 @@ class PlanVisitViewModelTest {
     }
 
     @Test
-    fun `the rep id is stored only when the rep exists in users`() = runTest(dispatcher) {
-        val repId = session.manager.user.value.id.toString()
-        userRepo.current.value = userRepo.current.value + User(repId, "Ahmed", "Rep", role = UserRole.Rep)
+    fun `the visit always carries the signed-in rep's id, whether or not he is in the reps table`() = runTest(dispatcher) {
         readyToEnd()
         viewModel.onEvent(PlanVisitEvents.EndVisit)
-        assertEquals(repId, visitRepo.current.value.single().repId)
+        assertEquals(session.manager.user.value.id.toString(), visitRepo.current.value.single().repId)
+        assertNull(repRepo.get(session.manager.user.value.id.toString()))
     }
 
     @Test
@@ -462,7 +461,7 @@ class PlanVisitViewModelTest {
     fun `options follow the stored data`() {
         accountRepo.current.value = accountRepo.current.value + Account("a3", name = "مركز", city = "الباجور", district = "x", entityType = "مركز طبي", specialty = "عظام")
         assertTrue("الباجور" in state.cityOptions)
-        userRepo.current.value = userRepo.current.value + User("s2", "د. وائل", "مشرف", role = UserRole.Supervisor)
+        repRepo.current.value = repRepo.current.value + Rep("s2", "د. وائل", role = RepRole.Supervisor)
         assertEquals(listOf("د. سارة أحمد", "د. وائل"), state.supervisorOptions)
     }
 

@@ -1,6 +1,6 @@
 package com.example.medicalrep.domain.models
 
-enum class UserRole {
+enum class RepRole {
     Rep,
     Supervisor,
 }

@@ -7,7 +7,7 @@ import com.example.medicalrep.data.repo.ProductRepoImpl
 import com.example.medicalrep.data.repo.StatisticsRepoImpl
 import com.example.medicalrep.data.repo.SyncInfoRepoImpl
 import com.example.medicalrep.data.repo.TrackPointRepoImpl
-import com.example.medicalrep.data.repo.UserRepoImpl
+import com.example.medicalrep.data.repo.RepRepoImpl
 import com.example.medicalrep.data.repo.VisitRepoImpl
 import com.example.medicalrep.domain.repo.AccountRepo
 import com.example.medicalrep.domain.repo.DraftVisitRepo
@@ -16,7 +16,7 @@ import com.example.medicalrep.domain.repo.ProductRepo
 import com.example.medicalrep.domain.repo.StatisticsRepo
 import com.example.medicalrep.domain.repo.SyncInfoRepo
 import com.example.medicalrep.domain.repo.TrackPointRepo
-import com.example.medicalrep.domain.repo.UserRepo
+import com.example.medicalrep.domain.repo.RepRepo
 import com.example.medicalrep.domain.repo.VisitRepo
 import dagger.Binds
 import dagger.Module
@@ -31,7 +31,7 @@ abstract class LocalDataModule {
     @Binds abstract fun bindAccountRepo(impl: AccountRepoImpl): AccountRepo
     @Binds abstract fun bindProductRepo(impl: ProductRepoImpl): ProductRepo
     @Binds abstract fun bindOrderRepo(impl: OrderRepoImpl): OrderRepo
-    @Binds abstract fun bindUserRepo(impl: UserRepoImpl): UserRepo
+    @Binds abstract fun bindRepRepo(impl: RepRepoImpl): RepRepo
     @Binds abstract fun bindTrackPointRepo(impl: TrackPointRepoImpl): TrackPointRepo
     @Binds abstract fun bindSyncInfoRepo(impl: SyncInfoRepoImpl): SyncInfoRepo
     @Binds abstract fun bindStatisticsRepo(impl: StatisticsRepoImpl): StatisticsRepo

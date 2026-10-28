@@ -17,7 +17,7 @@ class VisitRepoTest : RepoTestBase() {
 
     @Test fun saveThenGetKeepsAccountSupervisorAndLines() = runTest {
         AccountRepoImpl(db.accountDao()).save(Account("a1", name = "Clinic", city = "Cairo"))
-        UserRepoImpl(db.userDao()).save(User("s1", "Boss", "Sup", role = UserRole.Supervisor))
+        RepRepoImpl(db.repDao()).save(Rep("s1", "Boss", role = RepRole.Supervisor))
         ProductRepoImpl(db.productDao(), db.custodyDao()).saveCustody(listOf(Custody("c1", "Pen", ProductType.Gift, received = 10)))
         repo.save(Visit(id = "v1", status = VisitStatus.Scheduled, accountId = "a1", supervisorId = "s1", gifts = listOf(Product(id = "c1", quantity = 2))))
         val visit = repo.get("v1")!!

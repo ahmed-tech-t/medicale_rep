@@ -4,7 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
-import com.example.medicalrep.domain.models.UserRole
+import com.example.medicalrep.domain.models.RepRole
 import org.junit.Test
 import org.junit.runner.RunWith
 import com.example.medicalrep.data.local.entity.VisitCustodyEntity
@@ -57,7 +57,7 @@ class VisitDaoTest : DaoTestBase() {
 
     @Test fun detailsCarryAccountSupervisorAndLines() = runBlocking {
         db.accountDao().save(account("a1", "Clinic"))
-        db.userDao().save(user("s", "Boss", UserRole.Supervisor))
+        db.repDao().save(rep("s", "Boss", RepRole.Supervisor))
         db.custodyDao().insertAll(listOf(custody("c1", kind = ProductType.Gift), custody("c2", kind = ProductType.Product)))
         dao.save(visit("v1", accountId = "a1", supervisorId = "s"), listOf(VisitCustodyEntity("v1", "c1", 2), VisitCustodyEntity("v1", "c2", 1)))
         val details = dao.getWithDetails("v1")!!

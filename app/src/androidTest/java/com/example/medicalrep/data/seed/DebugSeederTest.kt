@@ -7,7 +7,7 @@ import com.example.medicalrep.data.repo.OrderRepoImpl
 import com.example.medicalrep.data.repo.ProductRepoImpl
 import com.example.medicalrep.data.repo.RepoTestBase
 import com.example.medicalrep.data.repo.SyncInfoRepoImpl
-import com.example.medicalrep.data.repo.UserRepoImpl
+import com.example.medicalrep.data.repo.RepRepoImpl
 import com.example.medicalrep.data.repo.VisitRepoImpl
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -25,7 +25,7 @@ class DebugSeederTest : RepoTestBase() {
     private val syncInfo get() = SyncInfoRepoImpl(db.syncInfoDao())
     private val seeder
         get() = DebugSeeder(
-            UserRepoImpl(db.userDao()),
+            RepRepoImpl(db.repDao()),
             accounts,
             ProductRepoImpl(db.productDao(), db.custodyDao()),
             VisitRepoImpl(db.visitDao(), media),

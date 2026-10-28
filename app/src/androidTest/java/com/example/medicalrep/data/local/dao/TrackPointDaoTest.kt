@@ -13,10 +13,7 @@ import com.example.medicalrep.domain.models.SyncStatus
 class TrackPointDaoTest : DaoTestBase() {
     private val dao get() = db.trackPointDao()
 
-    private suspend fun rep() = db.userDao().insert(user("r"))
-
     @Test fun insertGetDelete() = runBlocking {
-        rep()
         val id = dao.insert(point("r", 100))
         assertEquals(100L, dao.getById(id)?.timeMillis)
         assertEquals(1, dao.deleteById(id))
@@ -24,13 +21,11 @@ class TrackPointDaoTest : DaoTestBase() {
     }
 
     @Test fun samePointTwiceIsStoredOnce() = runBlocking {
-        rep()
         dao.insertOrReplace(listOf(point("r", 100), point("r", 100), point("r", 200)))
         assertEquals(2, dao.getAll().first().size)
     }
 
     @Test fun byVisitAndByRepAndDayAreOrderedByTime() = runBlocking {
-        rep()
         db.visitDao().save(visit("v", repId = "r"), emptyList())
         dao.insertAll(listOf(point("r", 300, "v"), point("r", 100, "v"), point("r", 900)))
         assertEquals(listOf(100L, 300L), dao.getByVisit("v").first().map { it.timeMillis })
@@ -39,7 +34,6 @@ class TrackPointDaoTest : DaoTestBase() {
     }
 
     @Test fun getNotSyncedAndMarkSynced() = runBlocking {
-        rep()
         val id = dao.insert(point("r", 100))
         dao.insert(point("r", 200, syncStatus = SyncStatus.Synced))
         assertEquals(listOf(100L), dao.getNotSynced().map { it.timeMillis })
@@ -49,7 +43,6 @@ class TrackPointDaoTest : DaoTestBase() {
     }
 
     @Test fun purgeDeletesOnlyOldSyncedPoints() = runBlocking {
-        rep()
         dao.insertAll(listOf(
             point("r", 100, syncStatus = SyncStatus.Synced),
             point("r", 200, syncStatus = SyncStatus.NotSynced),
@@ -60,7 +53,6 @@ class TrackPointDaoTest : DaoTestBase() {
     }
 
     @Test fun replaceForRepAndDayKeepsUnsentPoints() = runBlocking {
-        rep()
         dao.insertAll(listOf(
             point("r", 100, syncStatus = SyncStatus.Synced),
             point("r", 150, syncStatus = SyncStatus.NotSynced),
@@ -71,7 +63,6 @@ class TrackPointDaoTest : DaoTestBase() {
     }
 
     @Test fun deletingTheVisitDeletesItsPoints() = runBlocking {
-        rep()
         db.visitDao().save(visit("v", repId = "r"), emptyList())
         dao.insert(point("r", 100, "v"))
         db.visitDao().deleteById("v")
@@ -79,7 +70,6 @@ class TrackPointDaoTest : DaoTestBase() {
     }
 
     @Test fun clearEmptiesTable() = runBlocking {
-        rep()
         dao.insert(point("r", 1))
         dao.clear()
         assertTrue(dao.getAll().first().isEmpty())

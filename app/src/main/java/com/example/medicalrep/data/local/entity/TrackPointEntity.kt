@@ -10,7 +10,6 @@ import com.example.medicalrep.domain.models.SyncStatus
 @Entity(
     tableName = "track_points",
     foreignKeys = [
-        ForeignKey(UserEntity::class, parentColumns = ["id"], childColumns = ["repId"], onDelete = ForeignKey.CASCADE),
         ForeignKey(VisitEntity::class, parentColumns = ["id"], childColumns = ["visitId"], onDelete = ForeignKey.CASCADE),
     ],
     indices = [

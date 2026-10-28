@@ -75,7 +75,7 @@ class LocationStatusViewModel @Inject constructor(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            // The rep has no row in the users table yet, so the insert is refused; the next update tries again.
+            // A point of this rep at this time is already stored; the next update tries again.
         }
     }
 

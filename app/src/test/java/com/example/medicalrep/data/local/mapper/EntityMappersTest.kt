@@ -12,8 +12,8 @@ import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncInfo
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.TrackPoint
-import com.example.medicalrep.domain.models.User
-import com.example.medicalrep.domain.models.UserRole
+import com.example.medicalrep.domain.models.Rep
+import com.example.medicalrep.domain.models.RepRole
 import com.example.medicalrep.domain.models.Visit
 import com.example.medicalrep.domain.models.VisitMode
 import com.example.medicalrep.domain.models.VisitStatus
@@ -32,11 +32,11 @@ import org.junit.Test
 class EntityMappersTest {
 
     @Test
-    fun `user round trip keeps role and supervisor and builds search text`() {
-        val user = User("u1", "أحمد", "Rep", "Cardio", "E1", "d1", "A", UserRole.Supervisor, "boss")
-        val entity = user.toEntity()
-        assertEquals(user, entity.toDomain())
-        assertEquals("احمد rep cardio e1", entity.searchText)
+    fun `rep round trip keeps role and supervisor and builds search text from name and code`() {
+        val rep = Rep("u1", "أحمد", employeeCode = "E1", deviceId = "d1", role = RepRole.Supervisor, supervisorId = "boss")
+        val entity = rep.toEntity()
+        assertEquals(rep, entity.toDomain())
+        assertEquals("احمد e1", entity.searchText)
     }
 
     @Test
@@ -105,7 +105,7 @@ class EntityMappersTest {
     @Test
     fun `visit takes account supervisor and lines from the relations`() {
         val account = Account("a1", name = "Clinic", entityType = "Pharmacy", city = "Cairo", district = "Nasr", address = "St 1", specialty = "Cardio", classCategory = "A", latitude = 3.0, longitude = 4.0).toEntity()
-        val supervisor = User("s1", "Boss", "Sup").toEntity()
+        val supervisor = Rep("s1", "Boss").toEntity()
         val gift = Custody("c1", "Pen", ProductType.Gift, received = 10, dispatched = 2).toEntity()
         val sample = Custody("c2", "Drug", ProductType.Product, received = 5).toEntity()
         val details = VisitWithDetails(

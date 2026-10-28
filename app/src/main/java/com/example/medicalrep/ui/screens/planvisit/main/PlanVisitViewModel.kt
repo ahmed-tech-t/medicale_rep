@@ -13,12 +13,12 @@ import com.example.medicalrep.R
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.ProductType
-import com.example.medicalrep.domain.models.UserRole
+import com.example.medicalrep.domain.models.RepRole
 import com.example.medicalrep.domain.models.VisitType
 import com.example.medicalrep.domain.repo.AccountRepo
 import com.example.medicalrep.domain.repo.DraftVisitRepo
 import com.example.medicalrep.domain.repo.ProductRepo
-import com.example.medicalrep.domain.repo.UserRepo
+import com.example.medicalrep.domain.repo.RepRepo
 import com.example.medicalrep.domain.repo.VisitRepo
 import com.appcore.core.data.local.session.AuthSessionManager
 import com.example.medicalrep.domain.models.lastLocation
@@ -60,7 +60,7 @@ class PlanVisitViewModel @Inject constructor(
     private val session: AuthSessionManager,
     private val draftRepo: DraftVisitRepo,
     private val accountRepo: AccountRepo,
-    private val userRepo: UserRepo,
+    private val repRepo: RepRepo,
     productRepo: ProductRepo,
     private val visitRepo: VisitRepo,
 ) : BaseViewModel(appSettingsRepo) {
@@ -83,7 +83,7 @@ class PlanVisitViewModel @Inject constructor(
         collectInto(accountRepo.districts()) { state, districts -> state.copy(districtOptions = districts) }
         collectInto(accountRepo.entityTypes()) { state, types -> state.copy(entityTypeOptions = types) }
         viewModelScope.launch {
-            userRepo.byRole(UserRole.Supervisor).collect { list -> _state.update { it.copy(supervisors = list) } }
+            repRepo.byRole(RepRole.Supervisor).collect { list -> _state.update { it.copy(supervisors = list) } }
         }
         collectInto(productRepo.custodyList(ProductType.Gift)) { state, gifts -> state.copy(giftCatalog = gifts.map { it.toCatalogItem() }) }
         collectInto(productRepo.custodyList(ProductType.Product)) { state, samples ->
@@ -196,7 +196,7 @@ class PlanVisitViewModel @Inject constructor(
                 visitRepo.save(
                     visit.toCompletedVisit(
                         stored = visitRepo.get(visit.id),
-                        repId = session.user.value.id?.toString()?.takeIf { userRepo.get(it) != null },
+                        repId = session.user.value.id?.toString(),
                         supervisorId = state.chosenSupervisorId,
                         startedAtMillis = state.openedAtMillis,
                         completedAtMillis = System.currentTimeMillis(),

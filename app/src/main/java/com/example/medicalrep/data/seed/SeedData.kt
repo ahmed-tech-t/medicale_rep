@@ -8,8 +8,8 @@ import com.example.medicalrep.domain.models.Product
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
-import com.example.medicalrep.domain.models.User
-import com.example.medicalrep.domain.models.UserRole
+import com.example.medicalrep.domain.models.Rep
+import com.example.medicalrep.domain.models.RepRole
 import com.example.medicalrep.domain.models.Visit
 import com.example.medicalrep.domain.models.VisitMode
 import com.example.medicalrep.domain.models.VisitStatus
@@ -17,7 +17,7 @@ import com.example.medicalrep.domain.models.VisitType
 
 /** Everything the debug seed writes into Room. */
 data class SeedData(
-    val users: List<User>,
+    val reps: List<Rep>,
     val accounts: List<Account>,
     val products: List<Product>,
     val custody: List<Custody>,
@@ -33,12 +33,12 @@ private const val MINUTE = 60_000L
 object SeedDataFactory {
 
     fun build(nowMillis: Long): SeedData {
-        val users = users()
+        val reps = reps()
         val accounts = accounts()
         val custody = custody()
         val products = products()
         return SeedData(
-            users = users,
+            reps = reps,
             accounts = accounts,
             products = products,
             custody = custody,
@@ -68,12 +68,12 @@ object SeedDataFactory {
         )
     }
 
-    private fun users() = listOf(
-        User("sup-1", "د. وائل نصار", "مشرف", role = UserRole.Supervisor, initials = "ون"),
-        User("sup-2", "د. سارة أحمد", "مشرف", role = UserRole.Supervisor, initials = "سأ"),
-        User("rep-1", "أحمد محمد", "مندوب", employeeCode = "1001", deviceId = "99201", initials = "أم", role = UserRole.Rep, supervisorId = "sup-1"),
-        User("rep-2", "كريم فؤاد", "مندوب", employeeCode = "1002", deviceId = "99202", initials = "كف", role = UserRole.Rep, supervisorId = "sup-1"),
-        User("rep-3", "منى الشاذلي", "مندوب", employeeCode = "1003", deviceId = "99203", initials = "مش", role = UserRole.Rep, supervisorId = "sup-2"),
+    private fun reps() = listOf(
+        Rep("sup-1", "د. وائل نصار", role = RepRole.Supervisor),
+        Rep("sup-2", "د. سارة أحمد", role = RepRole.Supervisor),
+        Rep("rep-1", "أحمد محمد", employeeCode = "1001", deviceId = "99201", role = RepRole.Rep, supervisorId = "sup-1"),
+        Rep("rep-2", "كريم فؤاد", employeeCode = "1002", deviceId = "99202", role = RepRole.Rep, supervisorId = "sup-1"),
+        Rep("rep-3", "منى الشاذلي", employeeCode = "1003", deviceId = "99203", role = RepRole.Rep, supervisorId = "sup-2"),
     )
 
     private fun account(

@@ -40,7 +40,6 @@ import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.primitives.NexoraIcon
 import com.example.medicalrep.ui.components.primitives.NexoraText
-import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.UserUi
 import com.example.medicalrep.ui.preview.HomeSamples
 import com.example.medicalrep.ui.ui.theme.Brand
@@ -199,7 +198,7 @@ object NavDrawerTestTags {
 @Composable
 private fun NavDrawerSheetArabicPreview() {
     MedicalRepTheme {
-        NavDrawerSheet(user = HomeSamples.user().toUi(), language = "ar", onItemClick = {})
+        NavDrawerSheet(user = HomeSamples.user(), language = "ar", onItemClick = {})
     }
 }
 
@@ -207,6 +206,6 @@ private fun NavDrawerSheetArabicPreview() {
 @Composable
 private fun NavDrawerSheetEnglishShortPreview() {
     MedicalRepTheme {
-        NavDrawerSheet(user = HomeSamples.user().toUi(), language = "en", onItemClick = {})
+        NavDrawerSheet(user = HomeSamples.user(), language = "en", onItemClick = {})
     }
 }

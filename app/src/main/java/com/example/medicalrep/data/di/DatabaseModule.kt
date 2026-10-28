@@ -11,7 +11,7 @@ import com.example.medicalrep.data.local.dao.ProductDao
 import com.example.medicalrep.data.local.dao.StatisticsDao
 import com.example.medicalrep.data.local.dao.SyncInfoDao
 import com.example.medicalrep.data.local.dao.TrackPointDao
-import com.example.medicalrep.data.local.dao.UserDao
+import com.example.medicalrep.data.local.dao.RepDao
 import com.example.medicalrep.data.local.dao.VisitDao
 import com.example.medicalrep.data.local.db.AppDatabase
 import com.example.medicalrep.data.local.db.DatabaseOwner
@@ -33,7 +33,7 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
         Room.databaseBuilder(context, AppDatabase::class.java, "medicalrep.db")
-            // Real migrations from version 2; only debug builds may wipe the data while the tables still change.
+            // No release yet, so no migrations: only debug builds may wipe the data while the tables still change.
             .apply { if (BuildConfig.DEBUG) fallbackToDestructiveMigration(dropAllTables = true) }
             .build()
 
@@ -57,7 +57,7 @@ object DatabaseModule {
         )
     }
 
-    @Provides fun provideUserDao(db: AppDatabase): UserDao = db.userDao()
+    @Provides fun provideRepDao(db: AppDatabase): RepDao = db.repDao()
     @Provides fun provideAccountDao(db: AppDatabase): AccountDao = db.accountDao()
     @Provides fun provideProductDao(db: AppDatabase): ProductDao = db.productDao()
     @Provides fun provideCustodyDao(db: AppDatabase): CustodyDao = db.custodyDao()

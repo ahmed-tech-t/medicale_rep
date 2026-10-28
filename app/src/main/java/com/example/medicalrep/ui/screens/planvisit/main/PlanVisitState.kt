@@ -3,7 +3,7 @@ package com.example.medicalrep.ui.screens.planvisit.main
 import androidx.compose.runtime.Immutable
 import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.ProductType
-import com.example.medicalrep.domain.models.User
+import com.example.medicalrep.domain.models.Rep
 import com.example.medicalrep.ui.common.location.WEAK_GPS_METERS
 import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.ProductUi
@@ -49,11 +49,11 @@ data class PlanVisitState(
     val entityTypeOptions: List<String> = emptyList(),
     val placeOptions: List<String> = emptyList(),
     /** The supervisors the form can choose from; a double visit stores the id of the chosen one. */
-    val supervisors: List<User> = emptyList(),
+    val supervisors: List<Rep> = emptyList(),
     /** When the form opened: the visit started then. */
     val openedAtMillis: Long = 0L,
 ) {
-    val supervisorOptions: List<String> get() = supervisors.map(User::displayName)
+    val supervisorOptions: List<String> get() = supervisors.map(Rep::displayName)
 
     /** The id of the supervisor chosen on the form; null when none is chosen or the visit is single. */
     val chosenSupervisorId: String?

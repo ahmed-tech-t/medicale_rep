@@ -8,7 +8,6 @@ import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.StatMetric
 import com.example.medicalrep.domain.models.SyncStatus
-import com.example.medicalrep.domain.models.User
 import com.example.medicalrep.domain.models.Visit
 import com.example.medicalrep.domain.models.VisitMode
 import com.example.medicalrep.domain.models.VisitType
@@ -75,16 +74,6 @@ fun AttachmentPill.toUi(): AttachmentPillUiModel = AttachmentPillUiModel(
     requiredMarkRes = if (isRequired) R.string.attachment_required else null,
 )
 
-
-fun User.toUi(): UserUi = UserUi(
-    id = id,
-    displayName = displayName,
-    roleTitle = roleTitle,
-    specialty = specialty,
-    employeeCode = employeeCode,
-    deviceId = deviceId,
-    initials = initials,
-)
 
 fun Product.toProductUi(): ProductUi {
     return ProductUi(

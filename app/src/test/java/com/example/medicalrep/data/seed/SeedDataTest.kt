@@ -4,7 +4,7 @@ import com.example.medicalrep.domain.models.AccountType
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
-import com.example.medicalrep.domain.models.UserRole
+import com.example.medicalrep.domain.models.RepRole
 import com.example.medicalrep.domain.models.VisitMode
 import com.example.medicalrep.domain.models.VisitStatus
 import com.example.medicalrep.domain.models.VisitType
@@ -54,7 +54,7 @@ class SeedDataTest {
         assertEquals(listOf(999, 1000, 1001), data.orders.map { it.number })
         assertEquals(data.orders.size, data.orders.map { it.id }.toSet().size)
         val accountIds = data.accounts.map { it.id }.toSet()
-        val userIds = data.users.map { it.id }.toSet()
+        val userIds = data.reps.map { it.id }.toSet()
         val products = data.products.associateBy { it.id }
         data.orders.forEach { order ->
             assertTrue(order.accountId in accountIds)
@@ -80,7 +80,7 @@ class SeedDataTest {
 
     @Test
     fun `ids are unique`() {
-        assertEquals(data.users.size, data.users.map { it.id }.toSet().size)
+        assertEquals(data.reps.size, data.reps.map { it.id }.toSet().size)
         assertEquals(data.accounts.size, data.accounts.map { it.id }.toSet().size)
         assertEquals(data.products.size, data.products.map { it.id }.toSet().size)
         assertEquals(data.custody.size, data.custody.map { it.id }.toSet().size)
@@ -89,8 +89,8 @@ class SeedDataTest {
 
     @Test
     fun `every reference points at an existing row`() {
-        val supervisors = data.users.filter { it.role == UserRole.Supervisor }.map { it.id }.toSet()
-        val reps = data.users.filter { it.role == UserRole.Rep }
+        val supervisors = data.reps.filter { it.role == RepRole.Supervisor }.map { it.id }.toSet()
+        val reps = data.reps.filter { it.role == RepRole.Rep }
         assertTrue(supervisors.isNotEmpty() && reps.isNotEmpty())
         assertTrue(reps.all { it.supervisorId in supervisors })
         assertTrue(data.accounts.all { it.supervisorId in supervisors })

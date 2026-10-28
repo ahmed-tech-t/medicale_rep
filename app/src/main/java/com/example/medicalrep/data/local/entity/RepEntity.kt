@@ -4,13 +4,13 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.example.medicalrep.domain.models.UserRole
+import com.example.medicalrep.domain.models.RepRole
 
 @Entity(
-    tableName = "users",
+    tableName = "reps",
     foreignKeys = [
         ForeignKey(
-            entity = UserEntity::class,
+            entity = RepEntity::class,
             parentColumns = ["id"],
             childColumns = ["supervisorId"],
             onDelete = ForeignKey.SET_NULL,
@@ -18,16 +18,13 @@ import com.example.medicalrep.domain.models.UserRole
     ],
     indices = [Index("supervisorId"), Index("role")],
 )
-data class UserEntity(
+data class RepEntity(
     @PrimaryKey val id: String,
-    val role: UserRole,
+    val role: RepRole,
     /** The rep's supervisor; empty for supervisors. */
     val supervisorId: String?,
     val displayName: String,
-    val roleTitle: String,
-    val specialty: String,
     val employeeCode: String,
     val deviceId: String,
-    val initials: String,
     val searchText: String = "",
 )

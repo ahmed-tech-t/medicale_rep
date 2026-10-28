@@ -1,7 +1,7 @@
 package com.example.medicalrep.ui.preview
 
 import com.example.medicalrep.domain.models.ConnectionState
-import com.example.medicalrep.domain.models.User
+import com.example.medicalrep.ui.models.UserUi
 import com.example.medicalrep.domain.models.Visit
 import com.example.medicalrep.domain.models.VisitProgress
 import com.example.medicalrep.ui.mapper.toUi
@@ -14,19 +14,9 @@ object HomeSamples {
         id: String = "u1",
         displayName: String = "أحمد محمد",
         roleTitle: String = "ميديكال ريب",
-        specialty: String = "أخصائي دعاية طبية",
         employeeCode: String = "9842-EG",
-        deviceId: String = "99201",
         initials: String = "أم",
-    ): User = User(
-        id = id,
-        displayName = displayName,
-        roleTitle = roleTitle,
-        specialty = specialty,
-        employeeCode = employeeCode,
-        deviceId = deviceId,
-        initials = initials,
-    )
+    ): UserUi = UserUi(id = id, displayName = displayName, roleTitle = roleTitle, employeeCode = employeeCode, initials = initials)
 
     fun activeVisit(): Visit = VisitSamples.planned(
         id = "active-1",
@@ -43,7 +33,7 @@ object HomeSamples {
 
     /** Full Home as in the design: online, a pending visit, 2 visits to upload, the week's progress and today's visits. */
     fun homeState(language: String = "ar"): HomeState = HomeState(
-        user = user().toUi(),
+        user = user(),
         connection = ConnectionState.Online,
         address = "Stockton St, Union Square",
         dateMillis = 1_792_000_000_000L,

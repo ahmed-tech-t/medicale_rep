@@ -29,7 +29,6 @@ import com.example.medicalrep.R
 import com.example.medicalrep.domain.models.ConnectionState
 import com.example.medicalrep.ui.components.primitives.NexoraIconButton
 import com.example.medicalrep.ui.components.primitives.NexoraText
-import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.UserUi
 import com.example.medicalrep.ui.preview.HomeSamples
 import com.example.medicalrep.ui.ui.theme.Brand
@@ -103,7 +102,7 @@ fun HomeHeader(
 private fun HomeHeaderOnlinePreview() {
     MedicalRepTheme {
         HomeHeader(
-            user = HomeSamples.user().toUi(),
+            user = HomeSamples.user(),
             connection = ConnectionState.Online,
             onMenuClick = {},
         )
@@ -115,7 +114,7 @@ private fun HomeHeaderOnlinePreview() {
 private fun HomeHeaderOfflineTabletPreview() {
     MedicalRepTheme {
         HomeHeader(
-            user = HomeSamples.user().toUi(),
+            user = HomeSamples.user(),
             connection = ConnectionState.Offline,
             onMenuClick = {},
         )

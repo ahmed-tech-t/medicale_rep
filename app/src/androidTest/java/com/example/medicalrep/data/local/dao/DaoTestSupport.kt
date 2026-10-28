@@ -25,8 +25,8 @@ abstract class DaoTestBase {
     fun closeDb() = db.close()
 }
 
-fun user(id: String, name: String = id, role: UserRole = UserRole.Rep, supervisorId: String? = null) =
-    User(id = id, displayName = name, roleTitle = "", role = role, supervisorId = supervisorId).toEntity()
+fun rep(id: String, name: String = id, role: RepRole = RepRole.Rep, supervisorId: String? = null) =
+    Rep(id = id, displayName = name, role = role, supervisorId = supervisorId).toEntity()
 
 fun account(id: String, name: String = id, city: String = "", syncStatus: SyncStatus = SyncStatus.Synced, classCategory: String = "") =
     Account(id = id, name = name, city = city, syncStatus = syncStatus, classCategory = classCategory).toEntity()

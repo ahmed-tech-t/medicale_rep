@@ -11,7 +11,7 @@ import com.example.medicalrep.domain.models.SyncStatus
     tableName = "accounts",
     foreignKeys = [
         ForeignKey(
-            entity = UserEntity::class,
+            entity = RepEntity::class,
             parentColumns = ["id"],
             childColumns = ["supervisorId"],
             onDelete = ForeignKey.SET_NULL,

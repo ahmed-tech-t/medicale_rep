@@ -19,7 +19,6 @@ class TrackPointAndSyncInfoRepoTest : RepoTestBase() {
     private fun point(time: Long, status: SyncStatus = SyncStatus.NotSynced) = TrackPoint(repId = "r", latitude = 1.0, longitude = 2.0, timeMillis = time, syncStatus = status)
 
     @Test fun samePointTwiceIsStoredOnce() = runTest {
-        UserRepoImpl(db.userDao()).save(User("r", "Rep", "Rep"))
         points.add(point(100))
         points.add(point(100))
         points.add(point(200))
@@ -27,7 +26,6 @@ class TrackPointAndSyncInfoRepoTest : RepoTestBase() {
     }
 
     @Test fun supervisorCacheIsStoredSyncedAndKeepsUnsentPoints() = runTest {
-        UserRepoImpl(db.userDao()).save(User("r", "Rep", "Rep"))
         points.add(point(150))
         points.replaceForRepAndDay("r", 0, 500, listOf(point(120), point(130)))
         assertEquals(listOf(150L), points.notSynced().map { it.timeMillis })
@@ -35,7 +33,6 @@ class TrackPointAndSyncInfoRepoTest : RepoTestBase() {
     }
 
     @Test fun purgeDeletesOnlyOldUploadedPoints() = runTest {
-        UserRepoImpl(db.userDao()).save(User("r", "Rep", "Rep"))
         points.add(point(100, SyncStatus.Synced))
         points.add(point(150))
         points.add(point(900, SyncStatus.Synced))
@@ -44,7 +41,6 @@ class TrackPointAndSyncInfoRepoTest : RepoTestBase() {
     }
 
     @Test fun markSyncedRemovesFromNotSynced() = runTest {
-        UserRepoImpl(db.userDao()).save(User("r", "Rep", "Rep"))
         points.add(point(100))
         val id = points.notSynced().single().id
         points.markSynced(id, "srv")

@@ -10,7 +10,6 @@ import com.example.medicalrep.domain.models.SyncStatus
 @Entity(
     tableName = "orders",
     foreignKeys = [
-        ForeignKey(UserEntity::class, parentColumns = ["id"], childColumns = ["repId"], onDelete = ForeignKey.SET_NULL),
         ForeignKey(AccountEntity::class, parentColumns = ["id"], childColumns = ["accountId"], onDelete = ForeignKey.SET_NULL),
     ],
     indices = [Index("repId"), Index("accountId"), Index("createdAtMillis"), Index("syncStatus")],

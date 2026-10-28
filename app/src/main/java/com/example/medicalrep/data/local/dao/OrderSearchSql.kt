@@ -6,6 +6,6 @@ package com.example.medicalrep.data.local.dao
  */
 const val ORDER_SEARCH_TEXT_SQL =
     "TRIM(COALESCE((SELECT a.searchText FROM accounts a WHERE a.id = orders.accountId), '')" +
-        " || ' ' || COALESCE((SELECT u.searchText FROM users u WHERE u.id = orders.repId), '')" +
+        " || ' ' || COALESCE((SELECT u.searchText FROM reps u WHERE u.id = orders.repId), '')" +
         " || ' ' || CASE WHEN orders.createdAtMillis > 0" +
         " THEN strftime('%Y-%m-%d', orders.createdAtMillis / 1000, 'unixepoch', 'localtime') ELSE '' END)"

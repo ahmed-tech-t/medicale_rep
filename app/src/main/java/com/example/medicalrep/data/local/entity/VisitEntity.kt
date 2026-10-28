@@ -14,8 +14,7 @@ import com.example.medicalrep.domain.models.VisitType
 @Entity(
     tableName = "visits",
     foreignKeys = [
-        ForeignKey(UserEntity::class, parentColumns = ["id"], childColumns = ["repId"], onDelete = ForeignKey.SET_NULL),
-        ForeignKey(UserEntity::class, parentColumns = ["id"], childColumns = ["supervisorId"], onDelete = ForeignKey.SET_NULL),
+        ForeignKey(RepEntity::class, parentColumns = ["id"], childColumns = ["supervisorId"], onDelete = ForeignKey.SET_NULL),
         ForeignKey(AccountEntity::class, parentColumns = ["id"], childColumns = ["accountId"], onDelete = ForeignKey.SET_NULL),
     ],
     indices = [
