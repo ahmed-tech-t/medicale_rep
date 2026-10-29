@@ -21,15 +21,18 @@ import androidx.compose.ui.unit.sp
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.primitives.NexoraButton
+import com.example.medicalrep.ui.components.primitives.NexoraButtonVariant
 import com.example.medicalrep.ui.components.primitives.NexoraIcon
 import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.mapper.resolvedDisplayName
 import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.VisitUi
 import com.example.medicalrep.ui.preview.VisitSamples
+import com.example.medicalrep.ui.ui.theme.ErrorContainer
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 import com.example.medicalrep.ui.ui.theme.Slate500
 import com.example.medicalrep.ui.ui.theme.Ink
+import com.example.medicalrep.ui.ui.theme.OnErrorContainer
 
 @Composable
 fun PlannedVisitCard(
@@ -46,7 +49,9 @@ fun PlannedVisitCard(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Column(
-            modifier = Modifier.weight(1f, fill = false).padding(end = spacing.spaceSmall),
+            modifier = Modifier
+                .weight(1f, fill = false)
+                .padding(end = spacing.spaceSmall),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.Start,
         ) {
@@ -81,20 +86,26 @@ fun PlannedVisitCard(
                 )
             }
         }
-        NexoraButton(
-            text = stringResource(R.string.visit_action_start),
-            onClick = onAction,
-            fillMaxWidth = false,
-            compact = true,
-            leadingIcon = {
-                NexoraIcon(
-                    painter = painterResource(R.drawable.ic_arrow_visit),
-                    contentDescription = null,
-                    modifier = Modifier.size(11.dp),
-                    tint = Color.White,
-                )
-            },
-        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall)
+        ) {
+            NexoraButton(
+                text = stringResource(R.string.visit_action_start),
+                onClick = onAction,
+                fillMaxWidth = false,
+                compact = true,
+            )
+            NexoraButton(
+                text = stringResource(R.string.cancel_visit),
+                onClick = onAction,
+                fillMaxWidth = false,
+                compact = true,
+                variant = NexoraButtonVariant.Secondary,
+                outLineColor = OnErrorContainer
+            )
+        }
+
     }
 }
 

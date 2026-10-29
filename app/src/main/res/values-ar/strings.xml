@@ -408,4 +408,5 @@
         <item quantity="many">%1$d حساب</item>
         <item quantity="other">%1$d حساب</item>
     </plurals>
+    <string name="cancel_visit">إلغاء الزيارة</string>
 </resources>

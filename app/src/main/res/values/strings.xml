@@ -405,4 +405,5 @@
         <item quantity="one">%1$d account</item>
         <item quantity="other">%1$d accounts</item>
     </plurals>
+    <string name="cancel_visit">Cancel visit</string>
 </resources>
