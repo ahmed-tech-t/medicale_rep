@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.screens.visitdetails.utils
 
+import com.example.medicalrep.ui.models.BasicModelUi
 import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.VisitUi
 import com.example.medicalrep.ui.preview.VisitSamples
@@ -13,8 +14,8 @@ object VisitDetailsFakes {
         placeName = "صيدليه الايمان/هليوبلس",
         account = "Pharmacy (صيدلية)",
     ).toUi().copy(
-        region = "Heliopolis",
-        city = "All Bricks",
+        region = BasicModelUi("Heliopolis", "Heliopolis"),
+        city = BasicModelUi("All Bricks", "All Bricks"),
         date = "2026-10-20",
         time = "18:37:25",
         visitLatitude = 30.560491,

@@ -6,9 +6,9 @@ import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Rep
 import com.example.medicalrep.ui.common.location.WEAK_GPS_METERS
 import com.example.medicalrep.ui.mapper.toUi
+import com.example.medicalrep.ui.models.BasicModelUi
 import com.example.medicalrep.ui.models.ProductUi
 import com.example.medicalrep.ui.models.VisitUi
-import java.util.Collections.emptyList
 
 enum class PlanVisitStep { Entity, GiftsProducts, Result }
 
@@ -24,7 +24,10 @@ fun PlanVisitState.withDraft(draft: DraftVisit): PlanVisitState {
     return copy(
         visit = visit,
         initialVisit = visit,
-        currentStep = PlanVisitStep.entries[draft.step.coerceIn(0, PlanVisitStep.entries.lastIndex)],
+        currentStep = PlanVisitStep.entries[draft.step.coerceIn(
+            0,
+            PlanVisitStep.entries.lastIndex
+        )],
     )
 }
 
@@ -44,31 +47,33 @@ data class PlanVisitState(
     val locationAccuracyMeters: Float? = null,
     val giftCatalog: List<ProductUi> = emptyList(),
     val productCatalog: List<ProductUi> = emptyList(),
-    val cityOptions: List<String> = emptyList(),
-    val districtOptions: List<String> = emptyList(),
-    val entityTypeOptions: List<String> = emptyList(),
-    val placeOptions: List<String> = emptyList(),
+    val cityOptions: List<BasicModelUi> = emptyList(),
+    val districtOptions: List<BasicModelUi> = emptyList(),
+    val entityTypeOptions: List<BasicModelUi> = emptyList(),
+    val placeOptions: List<BasicModelUi> = emptyList(),
     /** The supervisors the form can choose from; a double visit stores the id of the chosen one. */
     val supervisors: List<Rep> = emptyList(),
     /** When the form opened: the visit started then. */
     val openedAtMillis: Long = 0L,
 ) {
-    val supervisorOptions: List<String> get() = supervisors.map(Rep::displayName)
+    val supervisorOptions: List<BasicModelUi>
+        get() = supervisors.map { BasicModelUi(it.id, it.displayName) }
 
     /** The id of the supervisor chosen on the form; null when none is chosen or the visit is single. */
     val chosenSupervisorId: String?
-        get() = if (visit.isDoubleVisit) supervisors.firstOrNull { it.displayName == visit.supervisorName }?.id else null
+        get() = if (visit.isDoubleVisit) visit.supervisor?.id else null
 
     /** The GPS reading behind the captured location is too rough to trust (worse than [WEAK_GPS_METERS]). */
     val hasWeakSignal: Boolean get() = (locationAccuracyMeters ?: 0f) > WEAK_GPS_METERS
 
     /** Back asks to save only while a visit in progress was changed; the finished result step just leaves. */
     val asksToSave: Boolean get() = visit != initialVisit && currentStep != PlanVisitStep.Result
+
     /** Step 1 is done: city, district, type and place are chosen (the specialty comes from the place); the supervisor only matters for a double visit. */
     val isEntityComplete: Boolean
         get() = with(visit) {
-            city.isNotBlank() && region.isNotBlank() && account.isNotBlank() && placeName.isNotBlank() &&
-                (!isDoubleVisit || supervisorName.isNotBlank())
+            city != null && region != null && account != null && placeName.isNotBlank() &&
+                    (!isDoubleVisit || supervisor != null)
         }
 
     /** Step 1 must be complete; step 2 (gifts and products) is optional. */

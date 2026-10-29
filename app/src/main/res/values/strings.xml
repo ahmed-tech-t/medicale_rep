@@ -414,4 +414,10 @@
     <string name="filter_period">Time Period</string>
     <string name="filter_region_title">Region</string>
     <string name="filter_class_title">Classification</string>
+    <string name="filter_sync_status_title">Sync status</string>
+    <string name="filter_synced_done">Synced</string>
+    <string name="filter_sync_waiting">Waiting for internet</string>
+    <string name="filter_sync_failed">Upload failed</string>
+    <string name="filter_single_visit">Single Visit</string>
+    <string name="filter_double_visit">Double Visit</string>
 </resources>

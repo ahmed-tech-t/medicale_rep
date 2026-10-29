@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.screens.accounts.main
 
+import com.example.medicalrep.domain.models.BasicModel
 import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
@@ -20,7 +21,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -40,10 +40,10 @@ class AccountsViewModelTest {
     private val dispatcher = StandardTestDispatcher()
     private val repo = FakeAccountRepo(
         listOf(
-            Account("a1", name = "عيادة د. محمود", entityType = "عيادة"),
-            Account("a2", name = "عيادة د. هاني", entityType = "عيادة"),
-            Account("a3", name = "مستشفى الدلتا", entityType = "مستشفى"),
-            Account("a4", name = "صيدلية الشفاء", entityType = "صيدلية"),
+            Account("a1", name = "عيادة د. محمود", accountType = BasicModel("عيادة", "عيادة")),
+            Account("a2", name = "عيادة د. هاني", accountType = BasicModel("عيادة", "عيادة")),
+            Account("a3", name = "مستشفى الدلتا", accountType = BasicModel("مستشفى", "مستشفى")),
+            Account("a4", name = "صيدلية الشفاء", accountType = BasicModel("صيدلية", "صيدلية")),
         ),
     )
     private lateinit var viewModel: AccountsViewModel
@@ -128,7 +128,7 @@ class AccountsViewModelTest {
     @Test
     fun `the count follows the stored accounts`() = runTest(dispatcher) {
         runCurrent()
-        repo.save(Account("a5", name = "عيادة د. جديد", entityType = "عيادة"))
+        repo.save(Account("a5", name = "عيادة د. جديد", accountType = BasicModel("عيادة", "عيادة")))
         runCurrent()
         assertEquals(5, state.resultCount)
     }

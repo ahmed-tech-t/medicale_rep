@@ -39,7 +39,7 @@ fun VisitCartComponent(
             StatusBadge(visit.time)
         }
         NexoraText(
-            visit.specialty,
+            visit.specialty?.name.orEmpty(),
             color = Slate500,
             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Normal)
         )

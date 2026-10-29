@@ -417,4 +417,10 @@
     <string name="filter_period">الفترة الزمنية</string>
     <string name="filter_region_title">المنطقة</string>
     <string name="filter_class_title">التصنيف</string>
+    <string name="filter_sync_status_title">حالة المزامنة</string>
+    <string name="filter_synced_done">تمت المزامنة</string>
+    <string name="filter_sync_waiting">في انتظار الإنترنت</string>
+    <string name="filter_sync_failed">فشل الرفع</string>
+    <string name="filter_single_visit">Single Visit</string>
+    <string name="filter_double_visit">Double Visit</string>
 </resources>

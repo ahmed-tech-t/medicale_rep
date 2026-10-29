@@ -3,11 +3,11 @@ package com.example.medicalrep.ui.screens.planvisit.main
 import androidx.lifecycle.SavedStateHandle
 import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
-import com.appcore.core.domain.utils.Resource
 import com.appcore.core.domain.utils.UiEvent
+import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.GeoPoint
+import com.example.medicalrep.ui.models.BasicModelUi
 import com.example.medicalrep.domain.repo.FakeSession
-import com.example.medicalrep.ui.common.location.LocationStatus
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.VisitStatus
@@ -20,7 +20,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -90,10 +89,10 @@ class PlanVisitViewModelTest {
     private val accountRepo = FakeAccountRepo(
         listOf(
             Account(
-                "a1", name = "مستشفى الجامعة", city = "منوف", district = "وسط البلد", entityType = "صيدلية", specialty = "أطفال",
-                classCategory = "A", address = "برج الأطباء", latitude = 30.1444, longitude = 31.2357,
+                "a1", name = "مستشفى الجامعة", city = m("منوف"), district = m("وسط البلد"), accountType = m("صيدلية"), specialty = m("أطفال"),
+                classCategory = m("A"), address = "برج الأطباء", latitude = 30.1444, longitude = 31.2357,
             ),
-            Account("a2", name = "عيادة د. هاني", city = "قويسنا", district = "البر الشرقى", entityType = "عيادة", specialty = "باطنة"),
+            Account("a2", name = "عيادة د. هاني", city = m("قويسنا"), district = m("البر الشرقى"), accountType = m("عيادة"), specialty = m("باطنة")),
         ),
     )
     private val repRepo = FakeRepRepo(listOf(Rep("s1", "د. سارة أحمد", role = RepRole.Supervisor)))
@@ -108,6 +107,17 @@ class PlanVisitViewModelTest {
 
     private val state get() = viewModel.state.value
 
+    private fun m(name: String) = BasicModel(name, name)
+
+    private fun opt(name: String) = BasicModelUi(name, name)
+
+    /** The place as the search field lists it: the account's id, or an id nothing has. */
+    private fun place(name: String) =
+        BasicModelUi(accountRepo.current.value.firstOrNull { it.name == name }?.id ?: "unknown", name)
+
+    private fun supervisor(name: String) =
+        BasicModelUi(repRepo.current.value.firstOrNull { it.displayName == name }?.id ?: "unknown", name)
+
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
@@ -119,11 +129,11 @@ class PlanVisitViewModelTest {
 
     /** Fills every search field of step 1; the place's account also sets the class, address and coordinates. */
     private fun fillEntityStep() {
-        viewModel.onEvent(PlanVisitEvents.SelectCity("منوف"))
-        viewModel.onEvent(PlanVisitEvents.SelectDistrict("وسط البلد"))
-        viewModel.onEvent(PlanVisitEvents.SelectEntityType("صيدلية"))
-        viewModel.onEvent(PlanVisitEvents.SelectPlace("مستشفى الجامعة"))
-        viewModel.onEvent(PlanVisitEvents.SelectSupervisor("د. سارة أحمد"))
+        viewModel.onEvent(PlanVisitEvents.SelectCity(opt("منوف")))
+        viewModel.onEvent(PlanVisitEvents.SelectDistrict(opt("وسط البلد")))
+        viewModel.onEvent(PlanVisitEvents.SelectEntityType(opt("صيدلية")))
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(place("مستشفى الجامعة")))
+        viewModel.onEvent(PlanVisitEvents.SelectSupervisor(supervisor("د. سارة أحمد")))
     }
 
     private fun addVoiceNote() = viewModel.onEvent(PlanVisitEvents.VoiceNoteRecorded(byteArrayOf(1, 2, 3)))
@@ -148,7 +158,7 @@ class PlanVisitViewModelTest {
     @Test
     fun `back with changes asks to save and does not leave`() = runTest(dispatcher) {
         val events = collectEvents()
-        viewModel.onEvent(PlanVisitEvents.SelectCity("Cairo"))
+        viewModel.onEvent(PlanVisitEvents.SelectCity(opt("Cairo")))
         viewModel.onEvent(PlanVisitEvents.Back)
         assertEquals(PlanVisitOverlay.SaveDraft, state.overlay)
         assertEquals(0, events.size)
@@ -157,7 +167,7 @@ class PlanVisitViewModelTest {
     @Test
     fun `back on the result step leaves without asking even with changes`() = runTest(dispatcher) {
         val events = collectEvents()
-        viewModel.onEvent(PlanVisitEvents.SelectCity("Cairo"))
+        viewModel.onEvent(PlanVisitEvents.SelectCity(opt("Cairo")))
         openResultStep()
         viewModel.onEvent(PlanVisitEvents.Back)
         assertEquals(PlanVisitOverlay.None, state.overlay)
@@ -173,7 +183,7 @@ class PlanVisitViewModelTest {
         viewModel.onEvent(PlanVisitEvents.SaveDraft)
         val saved = draftRepo.current.value!!
         assertEquals(1, saved.step)
-        assertEquals("منوف", saved.visit.city)
+        assertEquals("منوف", saved.visit.city?.name)
         assertEquals(PlanVisitOverlay.None, state.overlay)
         assertTrue(events[0] is UiEvent.ShowSnackBar)
         assertEquals(UiEvent.NavigationUp, events[1])
@@ -182,7 +192,7 @@ class PlanVisitViewModelTest {
     @Test
     fun `dont save discards the draft and leaves`() = runTest(dispatcher) {
         val events = collectEvents()
-        viewModel.onEvent(PlanVisitEvents.SelectCity("Cairo"))
+        viewModel.onEvent(PlanVisitEvents.SelectCity(opt("Cairo")))
         viewModel.onEvent(PlanVisitEvents.Back)
         viewModel.onEvent(PlanVisitEvents.DiscardDraft)
         assertEquals(1, draftRepo.discardCount)
@@ -193,19 +203,19 @@ class PlanVisitViewModelTest {
     @Test
     fun `cancel closes the dialog and stays in the form`() = runTest(dispatcher) {
         val events = collectEvents()
-        viewModel.onEvent(PlanVisitEvents.SelectCity("Cairo"))
+        viewModel.onEvent(PlanVisitEvents.SelectCity(opt("Cairo")))
         viewModel.onEvent(PlanVisitEvents.Back)
         viewModel.onEvent(PlanVisitEvents.DismissOverlay)
         assertEquals(PlanVisitOverlay.None, state.overlay)
         assertEquals(0, events.size)
-        assertEquals("Cairo", state.visit.city)
+        assertEquals("Cairo", state.visit.city?.name)
     }
 
     @Test
     fun `a saved draft fills the form at its step and counts as unchanged`() {
-        val resumed = PlanVisitState().withDraft(DraftVisit(step = 1, visit = Visit(city = "Giza", placeName = "د. سامي")))
+        val resumed = PlanVisitState().withDraft(DraftVisit(step = 1, visit = Visit(city = m("Giza"), placeName = "د. سامي")))
         assertEquals(PlanVisitStep.GiftsProducts, resumed.currentStep)
-        assertEquals("Giza", resumed.visit.city)
+        assertEquals("Giza", resumed.visit.city?.name)
         assertEquals("د. سامي", resumed.visit.placeName)
         assertEquals(resumed.visit, resumed.initialVisit)
         assertEquals(false, resumed.asksToSave)
@@ -400,15 +410,15 @@ class PlanVisitViewModelTest {
         assertEquals(PlanVisitStep.Entity, state.currentStep)
         assertEquals(PlanVisitOverlay.None, state.overlay)
         with(state.visit) {
-            listOf(city, region, account, placeName, specialty, supervisorName, classCategory, address)
-                .forEach { assertEquals("", it) }
+            listOf(city, region, account, specialty, supervisor, classCategory).forEach { assertNull(it) }
+            listOf(placeName, address).forEach { assertEquals("", it) }
             assertEquals(VisitType.Unplanned, type)
             assertTrue(date.isNotBlank() && time.isNotBlank())
         }
-        assertEquals(listOf("منوف", "قويسنا"), state.cityOptions)
-        assertEquals(listOf("وسط البلد", "البر الشرقى"), state.districtOptions)
-        assertEquals(listOf("صيدلية", "عيادة"), state.entityTypeOptions)
-        assertEquals(listOf("د. سارة أحمد"), state.supervisorOptions)
+        assertEquals(listOf("منوف", "قويسنا"), state.cityOptions.map { it.name })
+        assertEquals(listOf("وسط البلد", "البر الشرقى"), state.districtOptions.map { it.name })
+        assertEquals(listOf("صيدلية", "عيادة"), state.entityTypeOptions.map { it.name })
+        assertEquals(listOf("د. سارة أحمد"), state.supervisorOptions.map { it.name })
         assertEquals(listOf("gift-mug", "gift-notebook"), state.giftCatalog.map { it.id })
         assertEquals(listOf("sample-1"), state.productCatalog.map { it.id })
         assertEquals(5, state.giftCatalog.first().remaining)
@@ -419,17 +429,17 @@ class PlanVisitViewModelTest {
 
     @Test
     fun `places are the accounts at the chosen city, district and type`() {
-        assertEquals(listOf("مستشفى الجامعة", "عيادة د. هاني"), state.placeOptions)
-        viewModel.onEvent(PlanVisitEvents.SelectCity("منوف"))
-        assertEquals(listOf("مستشفى الجامعة"), state.placeOptions)
-        viewModel.onEvent(PlanVisitEvents.SelectEntityType("عيادة"))
-        assertEquals(emptyList<String>(), state.placeOptions)
+        assertEquals(listOf("مستشفى الجامعة", "عيادة د. هاني"), state.placeOptions.map { it.name })
+        viewModel.onEvent(PlanVisitEvents.SelectCity(opt("منوف")))
+        assertEquals(listOf("مستشفى الجامعة"), state.placeOptions.map { it.name })
+        viewModel.onEvent(PlanVisitEvents.SelectEntityType(opt("عيادة")))
+        assertEquals(emptyList<String>(), state.placeOptions.map { it.name })
     }
 
     @Test
     fun `choosing a place fills its class, address and coordinates`() {
-        viewModel.onEvent(PlanVisitEvents.SelectPlace("مستشفى الجامعة"))
-        assertEquals("A", state.visit.classCategory)
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(place("مستشفى الجامعة")))
+        assertEquals("A", state.visit.classCategory?.name)
         assertEquals("برج الأطباء", state.visit.address)
         assertEquals(30.1444, state.visit.accountLatitude, 0.0)
         assertEquals(31.2357, state.visit.accountLongitude, 0.0)
@@ -437,32 +447,63 @@ class PlanVisitViewModelTest {
 
     @Test
     fun `choosing a place fills the specialty from its account and the rep cannot change it`() {
-        viewModel.onEvent(PlanVisitEvents.SelectPlace("مستشفى الجامعة"))
-        assertEquals("أطفال", state.visit.specialty)
-        viewModel.onEvent(PlanVisitEvents.SelectPlace("عيادة د. هاني"))
-        assertEquals("باطنة", state.visit.specialty)
-        viewModel.onEvent(PlanVisitEvents.SelectPlace("مكان غير موجود"))
-        assertEquals("", state.visit.specialty)
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(place("مستشفى الجامعة")))
+        assertEquals("أطفال", state.visit.specialty?.name)
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(place("عيادة د. هاني")))
+        assertEquals("باطنة", state.visit.specialty?.name)
+    }
+
+    @Test
+    fun `choosing a place that is not in the list changes nothing`() {
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(place("مستشفى الجامعة")))
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(place("مكان غير موجود")))
+        assertEquals("مستشفى الجامعة", state.visit.placeName)
+        assertEquals("a1", state.visit.accountId)
+        assertEquals("أطفال", state.visit.specialty?.name)
+    }
+
+    @Test
+    fun `changing the filters so the chosen place no longer fits clears the place`() {
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(place("مستشفى الجامعة")))
+        viewModel.onEvent(PlanVisitEvents.SelectCity(opt("قويسنا")))
+        with(state.visit) {
+            assertEquals("", placeName)
+            assertEquals("", accountId)
+            assertEquals("", address)
+            assertNull(specialty)
+            assertNull(classCategory)
+            assertEquals(0.0, accountLatitude, 0.0)
+            assertEquals(0.0, accountLongitude, 0.0)
+        }
+        assertEquals("قويسنا", state.visit.city?.name)
+    }
+
+    @Test
+    fun `changing the filters keeps a chosen place that still fits`() {
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(place("مستشفى الجامعة")))
+        viewModel.onEvent(PlanVisitEvents.SelectCity(opt("منوف")))
+        assertEquals("مستشفى الجامعة", state.visit.placeName)
+        assertEquals("أطفال", state.visit.specialty?.name)
     }
 
     @Test
     fun `step 1 does not need a specialty, so an account without one still goes on`() {
         accountRepo.current.value = accountRepo.current.value +
-            Account("a3", name = "مركز بلا تخصص", city = "منوف", district = "وسط البلد", entityType = "صيدلية")
-        viewModel.onEvent(PlanVisitEvents.SelectCity("منوف"))
-        viewModel.onEvent(PlanVisitEvents.SelectDistrict("وسط البلد"))
-        viewModel.onEvent(PlanVisitEvents.SelectEntityType("صيدلية"))
-        viewModel.onEvent(PlanVisitEvents.SelectPlace("مركز بلا تخصص"))
-        assertEquals("", state.visit.specialty)
+            Account("a3", name = "مركز بلا تخصص", city = m("منوف"), district = m("وسط البلد"), accountType = m("صيدلية"))
+        viewModel.onEvent(PlanVisitEvents.SelectCity(opt("منوف")))
+        viewModel.onEvent(PlanVisitEvents.SelectDistrict(opt("وسط البلد")))
+        viewModel.onEvent(PlanVisitEvents.SelectEntityType(opt("صيدلية")))
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(place("مركز بلا تخصص")))
+        assertNull(state.visit.specialty)
         assertEquals(true, state.canGoNext)
     }
 
     @Test
     fun `options follow the stored data`() {
-        accountRepo.current.value = accountRepo.current.value + Account("a3", name = "مركز", city = "الباجور", district = "x", entityType = "مركز طبي", specialty = "عظام")
-        assertTrue("الباجور" in state.cityOptions)
+        accountRepo.current.value = accountRepo.current.value + Account("a3", name = "مركز", city = m("الباجور"), district = m("x"), accountType = m("مركز طبي"), specialty = m("عظام"))
+        assertTrue("الباجور" in state.cityOptions.map { it.name })
         repRepo.current.value = repRepo.current.value + Rep("s2", "د. وائل", role = RepRole.Supervisor)
-        assertEquals(listOf("د. سارة أحمد", "د. وائل"), state.supervisorOptions)
+        assertEquals(listOf("د. سارة أحمد", "د. وائل"), state.supervisorOptions.map { it.name })
     }
 
     @Test
@@ -470,10 +511,10 @@ class PlanVisitViewModelTest {
         viewModel.onEvent(PlanVisitEvents.Next)
         assertEquals(PlanVisitStep.Entity, state.currentStep)
         val fills = listOf(
-            PlanVisitEvents.SelectCity("منوف"),
-            PlanVisitEvents.SelectDistrict("وسط البلد"),
-            PlanVisitEvents.SelectEntityType("صيدلية"),
-            PlanVisitEvents.SelectPlace("مستشفى الجامعة"),
+            PlanVisitEvents.SelectCity(opt("منوف")),
+            PlanVisitEvents.SelectDistrict(opt("وسط البلد")),
+            PlanVisitEvents.SelectEntityType(opt("صيدلية")),
+            PlanVisitEvents.SelectPlace(place("مستشفى الجامعة")),
         )
         viewModel.onEvent(PlanVisitEvents.SelectDoubleVisit(true))
         fills.forEach { fill ->
@@ -482,7 +523,7 @@ class PlanVisitViewModelTest {
             // The supervisor is still missing for a double visit.
             assertEquals(false, state.canGoNext)
         }
-        viewModel.onEvent(PlanVisitEvents.SelectSupervisor("د. سارة أحمد"))
+        viewModel.onEvent(PlanVisitEvents.SelectSupervisor(supervisor("د. سارة أحمد")))
         assertEquals(true, state.canGoNext)
         viewModel.onEvent(PlanVisitEvents.Next)
         assertEquals(PlanVisitStep.GiftsProducts, state.currentStep)
@@ -491,10 +532,10 @@ class PlanVisitViewModelTest {
     @Test
     fun `a single visit does not need a supervisor`() {
         viewModel.onEvent(PlanVisitEvents.SelectDoubleVisit(false))
-        viewModel.onEvent(PlanVisitEvents.SelectCity("منوف"))
-        viewModel.onEvent(PlanVisitEvents.SelectDistrict("وسط البلد"))
-        viewModel.onEvent(PlanVisitEvents.SelectEntityType("صيدلية"))
-        viewModel.onEvent(PlanVisitEvents.SelectPlace("مستشفى الجامعة"))
+        viewModel.onEvent(PlanVisitEvents.SelectCity(opt("منوف")))
+        viewModel.onEvent(PlanVisitEvents.SelectDistrict(opt("وسط البلد")))
+        viewModel.onEvent(PlanVisitEvents.SelectEntityType(opt("صيدلية")))
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(place("مستشفى الجامعة")))
         assertEquals(true, state.canGoNext)
         viewModel.onEvent(PlanVisitEvents.SelectDoubleVisit(true))
         assertEquals(false, state.canGoNext)
@@ -557,21 +598,21 @@ class PlanVisitViewModelTest {
 
     @Test
     fun `entity selections update the visit`() {
-        viewModel.onEvent(PlanVisitEvents.SelectCity("منوف"))
-        viewModel.onEvent(PlanVisitEvents.SelectDistrict("وسط البلد"))
-        viewModel.onEvent(PlanVisitEvents.SelectEntityType("صيدلية"))
-        viewModel.onEvent(PlanVisitEvents.SelectPlace("مستشفى الجامعة"))
-        viewModel.onEvent(PlanVisitEvents.SelectSupervisor("د. سارة أحمد"))
+        viewModel.onEvent(PlanVisitEvents.SelectCity(opt("منوف")))
+        viewModel.onEvent(PlanVisitEvents.SelectDistrict(opt("وسط البلد")))
+        viewModel.onEvent(PlanVisitEvents.SelectEntityType(opt("صيدلية")))
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(place("مستشفى الجامعة")))
+        viewModel.onEvent(PlanVisitEvents.SelectSupervisor(supervisor("د. سارة أحمد")))
         viewModel.onEvent(PlanVisitEvents.SelectShift(Shift.Pm))
         viewModel.onEvent(PlanVisitEvents.SelectDoubleVisit(false))
 
         with(state.visit) {
-            assertEquals("منوف", city)
-            assertEquals("وسط البلد", region)
-            assertEquals("صيدلية", account)
+            assertEquals("منوف", city?.name)
+            assertEquals("وسط البلد", region?.name)
+            assertEquals("صيدلية", account?.name)
             assertEquals("مستشفى الجامعة", placeName)
-            assertEquals("أطفال", specialty)
-            assertEquals("د. سارة أحمد", supervisorName)
+            assertEquals("أطفال", specialty?.name)
+            assertEquals("د. سارة أحمد", supervisor?.name)
             assertEquals(Shift.Pm, shift)
             assertEquals(false, isDoubleVisit)
         }
@@ -710,9 +751,9 @@ class PlanVisitViewModelTest {
                         accountLongitude = visit.accountLongitude,
                         accountName = visit.placeName,
                         address = "منوف - برج الأطباء",
-                        classCategory = visit.classCategory,
-                        accountType = visit.account,
-                        specialty = visit.specialty,
+                        classCategory = visit.classCategory?.name.orEmpty(),
+                        accountType = visit.account?.name.orEmpty(),
+                        specialty = visit.specialty?.name.orEmpty(),
                     )
                 )
             ),

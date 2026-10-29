@@ -60,18 +60,18 @@ fun AccountCard(
                         color = Ink,
                         modifier = Modifier.weight(1f, fill = false),
                     )
-                    if (account.classCategory.isNotBlank()) {
+                    if (account.classCategory != null) {
                         NexoraChip(
-                            text = stringResource(R.string.unplanned_class_format, account.classCategory),
+                            text = stringResource(R.string.unplanned_class_format, account.classCategory.name),
                             container = Slate100,
                             content = Slate600,
                         )
                     }
                 }
-                if (account.specialty.isNotBlank()) {
-                    NexoraText(text = account.specialty, style = MaterialTheme.typography.labelSmall, color = Slate500)
+                if (account.specialty != null) {
+                    NexoraText(text = account.specialty.name, style = MaterialTheme.typography.labelSmall, color = Slate500)
                 }
-                val location = listOf(account.city, account.address).filter { it.isNotBlank() }.joinToString(" · ")
+                val location = listOfNotNull(account.city?.name, account.address).filter { it.isNotBlank() }.joinToString(" · ")
                 if (location.isNotEmpty()) {
                     NexoraText(text = location, style = MaterialTheme.typography.labelSmall, color = Slate400)
                 }

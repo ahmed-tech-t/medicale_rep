@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.screens.accounts
 
+import com.example.medicalrep.domain.models.BasicModel
 import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.getValue
@@ -42,9 +43,9 @@ class AccountsFlowTest {
         db = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext<Context>(), AppDatabase::class.java).build()
         runBlocking {
             val repo = AccountRepoImpl(db.accountDao())
-            repo.save(Account("a1", name = "عيادة د. محمود", entityType = "عيادة"))
-            repo.save(Account("a2", name = "عيادة د. هاني", entityType = "عيادة"))
-            repo.save(Account("a3", name = "مستشفى الدلتا", entityType = "مستشفى"))
+            repo.save(Account("a1", name = "عيادة د. محمود", accountType = BasicModel("عيادة", "عيادة")))
+            repo.save(Account("a2", name = "عيادة د. هاني", accountType = BasicModel("عيادة", "عيادة")))
+            repo.save(Account("a3", name = "مستشفى الدلتا", accountType = BasicModel("مستشفى", "مستشفى")))
         }
     }
 

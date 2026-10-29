@@ -113,8 +113,8 @@ fun UnCompletedVisitCard(
                 modifier = Modifier.fillMaxWidth(),
             )
             VisitSpecialtyClassLine(
-                specialty = model.specialty,
-                classCategory = model.classCategory,
+                specialty = model.specialty?.name.orEmpty(),
+                classCategory = model.classCategory?.name.orEmpty(),
             )
         }
 

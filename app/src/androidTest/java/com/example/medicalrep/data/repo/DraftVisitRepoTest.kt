@@ -1,6 +1,7 @@
 package com.example.medicalrep.data.repo
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.Visit
 import kotlinx.coroutines.flow.first
@@ -19,11 +20,11 @@ class DraftVisitRepoTest : RepoTestBase() {
     @Test fun noDraftAtFirst() = runTest { assertNull(repo.draft().first()) }
 
     @Test fun saveThenReadAndReplace() = runTest {
-        repo.save(DraftVisit(1, Visit(city = "Cairo")))
-        assertEquals("Cairo", repo.draft().first()?.visit?.city)
-        repo.save(DraftVisit(2, Visit(city = "Giza")))
+        repo.save(DraftVisit(1, Visit(city = BasicModel("Cairo", "Cairo"))))
+        assertEquals("Cairo", repo.draft().first()?.visit?.city?.name)
+        repo.save(DraftVisit(2, Visit(city = BasicModel("Giza", "Giza"))))
         assertEquals(2, repo.draft().first()?.step)
-        assertEquals("Giza", repo.draft().first()?.visit?.city)
+        assertEquals("Giza", repo.draft().first()?.visit?.city?.name)
     }
 
     @Test fun voiceNoteIsKeptInAFileAndDiscardRemovesEverything() = runTest {

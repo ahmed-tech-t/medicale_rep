@@ -29,7 +29,7 @@ fun rep(id: String, name: String = id, role: RepRole = RepRole.Rep, supervisorId
     Rep(id = id, displayName = name, role = role, supervisorId = supervisorId).toEntity()
 
 fun account(id: String, name: String = id, city: String = "", syncStatus: SyncStatus = SyncStatus.Synced, classCategory: String = "") =
-    Account(id = id, name = name, city = city, syncStatus = syncStatus, classCategory = classCategory).toEntity()
+    Account(id = id, name = name, city = city.opt(), syncStatus = syncStatus, classCategory = classCategory.opt()).toEntity()
 
 fun product(id: String, name: String = id) = Product(id = id, name = name).toEntity()
 
@@ -64,3 +64,6 @@ suspend fun <T : Any> PagingSource<Int, T>.firstPage(pageSize: Int = 20): Paging
     load(PagingSource.LoadParams.Refresh(null, pageSize, false)) as PagingSource.LoadResult.Page
 
 suspend fun <T : Any> PagingSource<Int, T>.allRows(): List<T> = firstPage(1000).data
+
+/** Test text as an account option: the text is also the id; blank means not set. */
+fun String.opt() = takeIf { it.isNotBlank() }?.let { BasicModel(it, it) }

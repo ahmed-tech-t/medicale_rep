@@ -43,7 +43,7 @@ class DebugSeederTest : RepoTestBase() {
         assertEquals(expected.visits.size, db.visitDao().getAll().first().size)
         assertEquals(expected.trackPoints.size, db.trackPointDao().getByRepAndDay("rep-1", 0, Long.MAX_VALUE).first().size + db.trackPointDao().getByRepAndDay("rep-2", 0, Long.MAX_VALUE).first().size + db.trackPointDao().getByRepAndDay("rep-3", 0, Long.MAX_VALUE).first().size)
         assertEquals(expected.orders.map { it.number }, db.orderDao().getAll().first().map { it.order.number }.sorted())
-        assertEquals(expected.accounts.map { it.city }.toSet().sorted(), accounts.cities().first())
+        assertEquals(expected.accounts.mapNotNull { it.city?.name }.toSet().sorted(), accounts.cities().first().map { it.name })
         seeder.seedIfEmpty(now = 1_792_000_000_000L + 1)
         assertEquals(expected.visits.size, db.visitDao().getAll().first().size)
     }

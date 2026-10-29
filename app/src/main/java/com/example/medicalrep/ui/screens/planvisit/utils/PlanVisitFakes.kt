@@ -5,6 +5,7 @@ import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.VisitType
 import com.example.medicalrep.ui.mapper.toUi
+import com.example.medicalrep.ui.models.BasicModelUi
 import com.example.medicalrep.ui.models.ProductUi
 import com.example.medicalrep.ui.preview.VisitSamples
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitState
@@ -30,6 +31,8 @@ object PlanVisitFakes {
         product("product-pediamol", "Pediamol Syrup (Sample)", quantity = 1, remaining = 10),
     )
 
+    private fun option(name: String) = BasicModelUi(name, name)
+
     fun state(): PlanVisitState = PlanVisitState(
         visit = VisitSamples.unplanned(
             id = "unplanned-draft",
@@ -40,26 +43,26 @@ object PlanVisitFakes {
             type = VisitType.Unplanned,
             date = "17/10/2026",
             time = "10:30 ص",
-            city = "شبين الكوم",
-            region = "البر الشرقى",
+            city = option("شبين الكوم"),
+            region = option("البر الشرقى"),
             address = "برج الأطباء",
-            classCategory = "A",
+            classCategory = option("A"),
             visitLatitude = 30.0444,
             visitLongitude = 31.2357,
             accountLatitude = 30.1444,
             accountLongitude = 31.2357,
             shift = Shift.Am,
             isDoubleVisit = true,
-            supervisorName = "د. وائل نصار",
+            supervisor = BasicModelUi("sup-1", "د. وائل نصار"),
             gifts = listOf(giftCatalog[0].copy(quantity = 1)),
             products = listOf(productCatalog[0].copy(quantity = 2), productCatalog[1].copy(quantity = 1)),
         ),
         giftCatalog = giftCatalog,
         productCatalog = productCatalog,
-        cityOptions = listOf("شبين الكوم", "منوف", "قويسنا"),
-        districtOptions = listOf("البر الشرقى", "البر الغربى", "وسط البلد"),
-        entityTypeOptions = listOf("عيادة خاصة", "مستشفى", "صيدلية"),
-        placeOptions = listOf("عيادة د. محمود عبد الرحمن", "عيادة د. هاني المسيري", "مستشفى الجامعة"),
+        cityOptions = listOf("شبين الكوم", "منوف", "قويسنا").map(::option),
+        districtOptions = listOf("البر الشرقى", "البر الغربى", "وسط البلد").map(::option),
+        entityTypeOptions = listOf("عيادة خاصة", "مستشفى", "صيدلية").map(::option),
+        placeOptions = listOf("عيادة د. محمود عبد الرحمن", "عيادة د. هاني المسيري", "مستشفى الجامعة").map(::option),
         supervisors = listOf(Rep("sup-1", "د. وائل نصار"), Rep("sup-2", "د. سارة أحمد")),
     )
 }

@@ -13,9 +13,9 @@ fun VisitUi.resolvedPlaceName(): String =
 
 @Composable
 fun VisitUi.resolvedSpecialtyLine(): String {
-    val specialtyPart = if (specialty.isBlank()) stringResource(R.string.em_dash) else specialty
-    return if (classCategory.isNotBlank()) {
-        stringResource(R.string.specialty_with_class_format, specialtyPart, classCategory)
+    val specialtyPart = specialty?.name ?: stringResource(R.string.em_dash)
+    return if (classCategory != null) {
+        stringResource(R.string.specialty_with_class_format, specialtyPart, classCategory.name)
     } else {
         specialtyPart
     }
@@ -23,7 +23,7 @@ fun VisitUi.resolvedSpecialtyLine(): String {
 
 @Composable
 fun VisitUi.resolvedLocationLine(): String {
-    val parts = listOf(region, city).filter { it.isNotBlank() }
+    val parts = listOfNotNull(region?.name, city?.name)
     return if (parts.isEmpty()) {
         stringResource(R.string.em_dash)
     } else {
@@ -33,13 +33,13 @@ fun VisitUi.resolvedLocationLine(): String {
 
 /** "specialty • account" line shown under a visit's name; blank parts are skipped. */
 fun VisitUi.resolvedSpecialtyAccountLine(): String =
-    listOf(specialty, account).filter { it.isNotBlank() }.joinToString(" • ")
+    listOfNotNull(specialty?.name, account?.name).joinToString(" • ")
 
 @Composable
 fun VisitUi.resolvedDisplayName(): String =
     when {
         placeName.isNotBlank() -> placeName
-        account.isNotBlank() -> account
+        account != null -> account.name
         else -> stringResource(R.string.em_dash)
     }
 

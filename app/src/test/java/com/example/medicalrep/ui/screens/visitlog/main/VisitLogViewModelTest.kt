@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.screens.visitlog.main
 
+import com.example.medicalrep.domain.models.BasicModel
 import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
@@ -248,7 +249,7 @@ class VisitLogViewModelTest {
             id = id,
             type = VisitType.Planned,
             shift = shift,
-            classCategory = classCategory,
+            classCategory = classCategory?.let { BasicModel(it, it) },
             visitMode = if (double) VisitMode.Double else VisitMode.Single,
             syncStatus = syncStatus,
             status = if (done) VisitStatus.Completed else VisitStatus.Scheduled,

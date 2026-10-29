@@ -1,5 +1,6 @@
 package com.example.medicalrep.data.local.mapper
 
+import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.Product
 import com.example.medicalrep.domain.models.ProductType
@@ -22,8 +23,8 @@ import org.junit.Test
 class DraftVisitMapperTest {
 
     private val visit = Visit(
-        id = "planned-9", type = VisitType.Planned, city = "Cairo", region = "Nasr", address = "St 1", account = "عيادة",
-        placeName = "د. أحمد", specialty = "باطنة", classCategory = "A", supervisorName = "Boss", shift = Shift.Pm,
+        id = "planned-9", type = VisitType.Planned, city = BasicModel("c1", "Cairo"), region = BasicModel("r1", "Nasr"), address = "St 1", account = BasicModel("t1", "عيادة"),
+        placeName = "د. أحمد", specialty = BasicModel("sp1", "باطنة"), classCategory = BasicModel("classA", "A"), supervisor = BasicModel("s1", "Boss"), shift = Shift.Pm,
         visitMode = VisitMode.Double, noIssueFound = false, imageNote = "content://img/1",
         visitLatitude = 1.5, visitLongitude = 2.5, accountLatitude = 3.5, accountLongitude = 4.5, travelSeconds = 90,
         gifts = listOf(Product("g1", "Pen", 2, ProductType.Gift, "Blue", 8, 0, 0)),

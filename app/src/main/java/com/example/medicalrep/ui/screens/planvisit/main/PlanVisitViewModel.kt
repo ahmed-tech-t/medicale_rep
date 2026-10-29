@@ -3,10 +3,10 @@ package com.example.medicalrep.ui.screens.planvisit.main
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import com.appcore.core.data.local.session.AuthSessionManager
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
 import com.appcore.core.domain.utils.UiEvent.*
-import com.appcore.core.domain.utils.UiText
 import com.appcore.core.domain.utils.UiText.*
 import com.appcore.core.ui.utils.BaseViewModel
 import com.example.medicalrep.R
@@ -15,27 +15,26 @@ import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.RepRole
 import com.example.medicalrep.domain.models.VisitType
+import com.example.medicalrep.domain.models.lastLocation
 import com.example.medicalrep.domain.repo.AccountRepo
 import com.example.medicalrep.domain.repo.DraftVisitRepo
 import com.example.medicalrep.domain.repo.ProductRepo
 import com.example.medicalrep.domain.repo.RepRepo
 import com.example.medicalrep.domain.repo.VisitRepo
-import com.appcore.core.data.local.session.AuthSessionManager
-import com.example.medicalrep.domain.models.lastLocation
 import com.example.medicalrep.ui.mapper.toCompletedVisit
 import com.example.medicalrep.ui.mapper.toDomain
 import com.example.medicalrep.ui.mapper.toUi
+import com.example.medicalrep.ui.models.BasicModelUi
 import com.example.medicalrep.ui.models.ProductUi
 import com.example.medicalrep.ui.models.VisitUi
 import com.example.medicalrep.ui.navigation.model.MainGraph
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitOverlay.*
-import com.example.medicalrep.ui.screens.planvisit.utils.toCatalogItem
-import com.example.medicalrep.ui.utils.formatClockTime
-import com.example.medicalrep.ui.utils.formatDate
 import com.example.medicalrep.ui.screens.planvisit.utils.accountAddressLine
+import com.example.medicalrep.ui.screens.planvisit.utils.toCatalogItem
 import com.example.medicalrep.ui.screens.visitdetails.utils.hasAccountLocation
 import com.example.medicalrep.ui.screens.visitdetails.utils.hasLocations
-import com.example.medicalrep.ui.screens.visitdetails.utils.hasVisitLocation
+import com.example.medicalrep.ui.utils.formatClockTime
+import com.example.medicalrep.ui.utils.formatDate
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -49,8 +48,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
-import kotlin.coroutines.cancellation.CancellationException
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -74,31 +73,46 @@ class PlanVisitViewModel @Inject constructor(
     val state: StateFlow<PlanVisitState> = _state.asStateFlow()
 
     /** The accounts at the chosen city, district and type: the places the rep can pick. */
-    private var placeAccounts: List<Account> = emptyList()
+    private var accounts: List<Account> = emptyList()
 
     init {
         visitId?.let(::loadPlannedVisit)
         if (resumeDraft) loadDraft()
-        collectInto(accountRepo.cities()) { state, cities -> state.copy(cityOptions = cities) }
-        collectInto(accountRepo.districts()) { state, districts -> state.copy(districtOptions = districts) }
-        collectInto(accountRepo.entityTypes()) { state, types -> state.copy(entityTypeOptions = types) }
+        collectInto(accountRepo.cities()) { state, cities -> state.copy(cityOptions = cities.map { it.toUi() }) }
+        collectInto(accountRepo.districts()) { state, districts -> state.copy(districtOptions = districts.map { it.toUi() }) }
+        collectInto(accountRepo.entityTypes()) { state, types -> state.copy(entityTypeOptions = types.map { it.toUi() }) }
         viewModelScope.launch {
-            repRepo.byRole(RepRole.Supervisor).collect { list -> _state.update { it.copy(supervisors = list) } }
+            repRepo.byRole(RepRole.Supervisor)
+                .collect { list -> _state.update { it.copy(supervisors = list) } }
         }
-        collectInto(productRepo.custodyList(ProductType.Gift)) { state, gifts -> state.copy(giftCatalog = gifts.map { it.toCatalogItem() }) }
+        collectInto(productRepo.custodyList(ProductType.Gift)) { state, gifts ->
+            state.copy(
+                giftCatalog = gifts.map { it.toCatalogItem() })
+        }
         collectInto(productRepo.custodyList(ProductType.Product)) { state, samples ->
             state.copy(productCatalog = samples.map { it.toCatalogItem() })
         }
         viewModelScope.launch {
-            _state.map { Triple(it.visit.city, it.visit.region, it.visit.account) }
+            _state.map { PlaceFilter(it.visit.city?.id, it.visit.region?.id, it.visit.account?.id) }
                 .distinctUntilChanged()
-                .flatMapLatest { (city, district, type) -> accountRepo.places(city, district, type) }
-                .collect { accounts ->
-                    placeAccounts = accounts
-                    _state.update { it.copy(placeOptions = accounts.map { account -> account.name }) }
+                .flatMapLatest { filter -> accountRepo.places(filter.cityId, filter.districtId, filter.typeId) }
+                .collect { places ->
+                    accounts = places
+                    _state.update { state ->
+                        val chosenPlaceGone = state.visit.type == VisitType.Unplanned &&
+                                state.visit.accountId.isNotBlank() &&
+                                places.none { it.id == state.visit.accountId }
+                        state.copy(
+                            placeOptions = places.map { BasicModelUi(it.id, it.name) },
+                            visit = if (chosenPlaceGone) state.visit.withoutPlace() else state.visit,
+                        )
+                    }
                 }
         }
     }
+
+    /** The accounts that fit the chosen city, district and entity type; a null id does not narrow the search. */
+    private data class PlaceFilter(val cityId: String?, val districtId: String?, val typeId: String?)
 
     private fun <T> collectInto(flow: Flow<T>, transform: (PlanVisitState, T) -> PlanVisitState) {
         viewModelScope.launch { flow.collect { value -> _state.update { transform(it, value) } } }
@@ -127,7 +141,8 @@ class PlanVisitViewModel @Inject constructor(
     /** Fills the form with the planned visit stored under [visitId]; it stays a planned visit. */
     private fun loadPlannedVisit(visitId: String) {
         viewModelScope.launch {
-            val visit = visitRepo.get(visitId)?.toUi()?.copy(type = VisitType.Planned) ?: return@launch
+            val visit =
+                visitRepo.get(visitId)?.toUi()?.copy(type = VisitType.Planned) ?: return@launch
             _state.update { it.copy(visit = visit, initialVisit = visit) }
         }
     }
@@ -145,8 +160,8 @@ class PlanVisitViewModel @Inject constructor(
             is PlanVisitEvents.SelectCity -> updateVisit { it.copy(city = event.value) }
             is PlanVisitEvents.SelectDistrict -> updateVisit { it.copy(region = event.value) }
             is PlanVisitEvents.SelectEntityType -> updateVisit { it.copy(account = event.value) }
-            is PlanVisitEvents.SelectPlace -> selectPlace(event.value)
-            is PlanVisitEvents.SelectSupervisor -> updateVisit { it.copy(supervisorName = event.value) }
+            is PlanVisitEvents.SelectPlace -> selectAccount(event.value)
+            is PlanVisitEvents.SelectSupervisor -> updateVisit { it.copy(supervisor = event.value) }
             is PlanVisitEvents.SelectShift -> updateVisit { it.copy(shift = event.shift) }
             is PlanVisitEvents.SelectDoubleVisit -> updateVisit { it.copy(isDoubleVisit = event.isDouble) }
             is PlanVisitEvents.OpenAddItem -> _state.update { it.copy(overlay = AddItem(event.kind)) }
@@ -219,7 +234,12 @@ class PlanVisitViewModel @Inject constructor(
         val state = _state.value
         _state.update { it.copy(overlay = PlanVisitOverlay.None) }
         viewModelScope.launch {
-            draftRepo.save(DraftVisit(step = state.currentStep.ordinal, visit = state.visit.toDomain()))
+            draftRepo.save(
+                DraftVisit(
+                    step = state.currentStep.ordinal,
+                    visit = state.visit.toDomain()
+                )
+            )
             sendEvent(ShowSnackBar(StringResource(R.string.draft_saved)))
             sendEvent(UiEvent.NavigationUp)
         }
@@ -234,20 +254,31 @@ class PlanVisitViewModel @Inject constructor(
     }
 
     /** Choosing a place also fills what belongs to its account: specialty, class, address and where it is. */
-    private fun selectPlace(name: String) {
-        val account = placeAccounts.firstOrNull { it.name == name }
+    private fun selectAccount(data: BasicModelUi) {
+        val account = accounts.firstOrNull { it.id == data.id } ?: return
         updateVisit {
             it.copy(
-                placeName = name,
-                accountId = account?.id.orEmpty(),
-                specialty = account?.specialty.orEmpty(),
-                classCategory = account?.classCategory.orEmpty(),
-                address = account?.address.orEmpty(),
-                accountLatitude = account?.latitude ?: 0.0,
-                accountLongitude = account?.longitude ?: 0.0,
+                placeName = account.name,
+                accountId = account.id,
+                specialty = account.specialty?.toUi(),
+                classCategory = account.classCategory?.toUi(),
+                address = account.address,
+                accountLatitude = account.latitude,
+                accountLongitude = account.longitude,
             )
         }
     }
+
+    /** Forgets the chosen place and everything that came from its account. */
+    private fun VisitUi.withoutPlace() = copy(
+        placeName = "",
+        accountId = "",
+        specialty = null,
+        classCategory = null,
+        address = "",
+        accountLatitude = 0.0,
+        accountLongitude = 0.0,
+    )
 
     private fun openVisitLocation() {
         val visit = _state.value.visit
@@ -278,9 +309,9 @@ class PlanVisitViewModel @Inject constructor(
                         accountLongitude = visit.accountLongitude,
                         accountName = visit.placeName,
                         address = visit.accountAddressLine(),
-                        classCategory = visit.classCategory,
-                        accountType = visit.account,
-                        specialty = visit.specialty,
+                        classCategory = visit.classCategory?.name.orEmpty(),
+                        accountType = visit.account?.name.orEmpty(),
+                        specialty = visit.specialty?.name.orEmpty(),
                     )
                 )
             )
@@ -292,7 +323,15 @@ class PlanVisitViewModel @Inject constructor(
     private fun openAccountDirections() {
         val visit = _state.value.visit
         if (visit.hasAccountLocation) {
-            sendEvent(Navigate(MainGraph.AccountDirections(visit.accountLatitude, visit.accountLongitude, visit.placeName)))
+            sendEvent(
+                Navigate(
+                    MainGraph.AccountDirections(
+                        visit.accountLatitude,
+                        visit.accountLongitude,
+                        visit.placeName
+                    )
+                )
+            )
         } else {
             sendEvent(ShowSnackBar(StringResource(R.string.visit_location_unavailable)))
         }
@@ -320,7 +359,10 @@ class PlanVisitViewModel @Inject constructor(
         }
         _state.update {
             it.copy(
-                visit = it.visit.copy(visitLatitude = location.latitude, visitLongitude = location.longitude),
+                visit = it.visit.copy(
+                    visitLatitude = location.latitude,
+                    visitLongitude = location.longitude
+                ),
                 capturedAtMillis = user.lastLocationTimeMillis,
                 locationAddress = user.lastAddress,
                 locationAccuracyMeters = user.lastAccuracyMeters,

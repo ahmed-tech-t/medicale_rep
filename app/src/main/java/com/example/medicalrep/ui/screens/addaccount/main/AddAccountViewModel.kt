@@ -6,6 +6,7 @@ import com.appcore.core.domain.utils.UiEvent
 import com.appcore.core.domain.utils.UiText
 import com.appcore.core.ui.utils.BaseViewModel
 import com.example.medicalrep.R
+import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.GeoPoint
@@ -33,10 +34,10 @@ class AddAccountViewModel @Inject constructor(
     val state: StateFlow<AddAccountState> = _state.asStateFlow()
 
     init {
-        collectInto(accountRepo.cities()) { state, cities -> state.copy(cityOptions = cities) }
-        collectInto(accountRepo.districts()) { state, districts -> state.copy(districtOptions = districts) }
-        collectInto(accountRepo.entityTypes()) { state, types -> state.copy(entityTypeOptions = types) }
-        collectInto(accountRepo.specialties()) { state, specialties -> state.copy(specialtyOptions = specialties) }
+        collectInto(accountRepo.cities()) { state, cities -> state.copy(cityOptions = cities.map { it.name }) }
+        collectInto(accountRepo.districts()) { state, districts -> state.copy(districtOptions = districts.map { it.name }) }
+        collectInto(accountRepo.entityTypes()) { state, types -> state.copy(entityTypeOptions = types.map { it.name }) }
+        collectInto(accountRepo.specialties()) { state, specialties -> state.copy(specialtyOptions = specialties.map { it.name }) }
         viewModelScope.launch {
             session.user.value.lastLocation?.let { location -> _state.update { it.copy(userLocation = location) } }
         }
@@ -74,11 +75,11 @@ class AddAccountViewModel @Inject constructor(
                 Account(
                     id = UUID.randomUUID().toString(),
                     name = form.name.text.toString().trim(),
-                    entityType = form.entityType,
-                    classCategory = form.classCategory,
-                    specialty = form.specialty,
-                    city = form.city,
-                    district = form.district,
+                    accountType = form.entityType.toOption(),
+                    classCategory = form.classCategory.toOption(),
+                    specialty = form.specialty.toOption(),
+                    city = form.city.toOption(),
+                    district = form.district.toOption(),
                     latitude = pin.latitude,
                     longitude = pin.longitude,
                     syncStatus = SyncStatus.NotSynced,
@@ -91,3 +92,6 @@ class AddAccountViewModel @Inject constructor(
         }
     }
 }
+
+/** The form holds plain text, which is also the id; blank text means not set. */
+private fun String.toOption() = takeIf { it.isNotBlank() }?.let { BasicModel(it, it) }

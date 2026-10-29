@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.preview
 
+import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
@@ -11,6 +12,8 @@ import java.time.LocalTime
 
 /** Shared sample visits for Previews, catalog, and UI tests. */
 object VisitSamples {
+
+    private fun option(name: String) = BasicModel(name, name)
 
     val sampleDate: LocalDate = LocalDate.of(2026, 10, 19)
 
@@ -25,15 +28,15 @@ object VisitSamples {
         id = id,
         date = "10/05/2034",
         time = "06:54 Am",
-        city = "شبين الكوم",
-        region = "البر الشرقى",
-        account = account,
+        city = option("شبين الكوم"),
+        region = option("البر الشرقى"),
+        account = option(account),
         placeName = placeName,
-        specialty = specialty,
+        specialty = option(specialty),
         shift = Shift.Am,
         type = VisitType.Planned,
         visitMode = VisitMode.Single,
-        classCategory = classCategory,
+        classCategory = classCategory?.let(::option),
         syncStatus = SyncStatus.NotSynced,
         durationLabel = durationLabel,
     )
@@ -47,11 +50,11 @@ object VisitSamples {
         id = id,
         date = "10/05/2034",
         time = "06:54 Am",
-        city = "شبين الكوم",
+        city = option("شبين الكوم"),
         address = "\uD83D\uDCCD شارع الجلاء - برج الأطباء",
         placeName = placeName,
-        account = account,
-        specialty = specialty,
+        account = option(account),
+        specialty = option(specialty),
         shift = Shift.Pm,
         type = VisitType.Unplanned,
         syncStatus = SyncStatus.NotSynced,

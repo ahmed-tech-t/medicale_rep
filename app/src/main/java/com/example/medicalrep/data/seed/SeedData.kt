@@ -1,5 +1,6 @@
 package com.example.medicalrep.data.seed
 
+import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.Custody
 import com.example.medicalrep.domain.models.Order
@@ -87,6 +88,8 @@ object SeedDataFactory {
         Rep("rep-3", "منى الشاذلي", employeeCode = "1003", deviceId = "99203", role = RepRole.Rep, supervisorId = "sup-2"),
     )
 
+    private fun option(text: String) = BasicModel(text, text)
+
     private fun account(
         id: Int,
         name: String,
@@ -100,11 +103,11 @@ object SeedDataFactory {
     ) = Account(
         id = "acc-$id",
         name = name,
-        entityType = type,
-        classCategory = classCategory,
-        specialty = specialty,
-        city = city,
-        district = district,
+        accountType = option(type),
+        classCategory = option(classCategory),
+        specialty = option(specialty),
+        city = option(city),
+        district = option(district),
         address = address,
         latitude = 30.5589 + id * 0.004,
         longitude = 31.0112 + id * 0.003,
@@ -159,7 +162,7 @@ object SeedDataFactory {
      * choosing any city, district and type in the visit form finds at least one account.
      */
     private fun generatedAccounts(): List<Account> {
-        val covered = baseAccounts().map { Triple(it.city, it.district, it.entityType) }.toSet()
+        val covered = baseAccounts().map { Triple(it.city?.name.orEmpty(), it.district?.name.orEmpty(), it.accountType?.name.orEmpty()) }.toSet()
         val all = cities.flatMap { city -> districts.flatMap { district -> kinds.map { (type, _) -> Triple(city, district, type) } } }
         val combos = ((all - covered) + all).take(38)
         return combos.mapIndexed { index, (city, district, type) ->

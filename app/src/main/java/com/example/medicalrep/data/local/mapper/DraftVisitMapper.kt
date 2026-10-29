@@ -1,6 +1,7 @@
 package com.example.medicalrep.data.local.mapper
 
 import com.example.medicalrep.data.local.entity.DraftVisitEntity
+import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.Product
 import com.example.medicalrep.domain.models.ProductType
@@ -20,14 +21,14 @@ private data class DraftVisitJson(
     val id: String? = null,
     val accountId: String? = null,
     val type: String = "Unplanned",
-    val city: String = "",
-    val region: String = "",
+    val city: DraftOptionJson? = null,
+    val region: DraftOptionJson? = null,
     val address: String = "",
-    val account: String = "",
+    val account: DraftOptionJson? = null,
     val placeName: String = "",
-    val specialty: String = "",
-    val classCategory: String = "",
-    val supervisorName: String = "",
+    val specialty: DraftOptionJson? = null,
+    val classCategory: DraftOptionJson? = null,
+    val supervisor: DraftOptionJson? = null,
     val shift: String = "Am",
     val isDouble: Boolean = false,
     val noIssueFound: Boolean = true,
@@ -41,6 +42,9 @@ private data class DraftVisitJson(
     val gifts: List<DraftLineJson> = emptyList(),
     val products: List<DraftLineJson> = emptyList(),
 )
+
+@Serializable
+private data class DraftOptionJson(val id: String, val name: String)
 
 @Serializable
 private data class DraftLineJson(
@@ -65,14 +69,14 @@ fun DraftVisit.toEntity(voiceNotePath: String?): DraftVisitEntity {
             VisitType.Planned -> "Planned"
             else -> "Unplanned"
         },
-        city = v.city.orEmpty(),
-        region = v.region.orEmpty(),
+        city = v.city?.toJson(),
+        region = v.region?.toJson(),
         address = v.address.orEmpty(),
-        account = v.account.orEmpty(),
+        account = v.account?.toJson(),
         placeName = v.placeName.orEmpty(),
-        specialty = v.specialty.orEmpty(),
-        classCategory = v.classCategory.orEmpty(),
-        supervisorName = v.supervisorName.orEmpty(),
+        specialty = v.specialty?.toJson(),
+        classCategory = v.classCategory?.toJson(),
+        supervisor = v.supervisor?.toJson(),
         shift = (v.shift ?: Shift.Am).name,
         isDouble = v.visitMode == VisitMode.Double,
         noIssueFound = v.noIssueFound,
@@ -102,14 +106,14 @@ fun DraftVisitEntity.toDomain(readVoice: (String) -> ByteArray?): DraftVisit {
                 "Planned" -> VisitType.Planned
                 else -> VisitType.Unplanned
             },
-            city = form.city,
-            region = form.region,
+            city = form.city?.toModel(),
+            region = form.region?.toModel(),
             address = form.address,
-            account = form.account,
+            account = form.account?.toModel(),
             placeName = form.placeName,
-            specialty = form.specialty,
-            classCategory = form.classCategory,
-            supervisorName = form.supervisorName,
+            specialty = form.specialty?.toModel(),
+            classCategory = form.classCategory?.toModel(),
+            supervisor = form.supervisor?.toModel(),
             shift = Shift.entries.firstOrNull { it.name == form.shift } ?: Shift.Am,
             visitMode = if (form.isDouble) VisitMode.Double else VisitMode.Single,
             noIssueFound = form.noIssueFound,
@@ -129,6 +133,10 @@ fun DraftVisitEntity.toDomain(readVoice: (String) -> ByteArray?): DraftVisit {
 
 /** The voice note file path kept inside the JSON, so the file can be deleted with the draft. */
 fun DraftVisitEntity.voiceNotePath(): String? = draftJson.decodeFromString<DraftVisitJson>(json).voiceNotePath
+
+private fun BasicModel.toJson() = DraftOptionJson(id, name)
+
+private fun DraftOptionJson.toModel() = BasicModel(id, name)
 
 private fun Product.toLine() = DraftLineJson(
     id = id.orEmpty(),

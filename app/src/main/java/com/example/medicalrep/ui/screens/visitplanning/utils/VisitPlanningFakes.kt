@@ -2,6 +2,7 @@ package com.example.medicalrep.ui.screens.visitplanning.utils
 
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.VisitType
+import com.example.medicalrep.ui.models.BasicModelUi
 import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.VisitUi
 import com.example.medicalrep.ui.preview.VisitSamples
@@ -21,7 +22,7 @@ object VisitPlanningFakes {
             date = "أمس",
             time = "04:15 م",
             shift = if (index % 2 == 0) Shift.Am else Shift.Pm,
-            classCategory = listOf("A", "B", "C")[index % 3],
+            classCategory = listOf("A", "B", "C")[index % 3].let { BasicModelUi(it, it) },
         )
     }
 
@@ -33,7 +34,7 @@ object VisitPlanningFakes {
             specialty = "استشاري باطنة وجهاز هضمي",
         ).toUi().copy(
             shift = if (index % 2 == 0) Shift.Am else Shift.Pm,
-            classCategory = listOf("A", "B", "C")[index % 3],
+            classCategory = listOf("A", "B", "C")[index % 3].let { BasicModelUi(it, it) },
         )
     }
 

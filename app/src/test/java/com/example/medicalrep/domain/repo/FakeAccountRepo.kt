@@ -3,10 +3,9 @@ package com.example.medicalrep.domain.repo
 import androidx.paging.PagingData
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.AccountType
+import com.example.medicalrep.domain.models.BasicModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 /** In-memory accounts for ViewModel tests; search matches the name, the type filter uses [AccountType.fromEntityType]. */
@@ -20,7 +19,7 @@ class FakeAccountRepo(initial: List<Account> = emptyList()) : AccountRepo {
     val requestedQueries = mutableListOf<String>()
 
     private fun filtered(query: String, type: AccountType?): Flow<List<Account>> = current.map { list ->
-        list.filter { (type == null || AccountType.fromEntityType(it.entityType) == type) && it.name.contains(query, ignoreCase = true) }
+        list.filter { (type == null || AccountType.fromEntityType(it.accountType?.name.orEmpty()) == type) && it.name.contains(query, ignoreCase = true) }
     }
 
     override fun accounts(query: String, type: AccountType?): Flow<PagingData<Account>> {
@@ -45,14 +44,17 @@ class FakeAccountRepo(initial: List<Account> = emptyList()) : AccountRepo {
         accounts.forEach { save(it) }
     }
 
-    override fun places(city: String, district: String, entityType: String): Flow<List<Account>> = current.map { list ->
-        list.filter { (city.isBlank() || it.city == city) && (district.isBlank() || it.district == district) && (entityType.isBlank() || it.entityType == entityType) }
+    override fun places(city: String?, district: String?, entityType: String?): Flow<List<Account>> = current.map { list ->
+        list.filter {
+            (city == null || it.city?.id == city) && (district == null || it.district?.id == district) &&
+                (entityType == null || it.accountType?.id == entityType)
+        }
     }
 
-    override fun cities(): Flow<List<String>> = current.map { list -> list.map { it.city }.filter { it.isNotBlank() }.distinct() }
-    override fun districts(): Flow<List<String>> = current.map { list -> list.map { it.district }.filter { it.isNotBlank() }.distinct() }
-    override fun specialties(): Flow<List<String>> = current.map { list -> list.map { it.specialty }.filter { it.isNotBlank() }.distinct() }
-    override fun entityTypes(): Flow<List<String>> = current.map { list -> list.map { it.entityType }.filter { it.isNotBlank() }.distinct() }
+    override fun cities(): Flow<List<BasicModel>> = current.map { list -> list.mapNotNull { it.city }.distinct() }
+    override fun districts(): Flow<List<BasicModel>> = current.map { list -> list.mapNotNull { it.district }.distinct() }
+    override fun specialties(): Flow<List<BasicModel>> = current.map { list -> list.mapNotNull { it.specialty }.distinct() }
+    override fun entityTypes(): Flow<List<BasicModel>> = current.map { list -> list.mapNotNull { it.accountType }.distinct() }
 
     override suspend fun notSynced(): List<Account> = emptyList()
     override suspend fun markSynced(id: String, backendId: String?) = Unit

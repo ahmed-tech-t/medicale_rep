@@ -37,6 +37,7 @@ import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.components.widgets.NexoraChip
 import com.example.medicalrep.ui.mapper.resolvedDisplayName
 import com.example.medicalrep.ui.mapper.toUi
+import com.example.medicalrep.ui.models.BasicModelUi
 import com.example.medicalrep.ui.models.VisitUi
 import com.example.medicalrep.ui.preview.VisitSamples
 import com.example.medicalrep.ui.ui.theme.Info
@@ -77,9 +78,9 @@ fun CompletedVisitCard(
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.ExtraBold),
                     color = Slate900,
                 )
-                if ( model.specialty.isNotBlank()) {
+                if (model.specialty != null) {
                     NexoraText(
-                        text =  model.specialty,
+                        text = model.specialty.name,
                         style = MaterialTheme.typography.labelMedium,
                         color = Slate500,
                     )
@@ -90,7 +91,7 @@ fun CompletedVisitCard(
                 verticalArrangement = Arrangement.spacedBy(spacing.spaceExtraSmall),
             ) {
                 if (model.isDoubleVisit) {
-                    VisitInfoChip(stringResource(R.string.unplanned_double_with_format, model.supervisorName))
+                    VisitInfoChip(stringResource(R.string.unplanned_double_with_format, model.supervisor?.name.orEmpty()))
                 }
 
                 VisitInfoChip(
@@ -163,7 +164,7 @@ private fun SyncState(model: VisitUi) {
 private fun CompletedVisitCardNotSyncedPreview() {
     MedicalRepTheme {
         CompletedVisitCard(
-            model = VisitSamples.planned().toUi().copy(isDoubleVisit = true, supervisorName = "احمد حسن"),
+            model = VisitSamples.planned().toUi().copy(isDoubleVisit = true, supervisor = BasicModelUi("sup-1", "احمد حسن")),
             modifier = Modifier.padding(spacing.spaceMedium),
         )
     }
@@ -178,7 +179,7 @@ private fun CompletedVisitCardSyncedPreview() {
                 backendId = "432423",
                 syncStatus = SyncStatus.Synced,
                 isDoubleVisit = true,
-                supervisorName = "احمد حسن",
+                supervisor = BasicModelUi("sup-1", "احمد حسن"),
             ),
             modifier = Modifier.padding(spacing.spaceMedium),
         )

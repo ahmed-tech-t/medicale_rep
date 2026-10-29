@@ -40,10 +40,10 @@ fun VisitInfoCard(visit: VisitUi, modifier: Modifier = Modifier) {
        }
         HorizontalDivider(color = Slate100)
         InfoRow(label = stringResource(R.string.visit_details_account_type)) {
-            NexoraChip(text = visit.account, container = Slate25, content = Brand, border = DetailsBorder)
+            NexoraChip(text = visit.account?.name.orEmpty(), container = Slate25, content = Brand, border = DetailsBorder)
         }
-        InfoRow(label = stringResource(R.string.visit_details_region), value = visit.region)
-        InfoRow(label = stringResource(R.string.visit_details_area), value = visit.city)
+        InfoRow(label = stringResource(R.string.visit_details_region), value = visit.region?.name.orEmpty())
+        InfoRow(label = stringResource(R.string.visit_details_area), value = visit.city?.name.orEmpty())
     }
 }
 

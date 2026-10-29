@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.mapper
 
+import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.AccountType
 import com.example.medicalrep.domain.models.Custody
@@ -26,14 +27,14 @@ class NewUiMappersTest {
 
     @Test
     fun `account maps all fields and sync flag`() {
-        val ui = Account("a1", "b", "Clinic", "Pharmacy", "A", "Cardio", "Cairo", "Nasr", "St 1", 1.5, 2.5, "s", SyncStatus.Synced).toUi()
+        val ui = Account("a1", "b", "Clinic", BasicModel("Pharmacy", "Pharmacy"), BasicModel("A", "A"), BasicModel("Cardio", "Cardio"), BasicModel("Cairo", "Cairo"), BasicModel("Nasr", "Nasr"), "St 1", 1.5, 2.5, "s", SyncStatus.Synced).toUi()
         assertEquals("a1", ui.id)
         assertEquals("Clinic", ui.name)
-        assertEquals("Pharmacy", ui.entityType)
-        assertEquals("A", ui.classCategory)
-        assertEquals("Cardio", ui.specialty)
-        assertEquals("Cairo", ui.city)
-        assertEquals("Nasr", ui.district)
+        assertEquals("Pharmacy", ui.accountType?.name)
+        assertEquals("A", ui.classCategory?.name)
+        assertEquals("Cardio", ui.specialty?.name)
+        assertEquals("Cairo", ui.city?.name)
+        assertEquals("Nasr", ui.district?.name)
         assertEquals("St 1", ui.address)
         assertEquals(1.5, ui.latitude, 0.0)
         assertEquals(2.5, ui.longitude, 0.0)
@@ -43,7 +44,7 @@ class NewUiMappersTest {
 
     @Test
     fun `account type is read from the entity type text`() {
-        assertEquals(AccountType.Hospital, Account("a", name = "x", entityType = "مستشفى").toUi().type)
+        assertEquals(AccountType.Hospital, Account("a", name = "x", accountType = BasicModel("مستشفى", "مستشفى")).toUi().type)
         assertEquals(null, Account("a", name = "x").toUi().type)
     }
 

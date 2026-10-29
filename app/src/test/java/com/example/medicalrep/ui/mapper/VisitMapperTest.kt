@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.mapper
 
+import com.example.medicalrep.ui.models.BasicModelUi
 import com.example.medicalrep.domain.models.Visit
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
@@ -68,7 +69,7 @@ class VisitMapperTest {
     @Test
     fun `an ended visit becomes a completed visit that is not uploaded yet`() {
         val form = VisitUi(
-            id = "v1", accountId = "a1", type = VisitType.Planned, shift = Shift.Pm, isDoubleVisit = true, supervisorName = "Boss",
+            id = "v1", accountId = "a1", type = VisitType.Planned, shift = Shift.Pm, isDoubleVisit = true, supervisor = BasicModelUi("s1", "Boss"),
             noIssueFound = false, voiceNote = byteArrayOf(1), imageNote = android.net.FakeUri(),
         )
         val visit = form.toCompletedVisit(stored = null, repId = "r1", supervisorId = "s1", startedAtMillis = 1_000L, completedAtMillis = 276_000L)

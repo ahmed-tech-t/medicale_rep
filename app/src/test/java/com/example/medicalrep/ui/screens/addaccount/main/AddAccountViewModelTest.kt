@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.screens.addaccount.main
 
+import com.example.medicalrep.domain.models.BasicModel
 import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
@@ -19,7 +20,6 @@ import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.repo.FakeAccountRepo
 import com.example.medicalrep.domain.repo.FakeSession
-import com.example.medicalrep.ui.common.location.LocationStatus
 import com.appcore.core.ui.utils.document_picker.PickedDocument
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -44,8 +44,8 @@ class AddAccountViewModelTest {
     private val dispatcher = UnconfinedTestDispatcher()
     private val repo = FakeAccountRepo(
         listOf(
-            Account("a1", name = "عيادة د. محمود", city = "منوف", district = "وسط البلد", entityType = "عيادة", specialty = "باطنة"),
-            Account("a2", name = "صيدلية الشفاء", city = "قويسنا", district = "البر الشرقى", entityType = "صيدلية", specialty = "صيدلة"),
+            Account("a1", name = "عيادة د. محمود", city = BasicModel("منوف", "منوف"), district = BasicModel("وسط البلد", "وسط البلد"), accountType = BasicModel("عيادة", "عيادة"), specialty = BasicModel("باطنة", "باطنة")),
+            Account("a2", name = "صيدلية الشفاء", city = BasicModel("قويسنا", "قويسنا"), district = BasicModel("البر الشرقى", "البر الشرقى"), accountType = BasicModel("صيدلية", "صيدلية"), specialty = BasicModel("صيدلة", "صيدلة")),
         ),
     )
     private val session = FakeSession().also { it.setLocation(GeoPoint(30.1, 31.2)) }
@@ -78,7 +78,7 @@ class AddAccountViewModelTest {
 
     @Test
     fun `options follow the stored accounts`() {
-        repo.current.value = repo.current.value + Account("a3", name = "مركز", city = "الباجور", district = "x", entityType = "مركز طبي", specialty = "عظام")
+        repo.current.value = repo.current.value + Account("a3", name = "مركز", city = BasicModel("الباجور", "الباجور"), district = BasicModel("x", "x"), accountType = BasicModel("مركز طبي", "مركز طبي"), specialty = BasicModel("عظام", "عظام"))
         assertTrue("الباجور" in state.cityOptions)
         assertTrue("مركز طبي" in state.entityTypeOptions)
     }
@@ -99,7 +99,7 @@ class AddAccountViewModelTest {
         viewModel.onEvent(AddAccountEvents.Save)
         val saved = repo.current.value.single { it.name == "Dr Ali" }
         assertEquals(SyncStatus.NotSynced, saved.syncStatus)
-        assertEquals(listOf("c", "d", "e", "A", "s"), listOf(saved.city, saved.district, saved.entityType, saved.classCategory, saved.specialty))
+        assertEquals(listOf("c", "d", "e", "A", "s"), listOf(saved.city, saved.district, saved.accountType, saved.classCategory, saved.specialty).map { it?.name })
         assertEquals(30.0, saved.latitude, 0.0)
         assertEquals(31.0, saved.longitude, 0.0)
         assertTrue(saved.signPhoto != null)

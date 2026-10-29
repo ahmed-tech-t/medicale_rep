@@ -41,10 +41,10 @@ class SeedDataTest {
 
     @Test
     fun `every city, district and type has an account so the place list is never empty`() {
-        val existing = data.accounts.map { Triple(it.city, it.district, it.entityType) }.toSet()
+        val existing = data.accounts.map { Triple(it.city, it.district, it.accountType) }.toSet()
         val cities = data.accounts.map { it.city }.toSet()
         val districts = data.accounts.map { it.district }.toSet()
-        val types = data.accounts.map { it.entityType }.toSet()
+        val types = data.accounts.map { it.accountType }.toSet()
         val missing = cities.flatMap { c -> districts.flatMap { d -> types.map { t -> Triple(c, d, t) } } } - existing
         assertEquals(emptyList<Triple<String, String, String>>(), missing)
     }
@@ -107,9 +107,9 @@ class SeedDataTest {
 
     @Test
     fun `accounts cover every type, class and several places`() {
-        val types = data.accounts.mapNotNull { AccountType.fromEntityType(it.entityType) }.toSet()
+        val types = data.accounts.mapNotNull { AccountType.fromEntityType(it.accountType?.name.orEmpty()) }.toSet()
         assertEquals(AccountType.entries.toSet(), types)
-        assertEquals(setOf("A", "B", "C"), data.accounts.map { it.classCategory }.toSet())
+        assertEquals(setOf("A", "B", "C"), data.accounts.map { it.classCategory?.name }.toSet())
         assertTrue(data.accounts.map { it.city }.toSet().size >= 2)
         assertTrue(data.accounts.map { it.district }.toSet().size >= 2)
         assertTrue(data.accounts.map { it.specialty }.toSet().size >= 3)

@@ -11,9 +11,9 @@ object AddAccountFakes {
         val options = PlanVisitFakes.state()
         return AddAccountState(
             userLocation = GeoPoint(latitude = 30.0450, longitude = 31.2365),
-            cityOptions = options.cityOptions,
-            districtOptions = options.districtOptions,
-            entityTypeOptions = options.entityTypeOptions,
+            cityOptions = options.cityOptions.map { it.name },
+            districtOptions = options.districtOptions.map { it.name },
+            entityTypeOptions = options.entityTypeOptions.map { it.name },
             classOptions = listOf("A", "B", "C"),
             specialtyOptions = listOf("باطنة وجهاز هضمي", "أطفال", "جلدية"),
         )

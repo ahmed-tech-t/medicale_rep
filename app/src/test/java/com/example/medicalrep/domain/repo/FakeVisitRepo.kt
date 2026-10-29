@@ -45,7 +45,7 @@ class FakeVisitRepo(initial: List<Visit> = emptyList()) : VisitRepo {
 
     private fun withStatus(status: VisitStatus, shift: Shift?, classCategory: String?) = current.map { list ->
         list.filter {
-            it.status == status && (shift == null || it.shift == shift) && (classCategory == null || it.classCategory == classCategory)
+            it.status == status && (shift == null || it.shift == shift) && (classCategory == null || it.classCategory?.name == classCategory)
         }
     }
 

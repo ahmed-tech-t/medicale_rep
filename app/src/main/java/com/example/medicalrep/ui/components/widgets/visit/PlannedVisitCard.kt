@@ -71,8 +71,8 @@ fun PlannedVisitCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                if (model.specialty.isNotBlank()) {
-                    VisitTagChip(text = model.specialty)
+                if (model.specialty != null) {
+                    VisitTagChip(text = model.specialty.name)
                 }
             }
             if (model.address.isNotBlank()) {

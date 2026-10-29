@@ -1,5 +1,6 @@
 package com.example.medicalrep.data.local.dao
 
+import com.example.medicalrep.domain.models.BasicModel
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -48,8 +49,8 @@ class AccountDaoTest : DaoTestBase() {
 
     @Test fun searchByTypeAndCount() = runBlocking {
         dao.insertAll(listOf(
-            Account("1", name = "عيادة أ", entityType = "عيادة").toEntity(),
-            Account("2", name = "مستشفى", entityType = "مستشفى").toEntity(),
+            Account("1", name = "عيادة أ", accountType = BasicModel("عيادة", "عيادة")).toEntity(),
+            Account("2", name = "مستشفى", accountType = BasicModel("مستشفى", "مستشفى")).toEntity(),
         ))
         assertEquals(listOf("1"), dao.searchByType(AccountType.Clinic, "").allRows().map { it.id })
         assertEquals(2, dao.count(null, "").first())

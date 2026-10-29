@@ -4,16 +4,17 @@ import com.example.medicalrep.data.local.entity.AccountEntity
 import com.example.medicalrep.data.local.search.searchTextOf
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.AccountType
+import com.example.medicalrep.domain.models.BasicModel
 
 fun AccountEntity.toDomain() = Account(
     id = id,
     backendId = backendId,
     name = name,
-    entityType = entityType,
-    classCategory = classCategory,
-    specialty = specialty,
-    city = city,
-    district = district,
+    accountType = entityType.toBasicModel(),
+    classCategory = classCategory.toBasicModel(),
+    specialty = specialty.toBasicModel(),
+    city = city.toBasicModel(),
+    district = district.toBasicModel(),
     address = address,
     latitude = latitude,
     longitude = longitude,
@@ -28,17 +29,20 @@ fun Account.toEntity() = AccountEntity(
     backendId = backendId,
     supervisorId = supervisorId,
     name = name,
-    entityType = entityType,
-    classCategory = classCategory,
-    specialty = specialty,
-    city = city,
-    district = district,
+    entityType = accountType?.name.orEmpty(),
+    classCategory = classCategory?.name.orEmpty(),
+    specialty = specialty?.name.orEmpty(),
+    city = city?.name.orEmpty(),
+    district = district?.name.orEmpty(),
     address = address,
     latitude = latitude,
     longitude = longitude,
     syncStatus = syncStatus,
     signPhoto = signPhoto,
     createdAt = createdAt,
-    accountType = AccountType.fromEntityType(entityType),
-    searchText = searchTextOf(name, entityType, classCategory, specialty, city, district, address),
+    accountType = AccountType.fromEntityType(accountType?.name.orEmpty()),
+    searchText = searchTextOf(name, accountType?.name, classCategory?.name, specialty?.name, city?.name, district?.name, address),
 )
+
+/** The account columns are plain text for now, so the text is also the id; blank text means not set. */
+private fun String.toBasicModel() = takeIf { it.isNotBlank() }?.let { BasicModel(it, it) }

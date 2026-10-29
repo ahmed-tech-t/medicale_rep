@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.screens.statistics
 
+import com.example.medicalrep.domain.models.BasicModel
 import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.getValue
@@ -40,7 +41,7 @@ class StatisticsFlowTest {
     fun setUp() {
         db = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext<Context>(), AppDatabase::class.java).build()
         runBlocking {
-            db.accountDao().save(Account("a1", name = "عيادة د. محمود", entityType = "clinic", specialty = "Cardio", classCategory = "A").toEntity())
+            db.accountDao().save(Account("a1", name = "عيادة د. محمود", accountType = BasicModel("clinic", "clinic"), specialty = BasicModel("Cardio", "Cardio"), classCategory = BasicModel("A", "A")).toEntity())
             val now = System.currentTimeMillis()
             db.visitDao().save(visit("done", accountId = "a1", status = VisitStatus.Completed, dateTimeMillis = now, completedAtMillis = now), emptyList())
             db.visitDao().save(visit("todo", accountId = "a1", status = VisitStatus.Scheduled, dateTimeMillis = now), emptyList())

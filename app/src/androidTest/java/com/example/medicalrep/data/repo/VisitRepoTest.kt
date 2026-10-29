@@ -8,6 +8,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
+import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.*
 
 /** Round trip with account, supervisor and lines; paging; Arabic search; voice note file; approval flow; upload flags. */
@@ -16,14 +17,14 @@ class VisitRepoTest : RepoTestBase() {
     private val repo get() = VisitRepoImpl(db.visitDao(), media)
 
     @Test fun saveThenGetKeepsAccountSupervisorAndLines() = runTest {
-        AccountRepoImpl(db.accountDao()).save(Account("a1", name = "Clinic", city = "Cairo"))
+        AccountRepoImpl(db.accountDao()).save(Account("a1", name = "Clinic", city = BasicModel("Cairo", "Cairo")))
         RepRepoImpl(db.repDao()).save(Rep("s1", "Boss", role = RepRole.Supervisor))
         ProductRepoImpl(db.productDao(), db.custodyDao()).saveCustody(listOf(Custody("c1", "Pen", ProductType.Gift, received = 10)))
         repo.save(Visit(id = "v1", status = VisitStatus.Scheduled, accountId = "a1", supervisorId = "s1", gifts = listOf(Product(id = "c1", quantity = 2))))
         val visit = repo.get("v1")!!
         assertEquals("Clinic", visit.account)
-        assertEquals("Cairo", visit.city)
-        assertEquals("Boss", visit.supervisorName)
+        assertEquals("Cairo", visit.city?.name)
+        assertEquals("Boss", visit.supervisor?.name)
         assertEquals(2, visit.gifts?.single()?.quantity)
         assertNull(repo.get("none"))
     }

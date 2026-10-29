@@ -1,5 +1,7 @@
 package com.example.medicalrep.ui.mapper
 
+import com.example.medicalrep.ui.models.BasicModelUi
+import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.Product
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
@@ -16,15 +18,17 @@ class VisitUiMapperTest {
     @Test
     fun `form fields reach the domain visit`() {
         val ui = VisitUi(
-            id = "v1", city = "Cairo", region = "Nasr", account = "عيادة", placeName = "د. أحمد", specialty = "باطنة",
-            shift = Shift.Pm, type = VisitType.Planned, isDoubleVisit = true, supervisorName = "Boss", noIssueFound = false,
+            id = "v1", city = BasicModelUi("c1", "Cairo"), region = BasicModelUi("r1", "Nasr"), account = BasicModelUi("t1", "عيادة"), placeName = "د. أحمد",
+            specialty = BasicModelUi("sp1", "باطنة"),
+            shift = Shift.Pm, type = VisitType.Planned, isDoubleVisit = true, supervisor = BasicModelUi("s1", "Boss"), noIssueFound = false,
             visitLatitude = 1.0, visitLongitude = 2.0, travelSeconds = 30,
             gifts = listOf(ProductUi("g1", "Pen", 2, ProductType.Gift, 8, "")),
             products = listOf(ProductUi("p1", "Drug", 1, ProductType.Product, 4, "", 50, 10)),
         )
         val visit = ui.toDomain()
         assertEquals("v1", visit.id)
-        assertEquals("Cairo", visit.city)
+        assertEquals(BasicModel("c1", "Cairo"), visit.city)
+        assertEquals(BasicModel("s1", "Boss"), visit.supervisor)
         assertEquals("د. أحمد", visit.placeName)
         assertEquals(Shift.Pm, visit.shift)
         assertEquals(com.example.medicalrep.domain.models.VisitMode.Double, visit.visitMode)

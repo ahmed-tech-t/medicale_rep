@@ -1,5 +1,6 @@
 package com.example.medicalrep.data.local.dao
 
+import com.example.medicalrep.domain.models.BasicModel
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.medicalrep.data.local.entity.OrderItemEntity
 import com.example.medicalrep.data.local.entity.VisitEntity
@@ -25,7 +26,7 @@ class StatisticsDaoTest : DaoTestBase() {
     private val dao get() = db.statisticsDao()
 
     private fun account(id: String, entityType: String, specialty: String = "", classCategory: String = "") =
-        Account(id = id, name = id, entityType = entityType, specialty = specialty, classCategory = classCategory).toEntity()
+        Account(id = id, name = id, accountType = entityType.opt(), specialty = specialty.opt(), classCategory = classCategory.opt()).toEntity()
 
     @Test fun completedCountsOnlyCompletedVisitsFinishedInTheRange() = runBlocking {
         save(visit("in", status = VisitStatus.Completed, dateTimeMillis = FROM, completedAtMillis = FROM))

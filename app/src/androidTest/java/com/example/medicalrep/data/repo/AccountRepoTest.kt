@@ -1,8 +1,8 @@
 package com.example.medicalrep.data.repo
 
+import com.example.medicalrep.domain.models.BasicModel
 import androidx.paging.testing.asSnapshot
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.medicalrep.data.local.dao.DaoTestBase
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
@@ -31,9 +31,9 @@ class AccountRepoTest : RepoTestBase() {
     }
 
     @Test fun typeFilterAndCountRunInTheDatabase() = runTest {
-        repo.save(Account("1", name = "عيادة أ", entityType = "عيادة"))
-        repo.save(Account("2", name = "عيادة ب", entityType = "عيادة"))
-        repo.save(Account("3", name = "مستشفى", entityType = "مستشفى"))
+        repo.save(Account("1", name = "عيادة أ", accountType = BasicModel("عيادة", "عيادة")))
+        repo.save(Account("2", name = "عيادة ب", accountType = BasicModel("عيادة", "عيادة")))
+        repo.save(Account("3", name = "مستشفى", accountType = BasicModel("مستشفى", "مستشفى")))
         assertEquals(setOf("1", "2"), repo.accounts(type = AccountType.Clinic).asSnapshot().map { it.id }.toSet())
         assertEquals(listOf("2"), repo.accounts("ب", AccountType.Clinic).asSnapshot().map { it.id })
         assertEquals(3, repo.accountCount().first())
@@ -42,9 +42,9 @@ class AccountRepoTest : RepoTestBase() {
     }
 
     @Test fun placesAreFilteredByCityDistrictAndTypeWithBlankMeaningAny() = runTest {
-        repo.save(Account("1", name = "أ", city = "منوف", district = "وسط البلد", entityType = "عيادة"))
-        repo.save(Account("2", name = "ب", city = "منوف", district = "البر الشرقى", entityType = "صيدلية"))
-        repo.save(Account("3", name = "ج", city = "قويسنا", district = "وسط البلد", entityType = "عيادة"))
+        repo.save(Account("1", name = "أ", city = BasicModel("منوف", "منوف"), district = BasicModel("وسط البلد", "وسط البلد"), accountType = BasicModel("عيادة", "عيادة")))
+        repo.save(Account("2", name = "ب", city = BasicModel("منوف", "منوف"), district = BasicModel("البر الشرقى", "البر الشرقى"), accountType = BasicModel("صيدلية", "صيدلية")))
+        repo.save(Account("3", name = "ج", city = BasicModel("قويسنا", "قويسنا"), district = BasicModel("وسط البلد", "وسط البلد"), accountType = BasicModel("عيادة", "عيادة")))
         assertEquals(3, repo.places().first().size)
         assertEquals(listOf("أ", "ب"), repo.places(city = "منوف").first().map { it.name })
         assertEquals(listOf("أ"), repo.places("منوف", "وسط البلد", "عيادة").first().map { it.name })
@@ -52,8 +52,8 @@ class AccountRepoTest : RepoTestBase() {
     }
 
     @Test fun distinctValues() = runTest {
-        repo.save(Account("1", name = "a", city = "Cairo", specialty = "Cardio"))
-        repo.save(Account("2", name = "b", city = "Cairo"))
+        repo.save(Account("1", name = "a", city = BasicModel("Cairo", "Cairo"), specialty = BasicModel("Cardio", "Cardio")))
+        repo.save(Account("2", name = "b", city = BasicModel("Cairo", "Cairo")))
         assertEquals(listOf("Cairo"), repo.cities().first())
         assertEquals(listOf("Cardio"), repo.specialties().first())
     }

@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.appcore.core.ui.theme.radii
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
+import com.example.medicalrep.ui.models.BasicModelUi
 import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.models.VisitUi
 import com.example.medicalrep.ui.screens.visitdetails.utils.VisitDetailsFakes
@@ -47,7 +48,7 @@ fun VisitTimeCard(visit: VisitUi, modifier: Modifier = Modifier) {
         InfoRow(
             label = stringResource(R.string.visit_details_visit_type),
             value = if (visit.isDoubleVisit) {
-                stringResource(R.string.unplanned_double_with_format, visit.supervisorName)
+                stringResource(R.string.unplanned_double_with_format, visit.supervisor?.name.orEmpty())
             } else {
                 stringResource(R.string.visit_type_single)
             },
@@ -85,6 +86,6 @@ private fun VisitTimeCardPreview() {
 @Composable
 private fun VisitTimeCardDoublePreview() {
     MedicalRepTheme {
-        VisitTimeCard(visit = VisitDetailsFakes.visit("visit-1").copy(isDoubleVisit = true, supervisorName = "Ahmed"))
+        VisitTimeCard(visit = VisitDetailsFakes.visit("visit-1").copy(isDoubleVisit = true, supervisor = BasicModelUi("sup-1", "Ahmed")))
     }
 }

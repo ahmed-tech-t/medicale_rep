@@ -4,6 +4,7 @@ import com.example.medicalrep.data.local.entity.VisitCustodyEntity
 import com.example.medicalrep.data.local.relation.CustodyWithPending
 import com.example.medicalrep.data.local.relation.ProductWithSold
 import com.example.medicalrep.data.local.relation.VisitWithDetails
+import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.Custody
 import com.example.medicalrep.domain.models.Product
@@ -41,7 +42,7 @@ class EntityMappersTest {
 
     @Test
     fun `account round trip`() {
-        val account = Account("a1", "b1", "صيدلية", "Pharmacy", "A", "Cardio", "Cairo", "Nasr", "St 1", 30.1, 31.2, "s1", SyncStatus.Synced, "p.png", 99L)
+        val account = Account("a1", "b1", "صيدلية", BasicModel("Pharmacy", "Pharmacy"), BasicModel("A", "A"), BasicModel("Cardio", "Cardio"), BasicModel("Cairo", "Cairo"), BasicModel("Nasr", "Nasr"), "St 1", 30.1, 31.2, "s1", SyncStatus.Synced, "p.png", 99L)
         val entity = account.toEntity()
         assertEquals(account, entity.toDomain())
         assertTrue(entity.searchText.contains("صيدليه"))
@@ -50,8 +51,8 @@ class EntityMappersTest {
 
     @Test
     fun `account entity stores its type read from the entity type text`() {
-        assertEquals(com.example.medicalrep.domain.models.AccountType.Pharmacy, Account("a", name = "x", entityType = "صيدلية").toEntity().accountType)
-        assertEquals(null, Account("a", name = "x", entityType = "").toEntity().accountType)
+        assertEquals(com.example.medicalrep.domain.models.AccountType.Pharmacy, Account("a", name = "x", accountType = BasicModel("صيدلية", "صيدلية")).toEntity().accountType)
+        assertEquals(null, Account("a", name = "x", accountType = null).toEntity().accountType)
     }
 
     @Test
@@ -104,7 +105,7 @@ class EntityMappersTest {
 
     @Test
     fun `visit takes account supervisor and lines from the relations`() {
-        val account = Account("a1", name = "Clinic", entityType = "Pharmacy", city = "Cairo", district = "Nasr", address = "St 1", specialty = "Cardio", classCategory = "A", latitude = 3.0, longitude = 4.0).toEntity()
+        val account = Account("a1", name = "Clinic", accountType = BasicModel("Pharmacy", "Pharmacy"), city = BasicModel("Cairo", "Cairo"), district = BasicModel("Nasr", "Nasr"), address = "St 1", specialty = BasicModel("Cardio", "Cardio"), classCategory = BasicModel("A", "A"), latitude = 3.0, longitude = 4.0).toEntity()
         val supervisor = Rep("s1", "Boss").toEntity()
         val gift = Custody("c1", "Pen", ProductType.Gift, received = 10, dispatched = 2).toEntity()
         val sample = Custody("c2", "Drug", ProductType.Product, received = 5).toEntity()
@@ -116,13 +117,13 @@ class EntityMappersTest {
             lines = listOf(VisitCustodyEntity("v1", "c1", 2), VisitCustodyEntity("v1", "c2", 1)),
         )
         val visit = details.toDomain()
-        assertEquals("Pharmacy", visit.account)
+        assertEquals("Pharmacy", visit.account?.name)
         assertEquals("Clinic", visit.placeName)
-        assertEquals("Cairo", visit.city)
-        assertEquals("Nasr", visit.region)
+        assertEquals("Cairo", visit.city?.name)
+        assertEquals("Nasr", visit.region?.name)
         assertEquals("St 1", visit.address)
         assertEquals(3.0, visit.accountLatitude, 0.0)
-        assertEquals("Boss", visit.supervisorName)
+        assertEquals("Boss", visit.supervisor?.name)
         assertEquals(listOf("c1"), visit.gifts?.map { it.id })
         assertEquals(2, visit.gifts?.single()?.quantity)
         assertEquals(8, visit.gifts?.single()?.remaining)

@@ -6,6 +6,7 @@ import com.example.medicalrep.data.local.mapper.toEntity
 import com.example.medicalrep.data.local.search.normalizeSearch
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.AccountType
+import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.repo.AccountRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -33,13 +34,13 @@ class AccountRepoImpl @Inject constructor(private val dao: AccountDao) : Account
 
     override suspend fun saveFromServer(accounts: List<Account>) = dao.upsertFromServer(accounts.map { it.toEntity() })
 
-    override fun places(city: String, district: String, entityType: String): Flow<List<Account>> =
-        dao.places(city, district, entityType).map { list -> list.map { it.toDomain() } }
+    override fun places(city: String?, district: String?, entityType: String?): Flow<List<Account>> =
+        dao.places(city.orEmpty(), district.orEmpty(), entityType.orEmpty()).map { list -> list.map { it.toDomain() } }
 
-    override fun cities() = dao.distinctCities()
-    override fun districts() = dao.distinctDistricts()
-    override fun specialties() = dao.distinctSpecialties()
-    override fun entityTypes() = dao.distinctEntityTypes()
+    override fun cities() = dao.distinctCities().map { it.toBasicModels() }
+    override fun districts() = dao.distinctDistricts().map { it.toBasicModels() }
+    override fun specialties() = dao.distinctSpecialties().map { it.toBasicModels() }
+    override fun entityTypes() = dao.distinctEntityTypes().map { it.toBasicModels() }
 
     override suspend fun notSynced(): List<Account> = dao.getNotSynced().map { it.toDomain() }
 
@@ -47,3 +48,6 @@ class AccountRepoImpl @Inject constructor(private val dao: AccountDao) : Account
         dao.markSynced(id, backendId)
     }
 }
+
+/** The stored text is also the id. */
+private fun List<String>.toBasicModels() = map { BasicModel(it, it) }

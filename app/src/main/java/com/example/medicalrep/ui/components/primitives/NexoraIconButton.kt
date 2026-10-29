@@ -23,7 +23,7 @@ import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 @Composable
 fun NexoraIconButton(
     imageVector: ImageVector,
-    contentDescription: String?,
+    contentDescription: String?= null,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,

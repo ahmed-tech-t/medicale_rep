@@ -3,6 +3,7 @@ package com.example.medicalrep.domain.repo
 import androidx.paging.PagingData
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.AccountType
+import com.example.medicalrep.domain.models.BasicModel
 import kotlinx.coroutines.flow.Flow
 
 interface AccountRepo {
@@ -19,12 +20,16 @@ interface AccountRepo {
     suspend fun saveFromServer(accounts: List<Account>)
 
     /** Accounts at a place; a blank [city], [district] or [entityType] means any. */
-    fun places(city: String = "", district: String = "", entityType: String = ""): Flow<List<Account>>
+    fun places(
+        city: String? = null,
+        district: String? = null,
+        entityType: String? = null
+    ): Flow<List<Account>>
 
-    fun cities(): Flow<List<String>>
-    fun districts(): Flow<List<String>>
-    fun specialties(): Flow<List<String>>
-    fun entityTypes(): Flow<List<String>>
+    fun cities(): Flow<List<BasicModel>>
+    fun districts(): Flow<List<BasicModel>>
+    fun specialties(): Flow<List<BasicModel>>
+    fun entityTypes(): Flow<List<BasicModel>>
 
     suspend fun notSynced(): List<Account>
     suspend fun markSynced(id: String, backendId: String?)

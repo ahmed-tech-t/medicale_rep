@@ -33,7 +33,6 @@ import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.components.widgets.LabelWrapperComponent
 import com.example.medicalrep.ui.components.widgets.NexoraChip
 import com.example.medicalrep.ui.components.widgets.SearchFieldComponent
-import com.example.medicalrep.ui.components.widgets.toSearchItems
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitEvents
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitState
 import com.example.medicalrep.ui.screens.planvisit.utils.PlanVisitFakes
@@ -112,13 +111,13 @@ fun EntityStepContent(
                 ) {
                     SearchFieldComponent(
                         enabled = visit.type == VisitType.Unplanned,
-                        options = state.cityOptions.toSearchItems(),
+                        options = state.cityOptions,
                         onSelect = {
-                            onEvent(PlanVisitEvents.SelectCity(it.name))
+                            onEvent(PlanVisitEvents.SelectCity(it))
                             showCityPopup = false
                         },
                         placeholder = stringResource(R.string.enter_city),
-                        value = visit.city,
+                        value = visit.city?.name.orEmpty(),
                         showPopup = showCityPopup,
                         onClick = { showCityPopup = !showCityPopup }
                     )
@@ -130,10 +129,10 @@ fun EntityStepContent(
                 ) {
                     SearchFieldComponent(
                         enabled = visit.type == VisitType.Unplanned,
-                        value = visit.region,
-                        options = state.districtOptions.toSearchItems(),
+                        value = visit.region?.name.orEmpty(),
+                        options = state.districtOptions,
                         onSelect = {
-                            onEvent(PlanVisitEvents.SelectDistrict(it.name))
+                            onEvent(PlanVisitEvents.SelectDistrict(it))
                             showRegionPopup = false
                         },
                         placeholder = stringResource(R.string.enter_district),
@@ -150,10 +149,10 @@ fun EntityStepContent(
             SearchFieldComponent(
                 enabled = visit.type == VisitType.Unplanned,
                 modifier = Modifier.fillMaxWidth(),
-                value = visit.account,
-                options = state.entityTypeOptions.toSearchItems(),
+                value = visit.account?.name.orEmpty(),
+                options = state.entityTypeOptions,
                 onSelect = {
-                    onEvent(PlanVisitEvents.SelectEntityType(it.name))
+                    onEvent(PlanVisitEvents.SelectEntityType(it))
                     showAccountPopup = false
                 },
                 placeholder = stringResource(R.string.select_account),
@@ -179,19 +178,19 @@ fun EntityStepContent(
                     enabled = visit.type == VisitType.Unplanned,
                     modifier = Modifier.fillMaxWidth(),
                     value = visit.placeName,
-                    options = state.placeOptions.toSearchItems(),
+                    options = state.placeOptions,
                     onSelect = {
-                        onEvent(PlanVisitEvents.SelectPlace(it.name))
+                        onEvent(PlanVisitEvents.SelectPlace(it))
                         showplaceNamePopup = false
                     },
                     showPopup = showplaceNamePopup,
                     onClick = { showplaceNamePopup = !showplaceNamePopup },
-                    badge = if (visit.classCategory.isBlank()) null else {
+                    badge = if (visit.classCategory == null) null else {
                         {
                             NexoraChip(
                                 text = stringResource(
                                     R.string.unplanned_class_format,
-                                    visit.classCategory
+                                    visit.classCategory.name
                                 ),
                                 container = InfoContainer,
                                 content = Info,
@@ -249,10 +248,10 @@ fun EntityStepContent(
                 ) {
                     SearchFieldComponent(
                         modifier = Modifier.fillMaxWidth(),
-                        value = visit.supervisorName,
-                        options = state.supervisorOptions.toSearchItems(),
+                        value = visit.supervisor?.name.orEmpty(),
+                        options = state.supervisorOptions,
                         onSelect = {
-                            onEvent(PlanVisitEvents.SelectSupervisor(it.name))
+                            onEvent(PlanVisitEvents.SelectSupervisor(it))
                             showSupervisorNamePopup = false
                         },
                         placeholder = stringResource(R.string.select_supervisor),
@@ -283,7 +282,7 @@ private fun EntityStepContentSingleEnglishPreview() {
     MedicalRepTheme {
         val state = PlanVisitFakes.state()
         EntityStepContent(
-            state = state.copy(visit = state.visit.copy(isDoubleVisit = false, classCategory = "")),
+            state = state.copy(visit = state.visit.copy(isDoubleVisit = false, classCategory = null)),
             onEvent = {},
             modifier = Modifier.padding(spacing.spaceMedium),
         )

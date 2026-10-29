@@ -1,6 +1,7 @@
 package com.example.medicalrep.ui.screens.accounts.utils
 
 import com.example.medicalrep.domain.models.AccountType
+import com.example.medicalrep.ui.models.BasicModelUi
 import com.example.medicalrep.ui.models.AccountUi
 import com.example.medicalrep.ui.screens.accounts.main.AccountsState
 
@@ -17,11 +18,11 @@ object AccountsFakes {
     ) = AccountUi(
         id = id,
         name = name,
-        entityType = type.name,
+        accountType = BasicModelUi(type.name, type.name),
         type = type,
-        classCategory = classCategory,
-        specialty = specialty,
-        city = "Shebin El-Kom",
+        classCategory = BasicModelUi(classCategory, classCategory),
+        specialty = BasicModelUi(specialty, specialty),
+        city = BasicModelUi("Shebin El-Kom", "Shebin El-Kom"),
         address = address,
     )
 

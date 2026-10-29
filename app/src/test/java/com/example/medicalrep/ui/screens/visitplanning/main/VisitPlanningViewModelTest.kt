@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.screens.visitplanning.main
 
+import com.example.medicalrep.domain.models.BasicModel
 import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
@@ -50,9 +51,9 @@ class VisitPlanningViewModelTest {
             done("d1", "a1", Shift.Am, "A"),
             done("d2", "a2", Shift.Pm, "B"),
             done("d3", "a3", Shift.Am, "C"),
-            Visit(id = "p1", type = VisitType.Planning, status = VisitStatus.PendingApproval, shift = Shift.Am, classCategory = "A"),
-            Visit(id = "p2", type = VisitType.Planning, status = VisitStatus.Rejected, shift = Shift.Pm, classCategory = "B"),
-            Visit(id = "p3", type = VisitType.Planning, status = VisitStatus.PendingApproval, shift = Shift.Pm, classCategory = "B"),
+            Visit(id = "p1", type = VisitType.Planning, status = VisitStatus.PendingApproval, shift = Shift.Am, classCategory = BasicModel("A", "A")),
+            Visit(id = "p2", type = VisitType.Planning, status = VisitStatus.Rejected, shift = Shift.Pm, classCategory = BasicModel("B", "B")),
+            Visit(id = "p3", type = VisitType.Planning, status = VisitStatus.PendingApproval, shift = Shift.Pm, classCategory = BasicModel("B", "B")),
         ),
     )
     private lateinit var viewModel: VisitPlanningViewModel
@@ -195,7 +196,7 @@ class VisitPlanningViewModelTest {
 
     private companion object {
         fun done(id: String, accountId: String, shift: Shift, classCategory: String) = Visit(
-            id = id, accountId = accountId, type = VisitType.Unplanned, shift = shift, classCategory = classCategory, status = VisitStatus.Completed, completedAtMillis = 1L,
+            id = id, accountId = accountId, type = VisitType.Unplanned, shift = shift, classCategory = classCategory?.let { BasicModel(it, it) }, status = VisitStatus.Completed, completedAtMillis = 1L,
         )
     }
 }

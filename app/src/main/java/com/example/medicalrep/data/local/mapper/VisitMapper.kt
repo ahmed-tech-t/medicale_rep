@@ -4,6 +4,7 @@ import com.example.medicalrep.data.local.entity.CustodyEntity
 import com.example.medicalrep.data.local.entity.VisitCustodyEntity
 import com.example.medicalrep.data.local.entity.VisitEntity
 import com.example.medicalrep.data.local.relation.VisitWithDetails
+import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.Product
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
@@ -26,16 +27,16 @@ fun VisitWithDetails.toDomain(): Visit {
         repId = visit.repId,
         supervisorId = visit.supervisorId,
         dateTimeMillis = visit.dateTimeMillis.takeIf { it > 0 },
-        city = account?.city,
-        region = account?.district,
+        city = account?.city.toBasicModel(),
+        region = account?.district.toBasicModel(),
         address = account?.address,
-        account = account?.entityType,
+        account = account?.entityType.toBasicModel(),
         placeName = account?.name,
-        specialty = account?.specialty,
-        classCategory = account?.classCategory,
+        specialty = account?.specialty.toBasicModel(),
+        classCategory = account?.classCategory.toBasicModel(),
         accountLatitude = account?.latitude ?: 0.0,
         accountLongitude = account?.longitude ?: 0.0,
-        supervisorName = supervisor?.displayName,
+        supervisor = supervisor?.let { BasicModel(it.id, it.displayName) },
         shift = visit.shift,
         type = visit.type,
         visitMode = visit.visitMode,
@@ -99,3 +100,6 @@ fun Visit.toLines(): List<VisitCustodyEntity> =
             quantity = it.quantity,
         )
     }
+
+/** The account columns are plain text for now, so the text is also the id. */
+private fun String?.toBasicModel() = this?.let { BasicModel(it, it) }

@@ -1,6 +1,5 @@
 package com.example.medicalrep.ui.models
 
-import com.example.medicalrep.ui.components.widgets.SearchableItem
 import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
@@ -9,43 +8,10 @@ import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.VisitType
+import com.example.medicalrep.ui.components.widgets.SearchableItem
 
-/**
- * Non-null UI visit. Domain nulls are mapped to empty defaults in [com.example.medicalrep.ui.mapper.toUi].
- */
-@Immutable
-data class VisitUi(
-    val id: String = "",
-    val backendId: String = "",
-    /** The account the visit is for; empty until a place is chosen. */
-    val accountId: String = "",
-    val date: String = "",
-    val time: String = "",
-    val city: String = "",
-    val region: String = "",
-    val address: String = "",
-    val account: String = "",
-    val placeName: String = "",
-    val specialty: String = "",
-    val shift: Shift = Shift.Am,
-    val visitLatitude: Double = 0.0,
-    val visitLongitude: Double = 0.0,
-    /** How long the rep took to reach the visit (from the GPS track); 0 when unknown. */
-    val travelSeconds: Int = 0,
-    val accountLatitude: Double = 0.0,
-    val accountLongitude: Double = 0.0,
-    val isDoubleVisit: Boolean = false,
-    val type: VisitType = VisitType.Unplanned,
-    val supervisorName: String = "",
-    val classCategory: String = "",
-    val gifts: List<ProductUi> = emptyList(),
-    val products: List<ProductUi> = emptyList(),
-    val voiceNote: ByteArray? = null,
-    val imageNote: Uri? = null,
-    val noIssueFound: Boolean = true,
-    val syncStatus: SyncStatus = SyncStatus.NotSynced,
-    val durationLabel: String = "",
-)
+
+
 
 /** Gift or product/sample line for visit custody UI. */
 @Immutable

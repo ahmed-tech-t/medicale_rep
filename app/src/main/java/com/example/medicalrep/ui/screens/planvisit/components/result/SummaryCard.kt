@@ -69,7 +69,7 @@ internal fun SummaryCard(state: PlanVisitState, onViewLocation: () -> Unit) {
                 text = stringResource(
                     R.string.unplanned_summary_name_format,
                     visit.placeName,
-                    visit.specialty
+                    visit.specialty?.name.orEmpty()
                 ),
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.ExtraBold),
                 color = Slate900,
@@ -77,9 +77,9 @@ internal fun SummaryCard(state: PlanVisitState, onViewLocation: () -> Unit) {
             NexoraText(
                 text = stringResource(
                     R.string.unplanned_summary_place_format,
-                    visit.city,
+                    visit.city?.name.orEmpty(),
                     visit.address,
-                    stringResource(R.string.unplanned_class_format, visit.classCategory),
+                    stringResource(R.string.unplanned_class_format, visit.classCategory?.name.orEmpty()),
                 ),
                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = Slate500,
@@ -93,7 +93,7 @@ internal fun SummaryCard(state: PlanVisitState, onViewLocation: () -> Unit) {
             SummaryRow(
                 label = stringResource(R.string.unplanned_summary_visit_type_label),
                 value = if (visit.isDoubleVisit) {
-                    stringResource(R.string.unplanned_double_with_format, visit.supervisorName)
+                    stringResource(R.string.unplanned_double_with_format, visit.supervisor?.name.orEmpty())
                 } else {
                     stringResource(R.string.visit_type_single)
                 },
