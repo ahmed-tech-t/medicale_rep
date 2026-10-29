@@ -38,6 +38,7 @@ import com.example.medicalrep.ui.ui.theme.OnErrorContainer
 fun PlannedVisitCard(
     model: VisitUi,
     onAction: () -> Unit,
+    onCancel: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -98,7 +99,7 @@ fun PlannedVisitCard(
             )
             NexoraButton(
                 text = stringResource(R.string.cancel_visit),
-                onClick = onAction,
+                onClick = onCancel,
                 fillMaxWidth = false,
                 compact = true,
                 variant = NexoraButtonVariant.Secondary,
