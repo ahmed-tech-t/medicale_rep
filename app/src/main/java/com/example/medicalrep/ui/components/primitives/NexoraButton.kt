@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.components.primitives
 
+import android.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,15 +13,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.appcore.core.ui.theme.dim
 import com.appcore.core.ui.theme.spacing
@@ -28,7 +32,7 @@ import com.appcore.core.ui.theme.radii
 import com.example.medicalrep.ui.ui.theme.Ink
 import com.example.medicalrep.ui.ui.theme.Slate600
 
-private val CompactButtonHeight = 36.dp
+val CompactButtonHeight = 25.dp
 
 enum class NexoraButtonVariant {
     Primary,
@@ -50,20 +54,19 @@ fun NexoraButton(
     variant: NexoraButtonVariant = NexoraButtonVariant.Primary,
     enabled: Boolean = true,
     fillMaxWidth: Boolean = true,
+    outLineColor: Color = MaterialTheme.colorScheme.primary,
     compact: Boolean = false,
     border: BorderStroke? = null,
     textStyle: TextStyle? = null,
-    /** Label color of the [NexoraButtonVariant.Text] variant; defaults to primary. */
-    textColor: Color = MaterialTheme.colorScheme.primary,
     leadingIcon: (@Composable () -> Unit)? = null,
 ) {
 
-    val shape = RoundedCornerShape(radii.medium)
+    val shape = if (compact) RoundedCornerShape(radii.small) else RoundedCornerShape(radii.medium)
     val widthModifier = if (fillMaxWidth) modifier.fillMaxWidth() else modifier
     val minHeight = if (compact) CompactButtonHeight else dim.primaryButtonHeight
     val minSize = Modifier.defaultMinSize(minHeight = minHeight)
     val contentPadding = if (compact) {
-        PaddingValues(horizontal = spacing.spaceSmallPlus, vertical = spacing.spaceSmall)
+        PaddingValues(horizontal = spacing.spaceMedium)
     } else {
         PaddingValues(horizontal = spacing.spaceMedium, vertical = spacing.spaceSmallPlus)
     }
@@ -72,71 +75,75 @@ fun NexoraButton(
     } else {
         MaterialTheme.typography.labelLarge
     }
+    CompositionLocalProvider(
+        LocalMinimumInteractiveComponentSize provides if (compact) Dp.Unspecified else 48.dp
+    ) {
+        when (variant) {
+            NexoraButtonVariant.Primary -> Button(
+                onClick = onClick,
+                enabled = enabled,
+                border = border,
+                modifier = widthModifier.then(minSize),
+                shape = shape,
+                contentPadding = contentPadding,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = Color.White,
+                ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
+            ) {
+                NexoraButtonLabel(text = text, style = labelStyle, leadingIcon = leadingIcon)
+            }
 
-    when (variant) {
-        NexoraButtonVariant.Primary -> Button(
-            onClick = onClick,
-            enabled = enabled,
-            border = border,
-            modifier = widthModifier.then(minSize),
-            shape = shape,
-            contentPadding = contentPadding,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = Color.White,
-            ),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
-        ) {
-            NexoraButtonLabel(text = text, style = labelStyle, leadingIcon = leadingIcon)
-        }
 
+            NexoraButtonVariant.Secondary -> OutlinedButton(
+                onClick = onClick,
+                enabled = enabled,
+                modifier = widthModifier.then(minSize),
+                shape = shape,
+                border = BorderStroke(width = 1.dp, color = outLineColor.copy(alpha = .5f)),
+                contentPadding = contentPadding,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = outLineColor.copy(alpha = .2f),
+                    contentColor = outLineColor,
+                ),
+            ) {
+                NexoraButtonLabel(text = text, style = labelStyle, leadingIcon = leadingIcon)
+            }
 
-        NexoraButtonVariant.Secondary -> OutlinedButton(
-            onClick = onClick,
-            enabled = enabled,
-            modifier = widthModifier.then(minSize),
-            shape = shape,
-            contentPadding = contentPadding,
-            colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = MaterialTheme.colorScheme.background,
-                contentColor = Ink,
-            ),
-        ) {
-            NexoraButtonLabel(text = text, style = labelStyle, leadingIcon = leadingIcon)
-        }
+            NexoraButtonVariant.Muted -> Button(
+                onClick = onClick,
+                enabled = enabled,
+                modifier = widthModifier.then(minSize),
+                shape = shape,
+                contentPadding = contentPadding,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = Slate600,
+                ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
+            ) {
+                NexoraButtonLabel(
+                    text = text,
+                    style = labelStyle,
+                    color = Slate600,
+                    leadingIcon = leadingIcon,
+                )
+            }
 
-        NexoraButtonVariant.Muted -> Button(
-            onClick = onClick,
-            enabled = enabled,
-            modifier = widthModifier.then(minSize),
-            shape = shape,
-            contentPadding = contentPadding,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = Slate600,
-            ),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
-        ) {
-            NexoraButtonLabel(
-                text = text,
-                style = labelStyle,
-                color = Slate600,
-                leadingIcon = leadingIcon,
-            )
-        }
-
-        NexoraButtonVariant.Text -> TextButton(
-            onClick = onClick,
-            enabled = enabled,
-            modifier = widthModifier,
-            contentPadding = contentPadding,
-        ) {
-            NexoraButtonLabel(
-                text = text,
-                style = labelStyle,
-                color = textColor,
-                leadingIcon = leadingIcon,
-            )
+            NexoraButtonVariant.Text -> TextButton(
+                onClick = onClick,
+                enabled = enabled,
+                modifier = widthModifier,
+                contentPadding = contentPadding,
+            ) {
+                NexoraButtonLabel(
+                    text = text,
+                    style = labelStyle,
+                    color = MaterialTheme.colorScheme.primary,
+                    leadingIcon = leadingIcon,
+                )
+            }
         }
     }
 }
@@ -154,10 +161,13 @@ private fun NexoraButtonLabel(
     }
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(spacing.spaceExtraSmall, Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(
+            spacing.spaceExtraSmall,
+            Alignment.CenterHorizontally
+        ),
     ) {
         leadingIcon()
-        NexoraText(text = text, style = style, color = color, maxLines = 1)
+        NexoraText(text = text, style = style, color = color)
     }
 }
 
