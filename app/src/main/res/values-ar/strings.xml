@@ -409,4 +409,12 @@
         <item quantity="other">%1$d حساب</item>
     </plurals>
     <string name="cancel_visit">إلغاء الزيارة</string>
+    <string name="filter_apply">تطبيق الفلتر</string>
+    <string name="filter_date_from">التاريخ من</string>
+    <string name="filter_date_to">التاريخ إلى</string>
+    <string name="filter_visits_title">تصفية الزيارات المطلوبة</string>
+    <string name="filter_reset">إعادة ضبط</string>
+    <string name="filter_period">الفترة الزمنية</string>
+    <string name="filter_region_title">المنطقة</string>
+    <string name="filter_class_title">التصنيف</string>
 </resources>

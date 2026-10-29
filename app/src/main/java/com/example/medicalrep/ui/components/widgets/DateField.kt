@@ -70,9 +70,9 @@ fun DateField(
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmall)) {
             if (prefix != null) {
-                NexoraText(text = prefix, style = MaterialTheme.typography.bodyMedium, color = Slate500)
+                NexoraText(text = prefix, style = MaterialTheme.typography.bodyLarge, color = Slate500)
             }
-            NexoraText(text = dateLabel, style = MaterialTheme.typography.bodyMedium, color = Ink)
+            NexoraText(text = dateLabel, style = MaterialTheme.typography.bodyLarge, color = Ink)
         }
         NexoraIcon(
             painter = painterResource(R.drawable.ic_calendar),

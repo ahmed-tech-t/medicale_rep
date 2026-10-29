@@ -306,9 +306,8 @@ fun <T : SearchableItem> SearchFieldComponent(
         ) {
             NexoraText(
                 text = value.ifBlank { placeholder.orEmpty() },
-                style = MaterialTheme.typography.bodyMedium.copy(
+                style = MaterialTheme.typography.bodyLarge.copy(
                     fontWeight = if (value.isBlank()) FontWeight.Normal else FontWeight.SemiBold,
-                    fontSize = 15.sp,
                     textAlign = TextAlign.Start,
                 ),
                 color = if (value.isBlank()) Slate400 else Slate800,

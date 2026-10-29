@@ -406,4 +406,12 @@
         <item quantity="other">%1$d accounts</item>
     </plurals>
     <string name="cancel_visit">Cancel visit</string>
+    <string name="filter_apply">Apply Filter</string>
+    <string name="filter_date_from">Date from</string>
+    <string name="filter_date_to">Date to</string>
+    <string name="filter_visits_title">Filter Requested Visits</string>
+    <string name="filter_reset">Reset</string>
+    <string name="filter_period">Time Period</string>
+    <string name="filter_region_title">Region</string>
+    <string name="filter_class_title">Classification</string>
 </resources>
