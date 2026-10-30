@@ -96,7 +96,7 @@ class EntityMappersTest {
         val visit = Visit(
             id = "v1", backendId = "b1", repId = "r1", supervisorId = "s1", accountId = "a1", dateTimeMillis = 1000L,
             shift = Shift.Pm, type = VisitType.Planning, visitMode = VisitMode.Double, visitLatitude = 1.0, visitLongitude = 2.0,
-            travelSeconds = 60, noIssueFound = false, imageNote = "img", voiceNotePath = "voice.m4a", syncStatus = SyncStatus.Synced,
+            travelSeconds = 60, noIssueFound = false, imageNotes = listOf("img", "img2"), voiceNotePath = "voice.m4a", syncStatus = SyncStatus.Synced,
             durationLabel = "10 min", status = VisitStatus.Rejected, requestedAtMillis = 1L, decidedAtMillis = 2L,
         )
         val back = VisitWithDetails(visit.toEntity(), null, null, emptyList(), emptyList()).toDomain()

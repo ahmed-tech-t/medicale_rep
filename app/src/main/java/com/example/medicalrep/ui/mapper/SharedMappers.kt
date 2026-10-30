@@ -44,7 +44,7 @@ fun Visit.toUi(): VisitUi {
         accountLongitude = accountLongitude,
         travelSeconds = travelSeconds,
         noIssueFound = noIssueFound,
-        imageNote = imageNote?.let(Uri::parse),
+        imageNotes = imageNotes.map(Uri::parse),
         isDoubleVisit = visitMode == VisitMode.Double,
         type = type ?: VisitType.Planned,
         supervisor = supervisor?.toUi(),

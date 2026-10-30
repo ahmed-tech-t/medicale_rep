@@ -5,6 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.medicalrep.data.local.dao.AccountDao
 import com.example.medicalrep.data.local.dao.CustodyDao
+import com.example.medicalrep.data.local.dao.DoctorDao
 import com.example.medicalrep.data.local.dao.DraftVisitDao
 import com.example.medicalrep.data.local.dao.OrderDao
 import com.example.medicalrep.data.local.dao.ProductDao
@@ -13,8 +14,10 @@ import com.example.medicalrep.data.local.dao.SyncInfoDao
 import com.example.medicalrep.data.local.dao.TrackPointDao
 import com.example.medicalrep.data.local.dao.RepDao
 import com.example.medicalrep.data.local.dao.VisitDao
+import com.example.medicalrep.data.local.entity.AccountDoctorEntity
 import com.example.medicalrep.data.local.entity.AccountEntity
 import com.example.medicalrep.data.local.entity.CustodyEntity
+import com.example.medicalrep.data.local.entity.DoctorEntity
 import com.example.medicalrep.data.local.entity.DraftVisitEntity
 import com.example.medicalrep.data.local.entity.OrderEntity
 import com.example.medicalrep.data.local.entity.OrderItemEntity
@@ -29,6 +32,8 @@ import com.example.medicalrep.data.local.entity.VisitEntity
     entities = [
         RepEntity::class,
         AccountEntity::class,
+        DoctorEntity::class,
+        AccountDoctorEntity::class,
         ProductEntity::class,
         CustodyEntity::class,
         VisitEntity::class,
@@ -39,13 +44,14 @@ import com.example.medicalrep.data.local.entity.VisitEntity
         TrackPointEntity::class,
         SyncInfoEntity::class,
     ],
-    version = 1,
+    version = 4,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun repDao(): RepDao
     abstract fun accountDao(): AccountDao
+    abstract fun doctorDao(): DoctorDao
     abstract fun productDao(): ProductDao
     abstract fun custodyDao(): CustodyDao
     abstract fun visitDao(): VisitDao

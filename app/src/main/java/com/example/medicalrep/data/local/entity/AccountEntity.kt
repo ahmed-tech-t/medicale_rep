@@ -1,5 +1,6 @@
 package com.example.medicalrep.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -37,5 +38,7 @@ data class AccountEntity(
     val createdAt: Long,
     /** Read from [entityType] when the account is saved, so the list can be filtered by type in the database. */
     val accountType: AccountType? = null,
+    /** The key of a [com.example.medicalrep.domain.models.WorkingTime]. */
+    @ColumnInfo(defaultValue = "Both") val workingTime: String = "Both",
     val searchText: String = "",
 )

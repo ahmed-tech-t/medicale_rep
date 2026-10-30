@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Immutable
 import com.example.medicalrep.domain.models.GeoPoint
+import com.example.medicalrep.domain.models.WorkingTime
 
 @Immutable
 data class AddAccountState(
@@ -12,6 +13,7 @@ data class AddAccountState(
     val entityType: String = "",
     val classCategory: String = "",
     val specialty: String = "",
+    val workingTime: WorkingTime = WorkingTime.Both,
     val name: TextFieldState = TextFieldState(),
     /** Where the map starts: the rep's location once known, the work area until then. */
     val userLocation: GeoPoint = GeoPoint(30.5589, 31.0112),

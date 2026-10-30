@@ -37,6 +37,7 @@ val CompactButtonHeight = 25.dp
 enum class NexoraButtonVariant {
     Primary,
     Secondary,
+    OutlIned,
 
     /** Filled chip surface — cancel / low-emphasis actions. */
     Muted,
@@ -95,8 +96,7 @@ fun NexoraButton(
                 NexoraButtonLabel(text = text, style = labelStyle, leadingIcon = leadingIcon)
             }
 
-
-            NexoraButtonVariant.Secondary -> OutlinedButton(
+            NexoraButtonVariant.OutlIned -> OutlinedButton(
                 onClick = onClick,
                 enabled = enabled,
                 modifier = widthModifier.then(minSize),
@@ -104,8 +104,22 @@ fun NexoraButton(
                 border = BorderStroke(width = 1.dp, color = outLineColor.copy(alpha = .5f)),
                 contentPadding = contentPadding,
                 colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = outLineColor.copy(alpha = .2f),
+                    containerColor = outLineColor.copy(alpha = .1f),
                     contentColor = outLineColor,
+                ),
+            ) {
+                NexoraButtonLabel(text = text, style = labelStyle, leadingIcon = leadingIcon)
+            }
+
+            NexoraButtonVariant.Secondary -> OutlinedButton(
+                onClick = onClick,
+                enabled = enabled,
+                modifier = widthModifier.then(minSize),
+                shape = shape,
+                contentPadding = contentPadding,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    contentColor = Ink,
                 ),
             ) {
                 NexoraButtonLabel(text = text, style = labelStyle, leadingIcon = leadingIcon)

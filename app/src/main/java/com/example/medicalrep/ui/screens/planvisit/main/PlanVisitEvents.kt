@@ -4,6 +4,7 @@ import com.appcore.core.ui.utils.document_picker.PickedDocument
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.ui.models.BasicModelUi
+import com.example.medicalrep.ui.models.DoctorUi
 import com.example.medicalrep.ui.models.ProductUi
 
 sealed interface PlanVisitEvents {
@@ -18,6 +19,9 @@ sealed interface PlanVisitEvents {
     data class SelectEntityType(val value: BasicModelUi) : PlanVisitEvents
     data class SelectPlace(val value: BasicModelUi) : PlanVisitEvents
     data class SelectSupervisor(val value: BasicModelUi) : PlanVisitEvents
+    /** The doctors the visit is for: replaces the earlier pick. */
+    data class SelectDoctors(val doctors: List<DoctorUi>) : PlanVisitEvents
+    data class RemoveDoctor(val id: String) : PlanVisitEvents
     data class SelectShift(val shift: Shift) : PlanVisitEvents
     data class SelectDoubleVisit(val isDouble: Boolean) : PlanVisitEvents
 
@@ -26,6 +30,7 @@ sealed interface PlanVisitEvents {
     data class ConfirmAddItems(val items: List<ProductUi>) : PlanVisitEvents
     data class ChangeQuantity(val kind: ProductType, val id: String, val delta: Int) : PlanVisitEvents
     data class AttachImageResult(val document: PickedDocument) : PlanVisitEvents
+    data class RemoveImage(val index: Int) : PlanVisitEvents
     data class ToggleClinicOpen(val confirmed: Boolean) : PlanVisitEvents
     data object EndVisit : PlanVisitEvents
     data object VoiceNoteRecordingStarted : PlanVisitEvents

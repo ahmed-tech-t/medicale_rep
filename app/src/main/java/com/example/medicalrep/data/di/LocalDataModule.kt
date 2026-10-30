@@ -1,6 +1,7 @@
 package com.example.medicalrep.data.di
 
 import com.example.medicalrep.data.repo.AccountRepoImpl
+import com.example.medicalrep.data.repo.DoctorRepoImpl
 import com.example.medicalrep.data.repo.DraftVisitRepoImpl
 import com.example.medicalrep.data.repo.OrderRepoImpl
 import com.example.medicalrep.data.repo.ProductRepoImpl
@@ -10,6 +11,7 @@ import com.example.medicalrep.data.repo.TrackPointRepoImpl
 import com.example.medicalrep.data.repo.RepRepoImpl
 import com.example.medicalrep.data.repo.VisitRepoImpl
 import com.example.medicalrep.domain.repo.AccountRepo
+import com.example.medicalrep.domain.repo.DoctorRepo
 import com.example.medicalrep.domain.repo.DraftVisitRepo
 import com.example.medicalrep.domain.repo.OrderRepo
 import com.example.medicalrep.domain.repo.ProductRepo
@@ -29,6 +31,7 @@ abstract class LocalDataModule {
     @Binds abstract fun bindVisitRepo(impl: VisitRepoImpl): VisitRepo
     @Binds abstract fun bindDraftVisitRepo(impl: DraftVisitRepoImpl): DraftVisitRepo
     @Binds abstract fun bindAccountRepo(impl: AccountRepoImpl): AccountRepo
+    @Binds abstract fun bindDoctorRepo(impl: DoctorRepoImpl): DoctorRepo
     @Binds abstract fun bindProductRepo(impl: ProductRepoImpl): ProductRepo
     @Binds abstract fun bindOrderRepo(impl: OrderRepoImpl): OrderRepo
     @Binds abstract fun bindRepRepo(impl: RepRepoImpl): RepRepo

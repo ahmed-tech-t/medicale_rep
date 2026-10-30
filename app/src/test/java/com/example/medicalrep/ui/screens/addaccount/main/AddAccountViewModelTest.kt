@@ -17,6 +17,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.SyncStatus
+import com.example.medicalrep.domain.models.WorkingTime
 import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.repo.FakeAccountRepo
 import com.example.medicalrep.domain.repo.FakeSession
@@ -105,6 +106,13 @@ class AddAccountViewModelTest {
         assertTrue(saved.signPhoto != null)
         assertTrue(events[0] is UiEvent.ShowSnackBar)
         assertEquals(UiEvent.NavigationUp, events[1])
+    }
+
+    @Test
+    fun `working time starts as both and follows the selection`() {
+        assertEquals(WorkingTime.Both, state.workingTime)
+        viewModel.onEvent(AddAccountEvents.SelectWorkingTime(WorkingTime.Am))
+        assertEquals(WorkingTime.Am, state.workingTime)
     }
 
     @Test

@@ -6,6 +6,7 @@ import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.VisitType
 import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.BasicModelUi
+import com.example.medicalrep.ui.models.DoctorUi
 import com.example.medicalrep.ui.models.ProductUi
 import com.example.medicalrep.ui.preview.VisitSamples
 import com.example.medicalrep.ui.screens.planvisit.main.PlanVisitState
@@ -31,6 +32,11 @@ object PlanVisitFakes {
         product("product-pediamol", "Pediamol Syrup (Sample)", quantity = 1, remaining = 10),
     )
 
+    private val doctors = listOf(
+        DoctorUi("d1", "Dr. Yasmin Farouk", BasicModelUi("B", "B")),
+        DoctorUi("d2", "Dr. Tarek Ezz El-Din"),
+    )
+
     private fun option(name: String) = BasicModelUi(name, name)
 
     fun state(): PlanVisitState = PlanVisitState(
@@ -54,6 +60,7 @@ object PlanVisitFakes {
             shift = Shift.Am,
             isDoubleVisit = true,
             supervisor = BasicModelUi("sup-1", "د. وائل نصار"),
+            doctors = doctors,
             gifts = listOf(giftCatalog[0].copy(quantity = 1)),
             products = listOf(productCatalog[0].copy(quantity = 2), productCatalog[1].copy(quantity = 1)),
         ),
@@ -63,6 +70,7 @@ object PlanVisitFakes {
         districtOptions = listOf("البر الشرقى", "البر الغربى", "وسط البلد").map(::option),
         entityTypeOptions = listOf("عيادة خاصة", "مستشفى", "صيدلية").map(::option),
         placeOptions = listOf("عيادة د. محمود عبد الرحمن", "عيادة د. هاني المسيري", "مستشفى الجامعة").map(::option),
+        doctorOptions = doctors,
         supervisors = listOf(Rep("sup-1", "د. وائل نصار"), Rep("sup-2", "د. سارة أحمد")),
     )
 }

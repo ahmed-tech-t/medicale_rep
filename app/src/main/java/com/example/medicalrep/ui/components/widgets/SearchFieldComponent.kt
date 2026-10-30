@@ -94,11 +94,12 @@ private fun <T : SearchableItem> SearchFieldBodyComponent(
     onSelect: (T) -> Unit,
     modifier: Modifier = Modifier,
     onConfirm: ((List<T>) -> Unit)? = null,
+    selected: List<T> = emptyList(),
     subtitle: @Composable (T) -> String? = { null },
 ) {
     val state = rememberTextFieldState()
     val query = state.text.toString()
-    val ticked = remember { mutableStateListOf<T>() }
+    val ticked = remember { mutableStateListOf<T>().apply { addAll(selected) } }
 
     val result = remember(query, options) {
         if (query.isBlank()) {
@@ -280,6 +281,9 @@ fun <T : SearchableItem> SearchFieldComponent(
     enabled: Boolean = true,
     showPopup: Boolean,
     badge: (@Composable () -> Unit)? = null,
+    /** Set for a multi-select field: rows get checkboxes, [selected] starts ticked and Done returns every ticked option. */
+    onConfirm: ((List<T>) -> Unit)? = null,
+    selected: List<T> = emptyList(),
 ) {
     var triggerSize by remember { mutableStateOf(IntSize.Zero) }
     val density = LocalDensity.current
@@ -333,7 +337,9 @@ fun <T : SearchableItem> SearchFieldComponent(
                 triggerSize = triggerSize,
                 options = options,
                 onClick = onClick,
-                onSelect = onSelect
+                onSelect = onSelect,
+                onConfirm = onConfirm,
+                selected = selected,
             )
         }
     }
@@ -346,6 +352,7 @@ fun <T : SearchableItem> SearchFieldPopup(
     onSelect: (T) -> Unit,
     onClick: () -> Unit,
     onConfirm: ((List<T>) -> Unit)? = null,
+    selected: List<T> = emptyList(),
     subtitle: @Composable (T) -> String? = { null },
 ) {
     val density = LocalDensity.current
@@ -379,6 +386,7 @@ fun <T : SearchableItem> SearchFieldPopup(
                 options = options,
                 onSelect = onSelect,
                 onConfirm = onConfirm,
+                selected = selected,
                 subtitle = subtitle,
             )
         }

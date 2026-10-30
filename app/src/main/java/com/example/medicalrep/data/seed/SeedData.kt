@@ -3,6 +3,7 @@ package com.example.medicalrep.data.seed
 import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.Custody
+import com.example.medicalrep.domain.models.Doctor
 import com.example.medicalrep.domain.models.Order
 import com.example.medicalrep.domain.models.OrderItem
 import com.example.medicalrep.domain.models.Product
@@ -16,13 +17,18 @@ import com.example.medicalrep.domain.models.Visit
 import com.example.medicalrep.domain.models.VisitMode
 import com.example.medicalrep.domain.models.VisitStatus
 import com.example.medicalrep.domain.models.VisitType
+import com.example.medicalrep.domain.models.WorkingTime
 import kotlin.math.cos
 import kotlin.math.sin
+
+/** A doctor and the accounts the doctor works at. */
+data class DoctorPlacement(val doctor: Doctor, val accountIds: List<String>)
 
 /** Everything the debug seed writes into Room. */
 data class SeedData(
     val reps: List<Rep>,
     val accounts: List<Account>,
+    val doctors: List<DoctorPlacement>,
     val products: List<Product>,
     val custody: List<Custody>,
     val visits: List<Visit>,
@@ -51,6 +57,7 @@ object SeedDataFactory {
         return SeedData(
             reps = reps,
             accounts = accounts,
+            doctors = doctors(),
             products = products,
             custody = custody,
             visits = visits,
@@ -108,6 +115,11 @@ object SeedDataFactory {
         specialty = option(specialty),
         city = option(city),
         district = option(district),
+        workingTime = when (id % 4) {
+            0 -> WorkingTime.Am
+            1 -> WorkingTime.Pm
+            else -> WorkingTime.Both
+        },
         address = address,
         latitude = 30.5589 + id * 0.004,
         longitude = 31.0112 + id * 0.003,
@@ -117,6 +129,28 @@ object SeedDataFactory {
     )
 
     private fun accounts() = baseAccounts() + generatedAccounts()
+
+    private fun doctor(id: Int, name: String, classCategory: String, specialty: String) = Doctor(
+        id = "doc-$id",
+        name = name,
+        classCategory = option(classCategory),
+        specialty = option(specialty),
+        syncStatus = SyncStatus.Synced,
+    )
+
+    /** Doctors of the hospitals, clinics and medical centers; some work at two places, so the link is many-to-many. */
+    private fun doctors() = listOf(
+        DoctorPlacement(doctor(1, "د. ياسمين فاروق", "B", "قلب"), listOf("acc-5")),
+        DoctorPlacement(doctor(2, "د. طارق عز الدين", "A", "باطنة"), listOf("acc-5", "acc-6")),
+        DoctorPlacement(doctor(3, "د. منى الشاذلي", "C", "أطفال"), listOf("acc-6")),
+        DoctorPlacement(doctor(4, "د. أحمد سمير", "B", "عظام"), listOf("acc-10")),
+        DoctorPlacement(doctor(5, "د. هالة مصطفى", "A", "جلدية"), listOf("acc-10", "acc-11")),
+        DoctorPlacement(doctor(6, "د. محمود عبد الرحمن", "A", "باطنة وجهاز هضمي"), listOf("acc-1")),
+        DoctorPlacement(doctor(7, "د. هاني المسيري", "B", "باطنة"), listOf("acc-2", "acc-10")),
+        DoctorPlacement(doctor(8, "د. سارة فتحي", "A", "أطفال"), listOf("acc-3")),
+        DoctorPlacement(doctor(9, "د. كريم عادل", "C", "عظام"), listOf("acc-4")),
+        DoctorPlacement(doctor(10, "د. أميرة سعد", "B", "جلدية"), listOf("acc-12")),
+    )
 
     private fun baseAccounts() = listOf(
         account(1, "عيادة د. محمود عبد الرحمن", "عيادة", "باطنة وجهاز هضمي", "A", "شبين الكوم", "البر الشرقى", "برج الأطباء - الدور الثالث", "sup-1"),

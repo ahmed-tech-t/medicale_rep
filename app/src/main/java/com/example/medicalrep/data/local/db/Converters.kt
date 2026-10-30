@@ -33,6 +33,12 @@ class Converters {
         if (value == "Synced") SyncStatus.Synced else SyncStatus.NotSynced
 
     @TypeConverter
+    fun fromTexts(values: List<String>): String = values.joinToString("\n")
+
+    @TypeConverter
+    fun toTexts(value: String): List<String> = value.lines().filter { it.isNotEmpty() }
+
+    @TypeConverter
     fun fromVisitMode(mode: VisitMode): String = when (mode) {
         VisitMode.Single -> "Single"
         VisitMode.Double -> "Double"

@@ -39,6 +39,8 @@ fun ResultStepContent(
         }
     )
 
+    val images = remember(state.visit.imageNotes) { state.visit.imageNotes.mapNotNull { it.toImageBitmap(context = context) } }
+
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
@@ -60,12 +62,15 @@ fun ResultStepContent(
             onDelete = { onEvent(PlanVisitEvents.VoiceNoteDeleted) },
         )
         AttachPhotoCard(
+            images = images,
+            required = state.requiredImages,
             onAttach = {
                 val newUri = createCameraImageUri(context)
                 currentPhotoUri = newUri
                 cameraLauncher.launch(newUri)
             },
-            image = state.visit.imageNote?.toImageBitmap(context = context))
+            onRemove = { onEvent(PlanVisitEvents.RemoveImage(it)) },
+        )
         ClinicOpenRow(
             checked = state.visit.noIssueFound,
             onCheckedChange = { onEvent(PlanVisitEvents.ToggleClinicOpen(it)) },

@@ -15,8 +15,10 @@ import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.RepRole
 import com.example.medicalrep.domain.models.VisitType
+import com.example.medicalrep.domain.models.WorkingTime
 import com.example.medicalrep.domain.models.lastLocation
 import com.example.medicalrep.domain.repo.AccountRepo
+import com.example.medicalrep.domain.repo.DoctorRepo
 import com.example.medicalrep.domain.repo.DraftVisitRepo
 import com.example.medicalrep.domain.repo.ProductRepo
 import com.example.medicalrep.domain.repo.RepRepo
@@ -43,6 +45,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -59,6 +62,7 @@ class PlanVisitViewModel @Inject constructor(
     private val session: AuthSessionManager,
     private val draftRepo: DraftVisitRepo,
     private val accountRepo: AccountRepo,
+    private val doctorRepo: DoctorRepo,
     private val repRepo: RepRepo,
     productRepo: ProductRepo,
     private val visitRepo: VisitRepo,
@@ -91,6 +95,12 @@ class PlanVisitViewModel @Inject constructor(
         }
         collectInto(productRepo.custodyList(ProductType.Product)) { state, samples ->
             state.copy(productCatalog = samples.map { it.toCatalogItem() })
+        }
+        viewModelScope.launch {
+            _state.map { it.visit.accountId }
+                .distinctUntilChanged()
+                .flatMapLatest { accountId -> if (accountId.isBlank()) flowOf(emptyList()) else doctorRepo.doctorsOf(accountId) }
+                .collect { doctors -> _state.update { it.copy(doctorOptions = doctors.map { doctor -> doctor.toUi() }) } }
         }
         viewModelScope.launch {
             _state.map { PlaceFilter(it.visit.city?.id, it.visit.region?.id, it.visit.account?.id) }
@@ -162,6 +172,8 @@ class PlanVisitViewModel @Inject constructor(
             is PlanVisitEvents.SelectEntityType -> updateVisit { it.copy(account = event.value) }
             is PlanVisitEvents.SelectPlace -> selectAccount(event.value)
             is PlanVisitEvents.SelectSupervisor -> updateVisit { it.copy(supervisor = event.value) }
+            is PlanVisitEvents.SelectDoctors -> updateVisit { it.copy(doctors = event.doctors.distinctBy { doctor -> doctor.id }) }
+            is PlanVisitEvents.RemoveDoctor -> updateVisit { visit -> visit.copy(doctors = visit.doctors.filter { it.id != event.id }) }
             is PlanVisitEvents.SelectShift -> updateVisit { it.copy(shift = event.shift) }
             is PlanVisitEvents.SelectDoubleVisit -> updateVisit { it.copy(isDoubleVisit = event.isDouble) }
             is PlanVisitEvents.OpenAddItem -> _state.update { it.copy(overlay = AddItem(event.kind)) }
@@ -193,7 +205,10 @@ class PlanVisitViewModel @Inject constructor(
             PlanVisitEvents.ViewAccountDirectionsClick -> openAccountDirections()
             PlanVisitEvents.ViewAccountLocationClick -> openAccountLocation()
 
-            is PlanVisitEvents.AttachImageResult -> updateVisit { it.copy(imageNote = event.document.uri) }
+            is PlanVisitEvents.AttachImageResult -> updateVisit {
+                if (it.imageNotes.size >= state.value.requiredImages) it else it.copy(imageNotes = it.imageNotes + event.document.uri)
+            }
+            is PlanVisitEvents.RemoveImage -> updateVisit { it.copy(imageNotes = it.imageNotes.filterIndexed { index, _ -> index != event.index }) }
         }
     }
 
@@ -258,6 +273,9 @@ class PlanVisitViewModel @Inject constructor(
         val account = accounts.firstOrNull { it.id == data.id } ?: return
         updateVisit {
             it.copy(
+                doctors = if (it.accountId == account.id) it.doctors else emptyList(),
+                workingTime = account.workingTime,
+                shift = account.workingTime.onlyShift ?: it.shift,
                 placeName = account.name,
                 accountId = account.id,
                 specialty = account.specialty?.toUi(),
@@ -273,6 +291,8 @@ class PlanVisitViewModel @Inject constructor(
     private fun VisitUi.withoutPlace() = copy(
         placeName = "",
         accountId = "",
+        doctors = emptyList(),
+        workingTime = WorkingTime.Both,
         specialty = null,
         classCategory = null,
         address = "",

@@ -64,7 +64,7 @@ interface VisitRepo {
 
     /**
      * Saves the visit with its samples and gifts; a [Visit.voiceNote] is written to a file and its path stored,
-     * and a picked [Visit.imageNote] is copied into the app's own files so it does not depend on the source Uri.
+     * and each picked [Visit.imageNotes] is copied into the app's own files so it does not depend on the source Uri.
      */
     suspend fun save(visit: Visit)
     suspend fun delete(id: String)

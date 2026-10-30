@@ -34,6 +34,10 @@ import com.example.medicalrep.domain.models.Custody
 import com.example.medicalrep.domain.models.Rep
 import com.example.medicalrep.domain.models.RepRole
 import com.example.medicalrep.domain.repo.FakeAccountRepo
+import com.example.medicalrep.domain.repo.FakeDoctorRepo
+import com.example.medicalrep.domain.models.Doctor
+import com.example.medicalrep.domain.models.WorkingTime
+import com.example.medicalrep.ui.models.DoctorUi
 import com.example.medicalrep.domain.repo.FakeProductRepo
 import com.example.medicalrep.domain.repo.FakeRepRepo
 import com.example.medicalrep.domain.repo.FakeVisitRepo
@@ -104,6 +108,7 @@ class PlanVisitViewModelTest {
         ),
     )
     private val visitRepo = FakeVisitRepo()
+    private val doctorRepo = FakeDoctorRepo()
 
     private val state get() = viewModel.state.value
 
@@ -144,7 +149,7 @@ class PlanVisitViewModelTest {
 
     private fun createViewModel(savedStateHandle: SavedStateHandle = SavedStateHandle()) =
         PlanVisitViewModel(
-            FakeUnplannedSettingsRepo, savedStateHandle, session.manager, draftRepo, accountRepo, repRepo, productRepo, visitRepo,
+            FakeUnplannedSettingsRepo, savedStateHandle, session.manager, draftRepo, accountRepo, doctorRepo, repRepo, productRepo, visitRepo,
         )
 
     @Test
@@ -165,13 +170,13 @@ class PlanVisitViewModelTest {
     }
 
     @Test
-    fun `back on the result step leaves without asking even with changes`() = runTest(dispatcher) {
+    fun `back on the result step asks to save after a change`() = runTest(dispatcher) {
         val events = collectEvents()
-        viewModel.onEvent(PlanVisitEvents.SelectCity(opt("Cairo")))
         openResultStep()
+        addVoiceNote()
         viewModel.onEvent(PlanVisitEvents.Back)
-        assertEquals(PlanVisitOverlay.None, state.overlay)
-        assertEquals(listOf<UiEvent>(UiEvent.NavigationUp), events)
+        assertEquals(PlanVisitOverlay.SaveDraft, state.overlay)
+        assertEquals(emptyList<UiEvent>(), events)
     }
 
     @Test
@@ -256,7 +261,7 @@ class PlanVisitViewModelTest {
         assertTrue(saved.dateTimeMillis!! > 0 && saved.completedAtMillis!! >= saved.dateTimeMillis!!)
         assertTrue(Regex("\\d\\d:\\d\\d د").matches(saved.durationLabel.orEmpty()))
         assertNotNull(saved.voiceNote)
-        assertNotNull(saved.imageNote)
+        assertEquals(1, saved.imageNotes.size)
         assertNull(saved.supervisorId)
         assertEquals(session.manager.user.value.id.toString(), saved.repId)
     }
@@ -486,6 +491,113 @@ class PlanVisitViewModelTest {
         assertEquals("أطفال", state.visit.specialty?.name)
     }
 
+    private fun placeOpen(workingTime: WorkingTime): BasicModelUi {
+        accountRepo.current.value = accountRepo.current.value + Account("w1", name = "مكان الفترة", workingTime = workingTime)
+        return place("مكان الفترة")
+    }
+
+    @Test
+    fun `a place open only in the morning offers and selects only the morning shift`() {
+        viewModel.onEvent(PlanVisitEvents.SelectShift(Shift.Pm))
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(placeOpen(WorkingTime.Am)))
+        assertEquals(listOf(Shift.Am), state.shiftOptions)
+        assertEquals(Shift.Am, state.visit.shift)
+    }
+
+    @Test
+    fun `a place open only in the evening offers and selects only the evening shift`() {
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(placeOpen(WorkingTime.Pm)))
+        assertEquals(listOf(Shift.Pm), state.shiftOptions)
+        assertEquals(Shift.Pm, state.visit.shift)
+    }
+
+    @Test
+    fun `a place open in both periods lets the rep choose and keeps the chosen shift`() {
+        viewModel.onEvent(PlanVisitEvents.SelectShift(Shift.Pm))
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(place("مستشفى الجامعة")))
+        assertEquals(listOf(Shift.Am, Shift.Pm), state.shiftOptions)
+        assertEquals(Shift.Pm, state.visit.shift)
+    }
+
+    @Test
+    fun `without a place both shifts are offered`() {
+        assertEquals(listOf(Shift.Am, Shift.Pm), state.shiftOptions)
+    }
+
+    @Test
+    fun `clearing the place offers both shifts again`() {
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(placeOpen(WorkingTime.Am)))
+        viewModel.onEvent(PlanVisitEvents.SelectCity(opt("قويسنا")))
+        assertEquals("", state.visit.accountId)
+        assertEquals(listOf(Shift.Am, Shift.Pm), state.shiftOptions)
+    }
+
+    private val yasmin = Doctor("d1", name = "Dr. Yasmin Farouk", classCategory = m("B"))
+    private val tarek = Doctor("d2", name = "Dr. Tarek Ezz El-Din")
+
+    private fun hospitalWithDoctors() {
+        doctorRepo.setDoctors("a1", listOf(yasmin, tarek))
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(place("مستشفى الجامعة")))
+    }
+
+    private fun doctorUi(doctor: Doctor) = state.doctorOptions.first { it.id == doctor.id }
+
+    @Test
+    fun `an account with doctors lists them with their class and shows the doctor card`() {
+        hospitalWithDoctors()
+        assertEquals(listOf("Dr. Yasmin Farouk", "Dr. Tarek Ezz El-Din"), state.doctorOptions.map { it.name })
+        assertEquals("B", state.doctorOptions.first().classCategory?.name)
+        assertNull(state.doctorOptions.last().classCategory)
+        assertTrue(state.showDoctors)
+    }
+
+    @Test
+    fun `an account without doctors has no doctor card`() {
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(place("عيادة د. هاني")))
+        assertEquals(emptyList<DoctorUi>(), state.doctorOptions)
+        assertFalse(state.showDoctors)
+    }
+
+    @Test
+    fun `confirming doctors replaces the earlier pick and keeps each doctor once`() {
+        hospitalWithDoctors()
+        viewModel.onEvent(PlanVisitEvents.SelectDoctors(listOf(doctorUi(yasmin), doctorUi(tarek), doctorUi(yasmin))))
+        assertEquals(listOf("d1", "d2"), state.visit.doctors.map { it.id })
+        viewModel.onEvent(PlanVisitEvents.SelectDoctors(listOf(doctorUi(tarek))))
+        assertEquals(listOf("d2"), state.visit.doctors.map { it.id })
+        viewModel.onEvent(PlanVisitEvents.SelectDoctors(emptyList()))
+        assertEquals(emptyList<DoctorUi>(), state.visit.doctors)
+    }
+
+    @Test
+    fun `removing a doctor drops its row and an unknown id changes nothing`() {
+        hospitalWithDoctors()
+        viewModel.onEvent(PlanVisitEvents.SelectDoctors(listOf(doctorUi(yasmin))))
+        viewModel.onEvent(PlanVisitEvents.RemoveDoctor("nope"))
+        assertEquals(listOf("d1"), state.visit.doctors.map { it.id })
+        viewModel.onEvent(PlanVisitEvents.RemoveDoctor("d1"))
+        assertEquals(emptyList<DoctorUi>(), state.visit.doctors)
+    }
+
+    @Test
+    fun `changing the place clears the picked doctors`() {
+        hospitalWithDoctors()
+        viewModel.onEvent(PlanVisitEvents.SelectDoctors(listOf(doctorUi(yasmin))))
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(place("عيادة د. هاني")))
+        assertEquals(emptyList<DoctorUi>(), state.visit.doctors)
+    }
+
+    @Test
+    fun `step 1 needs a doctor only when the account has doctors`() {
+        fillEntityStep()
+        assertEquals(true, state.canGoNext)
+        hospitalWithDoctors()
+        viewModel.onEvent(PlanVisitEvents.SelectSupervisor(supervisor("د. سارة أحمد")))
+        assertEquals(false, state.canGoNext)
+        viewModel.onEvent(PlanVisitEvents.SelectDoctors(listOf(doctorUi(tarek))))
+        assertEquals(true, state.canGoNext)
+    }
+
     @Test
     fun `step 1 does not need a specialty, so an account without one still goes on`() {
         accountRepo.current.value = accountRepo.current.value +
@@ -566,6 +678,30 @@ class PlanVisitViewModelTest {
         viewModel.onEvent(PlanVisitEvents.EndVisit)
         assertTrue(events[0] is UiEvent.ShowSnackBar)
         assertEquals(UiEvent.NavigationUp, events[1])
+    }
+
+    @Test
+    fun `each picked doctor needs its own photo before the visit can end`() {
+        hospitalWithDoctors()
+        viewModel.onEvent(PlanVisitEvents.SelectDoctors(listOf(doctorUi(yasmin), doctorUi(tarek))))
+        addVoiceNote()
+        assertEquals(2, state.requiredImages)
+        addImage()
+        assertEquals(false, state.canEndVisit)
+        addImage()
+        assertEquals(true, state.canEndVisit)
+    }
+
+    @Test
+    fun `photos beyond the required number are ignored and a photo can be removed`() {
+        addVoiceNote()
+        assertEquals(1, state.requiredImages)
+        addImage()
+        addImage()
+        assertEquals(1, state.visit.imageNotes.size)
+        viewModel.onEvent(PlanVisitEvents.RemoveImage(0))
+        assertEquals(emptyList<android.net.Uri>(), state.visit.imageNotes)
+        assertEquals(false, state.canEndVisit)
     }
 
     @Test

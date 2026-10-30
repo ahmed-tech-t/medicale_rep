@@ -6,11 +6,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.MaterialTheme
@@ -41,8 +46,14 @@ import com.example.medicalrep.ui.ui.theme.Slate25
 import com.example.medicalrep.ui.ui.theme.Slate400
 import com.example.medicalrep.ui.ui.theme.Slate50
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun AttachPhotoCard(onAttach: () -> Unit, image: ImageBitmap?) {
+internal fun AttachPhotoCard(
+    images: List<ImageBitmap>,
+    required: Int,
+    onAttach: () -> Unit,
+    onRemove: (Int) -> Unit,
+) {
     StepCard {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -57,20 +68,12 @@ internal fun AttachPhotoCard(onAttach: () -> Unit, image: ImageBitmap?) {
                     .border(DividerDefaults.Thickness, Slate200, RoundedCornerShape(radii.medium)),
                 contentAlignment = Alignment.Center,
             ) {
-                image?.let {
-                    NexoraImage(
-                        bitmap = image,
-                        contentDescription = null,
-                        modifier = Modifier.size(dim.thumbnailSize),
-                    )
-                } ?: NexoraIcon(
+                NexoraIcon(
                     imageVector = Icons.Outlined.Image,
                     contentDescription = null,
                     tint = Ink,
                     modifier = Modifier.size(dim.smallIconSize),
                 )
-
-
             }
             Column(
                 modifier = Modifier.weight(1f),
@@ -86,21 +89,56 @@ internal fun AttachPhotoCard(onAttach: () -> Unit, image: ImageBitmap?) {
                     style = MaterialTheme.typography.labelSmall,
                     color = Slate400,
                 )
-            }
-            Box(
-                modifier = Modifier
-                    .size(width = dim.compactActionWidth, height = dim.compactActionHeight)
-                    .clip(RoundedCornerShape(radii.small))
-                    .background(Brand)
-                    .clickable(role = Role.Button, onClick = onAttach),
-                contentAlignment = Alignment.Center,
-            ) {
-                NexoraIcon(
-                    painter = painterResource(R.drawable.ic_camera),
-                    contentDescription = stringResource(R.string.unplanned_attach_title),
-                    tint = Slate50,
-                    modifier = Modifier.size(dim.smallIconSize),
+                NexoraText(
+                    text = stringResource(R.string.unplanned_attach_count, images.size, required),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Slate400,
                 )
+            }
+            if (images.size < required) {
+                Box(
+                    modifier = Modifier
+                        .size(width = dim.compactActionWidth, height = dim.compactActionHeight)
+                        .clip(RoundedCornerShape(radii.small))
+                        .background(Brand)
+                        .clickable(role = Role.Button, onClick = onAttach),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    NexoraIcon(
+                        painter = painterResource(R.drawable.ic_camera),
+                        contentDescription = stringResource(R.string.unplanned_attach_title),
+                        tint = Slate50,
+                        modifier = Modifier.size(dim.smallIconSize),
+                    )
+                }
+            }
+        }
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
+            verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
+        ) {
+            images.forEachIndexed { index, image ->
+                Box(
+                    modifier = Modifier
+                        .size(dim.thumbnailSize)
+                        .clip(RoundedCornerShape(radii.medium))
+                        .background(Slate25)
+                        .border(DividerDefaults.Thickness, Slate200, RoundedCornerShape(radii.medium)),
+                ) {
+                    NexoraImage(bitmap = image, contentDescription = null, modifier = Modifier.size(dim.thumbnailSize))
+                    NexoraIcon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = stringResource(R.string.unplanned_attach_remove),
+                        tint = Slate50,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(spacing.spaceExtraSmall)
+                            .size(dim.smallIconSize)
+                            .clip(CircleShape)
+                            .background(Ink)
+                            .clickable(role = Role.Button) { onRemove(index) },
+                    )
+                }
             }
         }
     }
@@ -109,13 +147,13 @@ internal fun AttachPhotoCard(onAttach: () -> Unit, image: ImageBitmap?) {
 @Preview(showBackground = true, locale = "ar")
 @Composable
 private fun AttachPhotoCardArabicPreview() {
-    MedicalRepTheme { AttachPhotoCard(onAttach = {}, image = null) }
+    MedicalRepTheme { AttachPhotoCard(images = emptyList(), required = 2, onAttach = {}, onRemove = {}) }
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun AttachPhotoCardEnglishPreview() {
-    MedicalRepTheme { AttachPhotoCard(onAttach = {}, image = null) }
+    MedicalRepTheme { AttachPhotoCard(images = emptyList(), required = 2, onAttach = {}, onRemove = {}) }
 }
 
 

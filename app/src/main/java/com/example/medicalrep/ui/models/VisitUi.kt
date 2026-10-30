@@ -5,6 +5,7 @@ import androidx.compose.runtime.Immutable
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.VisitType
+import com.example.medicalrep.domain.models.WorkingTime
 
 @Immutable
 data class VisitUi(
@@ -22,6 +23,8 @@ data class VisitUi(
     val placeName: String = "",
     val specialty: BasicModelUi? = null,
     val shift: Shift = Shift.Am,
+    /** The periods the chosen place is open; decides which shifts the form offers. */
+    val workingTime: WorkingTime = WorkingTime.Both,
     val visitLatitude: Double = 0.0,
     val visitLongitude: Double = 0.0,
     /** How long the rep took to reach the visit (from the GPS track); 0 when unknown. */
@@ -34,8 +37,11 @@ data class VisitUi(
     val classCategory: BasicModelUi? = null,
     val gifts: List<ProductUi> = emptyList(),
     val products: List<ProductUi> = emptyList(),
+    /** The doctors of the account this visit is for. */
+    val doctors: List<DoctorUi> = emptyList(),
     val voiceNote: ByteArray? = null,
-    val imageNote: Uri? = null,
+    /** One photo per picked doctor (at least one) proves the visit. */
+    val imageNotes: List<Uri> = emptyList(),
     val noIssueFound: Boolean = true,
     val syncStatus: SyncStatus = SyncStatus.NotSynced,
     val durationLabel: String = "",

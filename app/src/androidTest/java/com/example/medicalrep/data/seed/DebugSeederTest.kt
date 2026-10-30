@@ -2,6 +2,7 @@ package com.example.medicalrep.data.seed
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.medicalrep.data.repo.AccountRepoImpl
+import com.example.medicalrep.data.repo.DoctorRepoImpl
 import com.example.medicalrep.data.repo.DraftVisitRepoImpl
 import com.example.medicalrep.data.repo.OrderRepoImpl
 import com.example.medicalrep.data.repo.ProductRepoImpl
@@ -28,6 +29,7 @@ class DebugSeederTest : RepoTestBase() {
         get() = DebugSeeder(
             RepRepoImpl(db.repDao()),
             accounts,
+            DoctorRepoImpl(db.doctorDao()),
             ProductRepoImpl(db.productDao(), db.custodyDao()),
             VisitRepoImpl(db.visitDao(), media),
             OrderRepoImpl(db.orderDao()),

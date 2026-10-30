@@ -4,9 +4,11 @@ import androidx.compose.runtime.Immutable
 import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Rep
+import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.ui.common.location.WEAK_GPS_METERS
 import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.BasicModelUi
+import com.example.medicalrep.ui.models.DoctorUi
 import com.example.medicalrep.ui.models.ProductUi
 import com.example.medicalrep.ui.models.VisitUi
 
@@ -51,6 +53,8 @@ data class PlanVisitState(
     val districtOptions: List<BasicModelUi> = emptyList(),
     val entityTypeOptions: List<BasicModelUi> = emptyList(),
     val placeOptions: List<BasicModelUi> = emptyList(),
+    /** The doctors of the chosen place; the rep picks the ones the visit is for. */
+    val doctorOptions: List<DoctorUi> = emptyList(),
     /** The supervisors the form can choose from; a double visit stores the id of the chosen one. */
     val supervisors: List<Rep> = emptyList(),
     /** When the form opened: the visit started then. */
@@ -59,6 +63,12 @@ data class PlanVisitState(
     val supervisorOptions: List<BasicModelUi>
         get() = supervisors.map { BasicModelUi(it.id, it.displayName) }
 
+    /** The shifts the rep can pick: both, or only the one the place is open. */
+    val shiftOptions: List<Shift> get() = visit.workingTime.shifts
+
+    /** The doctor card shows only for a place that has doctors. */
+    val showDoctors: Boolean get() = doctorOptions.isNotEmpty()
+
     /** The id of the supervisor chosen on the form; null when none is chosen or the visit is single. */
     val chosenSupervisorId: String?
         get() = if (visit.isDoubleVisit) visit.supervisor?.id else null
@@ -66,14 +76,14 @@ data class PlanVisitState(
     /** The GPS reading behind the captured location is too rough to trust (worse than [WEAK_GPS_METERS]). */
     val hasWeakSignal: Boolean get() = (locationAccuracyMeters ?: 0f) > WEAK_GPS_METERS
 
-    /** Back asks to save only while a visit in progress was changed; the finished result step just leaves. */
-    val asksToSave: Boolean get() = visit != initialVisit && currentStep != PlanVisitStep.Result
+    /** Back asks to save whenever the visit was changed, on any step (the result step holds the voice note and photos). */
+    val asksToSave: Boolean get() = visit != initialVisit
 
-    /** Step 1 is done: city, district, type and place are chosen (the specialty comes from the place); the supervisor only matters for a double visit. */
+    /** Step 1 is done: city, district, type and place are chosen (the specialty comes from the place); the supervisor only matters for a double visit, and a doctor must be picked when the place has doctors. */
     val isEntityComplete: Boolean
         get() = with(visit) {
             city != null && region != null && account != null && placeName.isNotBlank() &&
-                    (!isDoubleVisit || supervisor != null)
+                    (!isDoubleVisit || supervisor != null) && (!showDoctors || doctors.isNotEmpty())
         }
 
     /** Step 1 must be complete; step 2 (gifts and products) is optional. */
@@ -84,8 +94,11 @@ data class PlanVisitState(
             PlanVisitStep.Result -> false
         }
 
-    /** The visit is proven by a recorded voice note and an attached image. */
-    val canEndVisit: Boolean get() = visit.voiceNote != null && visit.imageNote != null
+    /** One photo per picked doctor, and at least one. */
+    val requiredImages: Int get() = maxOf(1, visit.doctors.size)
+
+    /** The visit is proven by a recorded voice note and the required photos. */
+    val canEndVisit: Boolean get() = visit.voiceNote != null && visit.imageNotes.size >= requiredImages
     val giftsCount: Int get() = visit.gifts.sumOf { it.quantity }
     val productsCount: Int get() = visit.products.sumOf { it.quantity }
 }

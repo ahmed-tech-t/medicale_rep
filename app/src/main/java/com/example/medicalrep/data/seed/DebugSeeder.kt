@@ -1,6 +1,7 @@
 package com.example.medicalrep.data.seed
 
 import com.example.medicalrep.domain.repo.AccountRepo
+import com.example.medicalrep.domain.repo.DoctorRepo
 import com.example.medicalrep.domain.repo.OrderRepo
 import com.example.medicalrep.domain.repo.ProductRepo
 import com.example.medicalrep.domain.repo.SyncInfoRepo
@@ -18,6 +19,7 @@ import javax.inject.Singleton
 class DebugSeeder @Inject constructor(
     private val repRepo: RepRepo,
     private val accountRepo: AccountRepo,
+    private val doctorRepo: DoctorRepo,
     private val productRepo: ProductRepo,
     private val visitRepo: VisitRepo,
     private val orderRepo: OrderRepo,
@@ -31,6 +33,7 @@ class DebugSeeder @Inject constructor(
         // Order matters: visits and orders point at reps and accounts.
         data.reps.forEach { repRepo.save(it) }
         data.accounts.forEach { accountRepo.save(it) }
+        data.doctors.forEach { doctorRepo.save(it.doctor, it.accountIds) }
         productRepo.saveProducts(data.products)
         productRepo.saveCustody(data.custody)
         data.visits.forEach { visitRepo.save(it) }
@@ -40,6 +43,6 @@ class DebugSeeder @Inject constructor(
     }
 
     companion object {
-        const val SEED_KEY = "debug_seed_v2"
+        const val SEED_KEY = "debug_seed_v5"
     }
 }

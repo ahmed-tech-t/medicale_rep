@@ -1,5 +1,9 @@
 package com.example.medicalrep.ui.screens.addaccount.components
 
+import androidx.annotation.StringRes
+import com.example.medicalrep.domain.models.WorkingTime
+import com.example.medicalrep.ui.screens.planvisit.components.entity.SegmentOption
+import com.example.medicalrep.ui.screens.planvisit.components.entity.SegmentedChoiceRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -86,6 +90,27 @@ internal fun EntityTypeCard(state: AddAccountState, onEvent: (AddAccountEvents) 
 
         )
     }
+}
+
+/** The periods the account is open: only one, or both (then a visit can pick either). */
+@Composable
+internal fun WorkingTimeCard(state: AddAccountState, onEvent: (AddAccountEvents) -> Unit) {
+    StepCard {
+        SegmentedChoiceRow(
+            label = stringResource(R.string.add_account_working_time),
+            options = WorkingTime.entries.map { time ->
+                SegmentOption(stringResource(time.labelRes()), selected = state.workingTime == time)
+            },
+            onSelectIndex = { index -> onEvent(AddAccountEvents.SelectWorkingTime(WorkingTime.entries[index])) },
+        )
+    }
+}
+
+@StringRes
+private fun WorkingTime.labelRes() = when (this) {
+    WorkingTime.Am -> R.string.shift_am
+    WorkingTime.Pm -> R.string.shift_pm
+    WorkingTime.Both -> R.string.working_time_both
 }
 
 /** Class (select), name (typed) and specialty. */

@@ -5,6 +5,7 @@ import com.example.medicalrep.data.local.search.searchTextOf
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.AccountType
 import com.example.medicalrep.domain.models.BasicModel
+import com.example.medicalrep.domain.models.WorkingTime
 
 fun AccountEntity.toDomain() = Account(
     id = id,
@@ -15,6 +16,7 @@ fun AccountEntity.toDomain() = Account(
     specialty = specialty.toBasicModel(),
     city = city.toBasicModel(),
     district = district.toBasicModel(),
+    workingTime = WorkingTime.fromKey(workingTime),
     address = address,
     latitude = latitude,
     longitude = longitude,
@@ -34,6 +36,7 @@ fun Account.toEntity() = AccountEntity(
     specialty = specialty?.name.orEmpty(),
     city = city?.name.orEmpty(),
     district = district?.name.orEmpty(),
+    workingTime = workingTime.key,
     address = address,
     latitude = latitude,
     longitude = longitude,

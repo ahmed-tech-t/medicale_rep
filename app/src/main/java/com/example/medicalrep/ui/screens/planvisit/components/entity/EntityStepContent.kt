@@ -3,6 +3,7 @@ package com.example.medicalrep.ui.screens.planvisit.components.entity
 import com.example.medicalrep.ui.screens.planvisit.components.StepCard
 import com.example.medicalrep.ui.screens.planvisit.components.StepCardTitle
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -207,22 +208,26 @@ fun EntityStepContent(
                 )
         }
 
+        AnimatedVisibility(visible = state.showDoctors) {
+            DoctorPickerCard(
+                options = state.doctorOptions,
+                selected = visit.doctors,
+                onConfirm = { onEvent(PlanVisitEvents.SelectDoctors(it)) },
+                onRemove = { onEvent(PlanVisitEvents.RemoveDoctor(it)) },
+                enabled = visit.type == VisitType.Unplanned,
+            )
+        }
+
         StepCard {
             SegmentedChoiceRow(
                 label = stringResource(R.string.unplanned_label_shift),
-                options = listOf(
+                options = state.shiftOptions.map { shift ->
                     SegmentOption(
-                        stringResource(R.string.shift_am),
-                        selected = visit.shift == Shift.Am
-                    ),
-                    SegmentOption(
-                        stringResource(R.string.shift_pm),
-                        selected = visit.shift == Shift.Pm
-                    ),
-                ),
-                onSelectIndex = { index ->
-                    onEvent(PlanVisitEvents.SelectShift(if (index == 0) Shift.Am else Shift.Pm))
+                        stringResource(if (shift == Shift.Am) R.string.shift_am else R.string.shift_pm),
+                        selected = visit.shift == shift,
+                    )
                 },
+                onSelectIndex = { index -> onEvent(PlanVisitEvents.SelectShift(state.shiftOptions[index])) },
             )
         }
 

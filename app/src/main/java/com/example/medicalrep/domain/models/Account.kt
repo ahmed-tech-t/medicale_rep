@@ -18,4 +18,5 @@ data class Account(
     val syncStatus: SyncStatus = SyncStatus.NotSynced,
     val signPhoto: String? = null,
     val createdAt: Long = 0L,
+    val workingTime: WorkingTime = WorkingTime.Both,
 )

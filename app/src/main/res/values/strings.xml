@@ -212,7 +212,7 @@
     <string name="unplanned_datetime_format">%1$s - %2$s</string>
     <string name="unplanned_add_format">+ %1$s</string>
     <string name="unplanned_no_items">No items added yet</string>
-    <string name="unplanned_summary_place_format">%1$s - %2$s • %3$s</string>
+    <string name="unplanned_summary_place_format">%1$s - %2$s</string>
     <string name="unplanned_double_with_format">Double (%1$s)</string>
     <string name="unplanned_clinic_open">The clinic is open with no obstacles</string>
     <string name="unplanned_remaining_after_gift_format">Left in your custody after handing out: %1$d pcs</string>
@@ -420,4 +420,13 @@
     <string name="filter_sync_failed">Upload failed</string>
     <string name="filter_single_visit">Single Visit</string>
     <string name="filter_double_visit">Double Visit</string>
+    <string name="unplanned_section_doctors">Doctor</string>
+    <string name="unplanned_doctors_hint">Pick one or more doctors of the selected place</string>
+    <string name="unplanned_doctors_select_hint">Select doctors</string>
+    <string name="unplanned_doctor_remove">Remove doctor</string>
+    <string name="add_account_working_time">Working time</string>
+    <string name="working_time_both">AM &amp; PM</string>
+    <string name="unplanned_attach_count">%1$d / %2$d</string>
+    <string name="unplanned_attach_remove">Remove photo</string>
+    <string name="unplanned_summary_account_type_label">Account type</string>
 </resources>

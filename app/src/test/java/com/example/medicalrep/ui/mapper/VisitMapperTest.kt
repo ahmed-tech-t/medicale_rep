@@ -70,7 +70,7 @@ class VisitMapperTest {
     fun `an ended visit becomes a completed visit that is not uploaded yet`() {
         val form = VisitUi(
             id = "v1", accountId = "a1", type = VisitType.Planned, shift = Shift.Pm, isDoubleVisit = true, supervisor = BasicModelUi("s1", "Boss"),
-            noIssueFound = false, voiceNote = byteArrayOf(1), imageNote = android.net.FakeUri(),
+            noIssueFound = false, voiceNote = byteArrayOf(1), imageNotes = listOf(android.net.FakeUri()),
         )
         val visit = form.toCompletedVisit(stored = null, repId = "r1", supervisorId = "s1", startedAtMillis = 1_000L, completedAtMillis = 276_000L)
         assertEquals("v1", visit.id)

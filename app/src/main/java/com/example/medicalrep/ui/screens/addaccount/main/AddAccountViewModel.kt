@@ -55,6 +55,7 @@ class AddAccountViewModel @Inject constructor(
             is AddAccountEvents.SelectEntityType -> _state.update { it.copy(entityType = event.value) }
             is AddAccountEvents.SelectClass -> _state.update { it.copy(classCategory = event.value) }
             is AddAccountEvents.SelectSpecialty -> _state.update { it.copy(specialty = event.value) }
+            is AddAccountEvents.SelectWorkingTime -> _state.update { it.copy(workingTime = event.value) }
             is AddAccountEvents.PinPlaced -> _state.update {
                 it.copy(pin = GeoPoint(event.latitude, event.longitude))
             }
@@ -80,6 +81,7 @@ class AddAccountViewModel @Inject constructor(
                     specialty = form.specialty.toOption(),
                     city = form.city.toOption(),
                     district = form.district.toOption(),
+                    workingTime = form.workingTime,
                     latitude = pin.latitude,
                     longitude = pin.longitude,
                     syncStatus = SyncStatus.NotSynced,

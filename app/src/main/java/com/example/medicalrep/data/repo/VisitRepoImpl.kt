@@ -70,14 +70,14 @@ class VisitRepoImpl @Inject constructor(
     override suspend fun save(visit: Visit) {
         val id = requireNotNull(visit.id) { "A stored visit needs an id" }
         val voiceNotePath = visit.voiceNote?.let { media.save("voice_$id.m4a", it) } ?: visit.voiceNotePath
-        val imageNote = visit.imageNote?.let { media.copy("image_$id.jpg", it) }
-        dao.save(visit.copy(voiceNotePath = voiceNotePath, imageNote = imageNote).toEntity(), visit.toLines())
+        val imageNotes = visit.imageNotes.mapIndexed { index, uri -> media.copy("image_${id}_$index.jpg", uri) }
+        dao.save(visit.copy(voiceNotePath = voiceNotePath, imageNotes = imageNotes).toEntity(), visit.toLines())
     }
 
     override suspend fun delete(id: String) {
         dao.getById(id)?.let { saved ->
             saved.voiceNotePath?.let(media::delete)
-            saved.imageNote?.let(media::deleteUri)
+            saved.imageNotes.forEach(media::deleteUri)
         }
         dao.deleteById(id)
     }

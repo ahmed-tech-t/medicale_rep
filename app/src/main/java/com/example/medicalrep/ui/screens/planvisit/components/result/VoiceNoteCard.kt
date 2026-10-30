@@ -6,17 +6,16 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.MaterialTheme
@@ -25,17 +24,17 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.appcore.core.ui.theme.dim
 import com.appcore.core.ui.theme.radii
 import com.appcore.core.ui.theme.spacing
@@ -47,16 +46,15 @@ import com.appcore.core.ui.utils.voice_recorder.rememberVoiceRecorder
 import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.primitives.NexoraButton
 import com.example.medicalrep.ui.components.primitives.NexoraIcon
-import com.example.medicalrep.ui.components.primitives.NexoraIconButton
 import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.screens.planvisit.components.StepCard
-import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 import com.example.medicalrep.ui.ui.theme.Error
 import com.example.medicalrep.ui.ui.theme.ErrorContainer
+import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 import com.example.medicalrep.ui.ui.theme.Slate200
 import com.example.medicalrep.ui.ui.theme.Slate25
-import com.example.medicalrep.ui.ui.theme.Slate600
 import com.example.medicalrep.ui.ui.theme.Slate500
+import com.example.medicalrep.ui.ui.theme.Slate600
 import com.example.medicalrep.ui.ui.theme.Slate800
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
@@ -71,7 +69,11 @@ object VoiceNoteTags {
 
 /** The recorded note: play/pause, its length and delete. */
 @Composable
-private fun VoiceNotePlayer(voiceNote: ByteArray, onDelete: () -> Unit, modifier: Modifier = Modifier) {
+private fun VoiceNotePlayer(
+    voiceNote: ByteArray,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val player = rememberVoicePlayer(voiceNote)
     val title = stringResource(R.string.unplanned_voice_note)
     val seconds = player.durationMillis / 1000
@@ -88,9 +90,17 @@ private fun VoiceNotePlayer(voiceNote: ByteArray, onDelete: () -> Unit, modifier
             modifier = Modifier.testTag(VoiceNoteTags.Play),
         ) {
             if (player.isPlaying) {
-                NexoraIcon(painter = painterResource(R.drawable.ic_pause), contentDescription = title, tint = Color.White)
+                NexoraIcon(
+                    painter = painterResource(R.drawable.ic_pause),
+                    contentDescription = title,
+                    tint = Color.White
+                )
             } else {
-                NexoraIcon(imageVector = Icons.Filled.PlayArrow, contentDescription = title, tint = Color.White)
+                NexoraIcon(
+                    imageVector = Icons.Filled.PlayArrow,
+                    contentDescription = title,
+                    tint = Color.White
+                )
             }
         }
         Column(modifier = Modifier.weight(1f)) {
@@ -175,12 +185,19 @@ internal fun VoiceNoteCard(
                 .clip(RoundedCornerShape(radii.medium))
                 .background(Slate25)
                 .border(DividerDefaults.Thickness, Slate200, RoundedCornerShape(radii.medium))
-                .padding(horizontal = spacing.spaceSmall),
+                .padding(
+                    vertical = if (voiceNote == null) spacing.spaceMedium else 1.dp,
+                    horizontal = spacing.spaceMedium
+                ),
             horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (voiceNote != null && !isRecording) {
-                VoiceNotePlayer(voiceNote = voiceNote, onDelete = onDelete, modifier = Modifier.weight(1f))
+                VoiceNotePlayer(
+                    voiceNote = voiceNote,
+                    onDelete = onDelete,
+                    modifier = Modifier.weight(1f)
+                )
                 return@Row
             }
             if (isRecording) {

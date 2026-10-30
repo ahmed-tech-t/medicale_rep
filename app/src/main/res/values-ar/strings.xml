@@ -212,7 +212,7 @@
     <string name="unplanned_datetime_format">%1$s - %2$s</string>
     <string name="unplanned_add_format">+ %1$s</string>
     <string name="unplanned_no_items">لم تتم إضافة أصناف بعد</string>
-    <string name="unplanned_summary_place_format">%1$s - %2$s • %3$s</string>
+    <string name="unplanned_summary_place_format">%1$s - %2$s</string>
     <string name="unplanned_double_with_format">Double (%1$s)</string>
     <string name="unplanned_clinic_open">العيادة مفتوحة ولا توجد عوائق</string>
     <string name="unplanned_remaining_after_gift_format">المتبقي بعهدتك بعد الصرف: %1$d قطعة</string>
@@ -423,4 +423,13 @@
     <string name="filter_sync_failed">فشل الرفع</string>
     <string name="filter_single_visit">Single Visit</string>
     <string name="filter_double_visit">Double Visit</string>
+    <string name="unplanned_section_doctors">الطبيب</string>
+    <string name="unplanned_doctors_hint">أطباء المكان المختار، تقدر تختار أكثر من طبيب</string>
+    <string name="unplanned_doctors_select_hint">اختر طبيبا أو أكثر من القائمة</string>
+    <string name="unplanned_doctor_remove">إزالة الطبيب</string>
+    <string name="add_account_working_time">فترة العمل</string>
+    <string name="working_time_both">صباحا ومساء</string>
+    <string name="unplanned_attach_count">%1$d من %2$d</string>
+    <string name="unplanned_attach_remove">حذف الصورة</string>
+    <string name="unplanned_summary_account_type_label">نوع الحساب</string>
 </resources>

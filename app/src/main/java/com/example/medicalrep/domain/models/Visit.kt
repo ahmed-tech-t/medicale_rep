@@ -35,7 +35,7 @@ data class Visit(
     /** How long the rep took to reach the visit; 0 when unknown. */
     val travelSeconds: Int = 0,
     val noIssueFound: Boolean = true,
-    val imageNote: String? = null,
+    val imageNotes: List<String> = emptyList(),
     /** Where the saved voice note file is; [voiceNote] holds the bytes of one that is not saved yet. */
     val voiceNotePath: String? = null,
     /** Where the visit stands; null for a form that is not saved yet. */

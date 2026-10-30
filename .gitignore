@@ -25,3 +25,6 @@ local.properties
 
 # Claude skills lock
 skills-lock.json
+
+# graphify
+graphify-out/

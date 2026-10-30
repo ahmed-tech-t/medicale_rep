@@ -14,6 +14,7 @@ import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,43 +54,48 @@ internal fun SummaryCard(state: PlanVisitState, onViewLocation: () -> Unit) {
     StepCard {
         NexoraText(
             text = stringResource(R.string.unplanned_summary_title),
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+            style = MaterialTheme.typography.labelMedium,
             color = Slate400,
         )
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(radii.large))
-                .background(Slate50)
                 .border(DividerDefaults.Thickness, Slate200, RoundedCornerShape(radii.large))
                 .padding(spacing.spaceSmallPlus),
-            verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
+            verticalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
         ) {
             NexoraText(
-                text = stringResource(
-                    R.string.unplanned_summary_name_format,
-                    visit.placeName,
-                    visit.specialty?.name.orEmpty()
-                ),
+                text = visit.placeName,
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.ExtraBold),
                 color = Slate900,
             )
             NexoraText(
-                text = stringResource(
-                    R.string.unplanned_summary_place_format,
-                    visit.city?.name.orEmpty(),
-                    visit.address,
-                    stringResource(R.string.unplanned_class_format, visit.classCategory?.name.orEmpty()),
-                ),
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = Slate500,
+                text = stringResource(R.string.unplanned_summary_place_format, visit.city?.name.orEmpty(), visit.region?.name.orEmpty()),
+                style = MaterialTheme.typography.labelMedium,
+                color = Slate400,
             )
-            HorizontalDivider(color = Slate100)
+            SummaryRow(label = stringResource(R.string.unplanned_summary_account_type_label), value = visit.account?.name.orEmpty())
+            if (visit.doctors.isNotEmpty()) {
+                NexoraText(
+                    text = stringResource(R.string.unplanned_section_doctors),
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                    color = Slate900,
+                )
+                visit.doctors.forEach { doctor ->
+                    key(doctor.id) {
+                        SummaryRow(
+                            label = doctor.name,
+                            value = doctor.classCategory?.let { stringResource(R.string.unplanned_class_format, it.name) }
+                                ?: stringResource(R.string.filter_class_title),
+                        )
+                    }
+                }
+            }
             SummaryRow(
                 label = stringResource(R.string.unplanned_summary_shift_label),
                 value = stringResource(if (visit.shift == Shift.Am) R.string.shift_am else R.string.shift_pm),
             )
-            HorizontalDivider(color = Slate100)
             SummaryRow(
                 label = stringResource(R.string.unplanned_summary_visit_type_label),
                 value = if (visit.isDoubleVisit) {
