@@ -9,6 +9,11 @@ import org.junit.runner.RunWith
 import com.example.medicalrep.data.local.entity.OrderEntity
 import com.example.medicalrep.data.local.entity.OrderItemEntity
 import com.example.medicalrep.data.local.search.normalizeSearch
+import com.example.medicalrep.data.local.mapper.toEntity
+import com.example.medicalrep.data.local.mapper.toItems
+import com.example.medicalrep.domain.models.Order
+import com.example.medicalrep.domain.models.OrderItem
+import com.example.medicalrep.domain.models.OrderStatus
 import com.example.medicalrep.domain.models.SyncStatus
 
 private fun order(
@@ -110,10 +115,10 @@ class OrderDaoTest : DaoTestBase() {
     }
 
     @Test fun replacingAProductKeepsOrderLines() = runBlocking {
-        db.productDao().upsert(product("p1", "A"))
+        db.catalogDao().upsert(product("p1", "A"))
         dao.save(order("o1"), listOf(item("o1", "p1")))
-        db.productDao().upsert(product("p1", "B"))
-        db.productDao().deleteById("p1")
+        db.catalogDao().upsert(product("p1", "B"))
+        db.catalogDao().deleteById("p1")
         assertEquals(1, dao.getWithDetails("o1")!!.items.size)
     }
 
@@ -149,6 +154,27 @@ class OrderDaoTest : DaoTestBase() {
         assertEquals(1, dao.search("new clinic").allRows().size)
         assertEquals(1, dao.search("new rep").allRows().size)
         assertTrue(dao.search("old clinic").allRows().isEmpty())
+    }
+
+    @Test fun anOrderKeepsItsDoctorStatusAndTotal() = runBlocking {
+        db.accountDao().save(account("a1"))
+        db.addDoctor("a1", id = "d1")
+        val order = Order(id = "o1", doctorId = "d1", items = listOf(OrderItem("p1", "A", 100, 10, 2)))
+        dao.save(order.toEntity(), order.toItems())
+        val stored = dao.getById("o1")!!
+        assertEquals("d1", stored.doctorId)
+        assertEquals(OrderStatus.Pending, stored.status)
+        assertEquals(180.0, stored.totalAmount, 0.0)
+        db.doctorDao().delete(db.doctorDao().getById("d1")!!)
+        assertNull(dao.getById("o1")!!.doctorId)
+    }
+
+    @Test fun anAnsweredOrderCannotChangeAgain() = runBlocking {
+        dao.save(Order(id = "o1").toEntity(), emptyList())
+        assertEquals(1, dao.setStatus("o1", OrderStatus.Delivered))
+        assertEquals(0, dao.setStatus("o1", OrderStatus.Pending))
+        assertEquals(0, dao.setStatus("o1", OrderStatus.Cancelled))
+        assertEquals(OrderStatus.Delivered, dao.getById("o1")!!.status)
     }
 
     @Test fun clearEmptiesTable() = runBlocking {

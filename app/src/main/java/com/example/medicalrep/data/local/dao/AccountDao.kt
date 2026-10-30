@@ -5,37 +5,44 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import com.example.medicalrep.data.local.entity.AccountEntity
+import com.example.medicalrep.data.local.relation.AccountWithPlace
 import com.example.medicalrep.domain.models.AccountType
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 abstract class AccountDao : BaseDao<AccountEntity> {
 
+    @Transaction
     @Query("SELECT * FROM accounts WHERE id = :id")
-    abstract suspend fun getById(id: String): AccountEntity?
+    abstract suspend fun getById(id: String): AccountWithPlace?
 
+    @Transaction
     @Query("SELECT * FROM accounts ORDER BY name")
-    abstract fun getAll(): Flow<List<AccountEntity>>
+    abstract fun getAll(): Flow<List<AccountWithPlace>>
 
+    @Transaction
     @Query("SELECT * FROM accounts ORDER BY name")
-    abstract fun paged(): PagingSource<Int, AccountEntity>
+    abstract fun paged(): PagingSource<Int, AccountWithPlace>
 
+    @Transaction
     @Query("SELECT * FROM accounts WHERE searchText LIKE '%' || :query || '%' ORDER BY name")
-    abstract fun search(query: String): PagingSource<Int, AccountEntity>
+    abstract fun search(query: String): PagingSource<Int, AccountWithPlace>
 
+    @Transaction
     @Query("SELECT * FROM accounts WHERE accountType = :type AND searchText LIKE '%' || :query || '%' ORDER BY name")
-    abstract fun searchByType(type: AccountType, query: String): PagingSource<Int, AccountEntity>
+    abstract fun searchByType(type: AccountType, query: String): PagingSource<Int, AccountWithPlace>
 
     /** [type] null counts every type. */
     @Query("SELECT COUNT(*) FROM accounts WHERE (:type IS NULL OR accountType = :type) AND searchText LIKE '%' || :query || '%'")
     abstract fun count(type: AccountType?, query: String): Flow<Int>
 
-    /** Accounts at a place; a blank city, district or type means any. */
+    /** Accounts at a place; a blank city id, district id or type means any. */
+    @Transaction
     @Query(
-        "SELECT * FROM accounts WHERE (:city = '' OR city = :city) AND (:district = '' OR district = :district)" +
-            " AND (:entityType = '' OR entityType = :entityType) ORDER BY name",
+        "SELECT * FROM accounts WHERE (:cityId = '' OR districtId IN (SELECT id FROM districts WHERE cityId = :cityId))" +
+            " AND (:districtId = '' OR districtId = :districtId) AND (:entityType = '' OR entityType = :entityType) ORDER BY name",
     )
-    abstract fun places(city: String, district: String, entityType: String): Flow<List<AccountEntity>>
+    abstract fun places(cityId: String, districtId: String, entityType: String): Flow<List<AccountWithPlace>>
 
     @Query("DELETE FROM accounts WHERE id = :id")
     abstract suspend fun deleteById(id: String): Int
@@ -43,20 +50,12 @@ abstract class AccountDao : BaseDao<AccountEntity> {
     @Query("DELETE FROM accounts")
     abstract suspend fun clear()
 
-    @Query("SELECT DISTINCT city FROM accounts WHERE city != '' ORDER BY city")
-    abstract fun distinctCities(): Flow<List<String>>
-
-    @Query("SELECT DISTINCT district FROM accounts WHERE district != '' ORDER BY district")
-    abstract fun distinctDistricts(): Flow<List<String>>
-
-    @Query("SELECT DISTINCT specialty FROM accounts WHERE specialty != '' ORDER BY specialty")
-    abstract fun distinctSpecialties(): Flow<List<String>>
-
     @Query("SELECT DISTINCT entityType FROM accounts WHERE entityType != '' ORDER BY entityType")
     abstract fun distinctEntityTypes(): Flow<List<String>>
 
+    @Transaction
     @Query("SELECT * FROM accounts WHERE syncStatus = 'NotSynced'")
-    abstract suspend fun getNotSynced(): List<AccountEntity>
+    abstract suspend fun getNotSynced(): List<AccountWithPlace>
 
     @Query("UPDATE accounts SET syncStatus = 'Synced', backendId = :backendId WHERE id = :localId")
     abstract suspend fun markSynced(localId: String, backendId: String?): Int

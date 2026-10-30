@@ -33,7 +33,9 @@ import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.Custody
 import com.example.medicalrep.domain.models.Rep
 import com.example.medicalrep.domain.models.RepRole
+import com.example.medicalrep.domain.models.District
 import com.example.medicalrep.domain.repo.FakeAccountRepo
+import com.example.medicalrep.domain.repo.FakeGeoRepo
 import com.example.medicalrep.domain.repo.FakeDoctorRepo
 import com.example.medicalrep.domain.models.Doctor
 import com.example.medicalrep.domain.models.WorkingTime
@@ -93,18 +95,23 @@ class PlanVisitViewModelTest {
     private val accountRepo = FakeAccountRepo(
         listOf(
             Account(
-                "a1", name = "مستشفى الجامعة", city = m("منوف"), district = m("وسط البلد"), accountType = m("صيدلية"), specialty = m("أطفال"),
-                classCategory = m("A"), address = "برج الأطباء", latitude = 30.1444, longitude = 31.2357,
+                "a1", name = "مستشفى الجامعة", city = m("منوف"), district = m("وسط البلد"), accountType = m("صيدلية"),
+                address = "برج الأطباء", latitude = 30.1444, longitude = 31.2357,
+                doctors = listOf(Doctor("dx", name = "Dr. X", classCategory = m("A"), specialty = m("أطفال"))),
             ),
-            Account("a2", name = "عيادة د. هاني", city = m("قويسنا"), district = m("البر الشرقى"), accountType = m("عيادة"), specialty = m("باطنة")),
+            Account("a2", name = "عيادة د. هاني", city = m("قويسنا"), district = m("البر الشرقى"), accountType = m("عيادة"), doctors = listOf(Doctor("dy", name = "Dr. Y", specialty = m("باطنة")))),
         ),
+    )
+    private val geoRepo = FakeGeoRepo(
+        cities = listOf(m("منوف"), m("قويسنا")),
+        districts = listOf(District("وسط البلد", "وسط البلد", "منوف"), District("البر الشرقى", "البر الشرقى", "قويسنا")),
     )
     private val repRepo = FakeRepRepo(listOf(Rep("s1", "د. سارة أحمد", role = RepRole.Supervisor)))
     private val productRepo = FakeProductRepo(
         custody = listOf(
-            Custody("gift-mug", "مج حراري", ProductType.Gift, received = 8, dispatched = 3),
+            Custody("gift-mug", "مج حراري", ProductType.Gift, received = 8, remaining = 5),
             Custody("gift-notebook", "دفتر ملاحظات", ProductType.Gift, received = 12),
-            Custody("sample-1", "GastroCure", ProductType.Product, received = 20),
+            Custody("sample-1", "GastroCure", ProductType.Sample, received = 20),
         ),
     )
     private val visitRepo = FakeVisitRepo()
@@ -149,7 +156,7 @@ class PlanVisitViewModelTest {
 
     private fun createViewModel(savedStateHandle: SavedStateHandle = SavedStateHandle()) =
         PlanVisitViewModel(
-            FakeUnplannedSettingsRepo, savedStateHandle, session.manager, draftRepo, accountRepo, doctorRepo, repRepo, productRepo, visitRepo,
+            FakeUnplannedSettingsRepo, savedStateHandle, session.manager, draftRepo, accountRepo, geoRepo, doctorRepo, repRepo, productRepo, visitRepo,
         )
 
     @Test
@@ -588,6 +595,41 @@ class PlanVisitViewModelTest {
     }
 
     @Test
+    fun `an account with one doctor selects it and hides the doctor card`() {
+        doctorRepo.setDoctors("a1", listOf(tarek))
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(place("مستشفى الجامعة")))
+        assertEquals(listOf("d2"), state.visit.doctors.map { it.id })
+        assertFalse(state.showDoctors)
+        fillEntityStep()
+        assertEquals(true, state.canGoNext)
+        assertEquals(1, state.requiredImages)
+    }
+
+    @Test
+    fun `an account with two doctors shows the card and selects none`() {
+        hospitalWithDoctors()
+        assertTrue(state.showDoctors)
+        assertEquals(emptyList<DoctorUi>(), state.visit.doctors)
+    }
+
+    @Test
+    fun `changing from a one doctor account to another selects the new doctor`() {
+        doctorRepo.setDoctors("a1", listOf(tarek))
+        doctorRepo.setDoctors("a2", listOf(yasmin))
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(place("مستشفى الجامعة")))
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(place("عيادة د. هاني")))
+        assertEquals(listOf("d1"), state.visit.doctors.map { it.id })
+    }
+
+    @Test
+    fun `removing the only doctor of a one doctor account is not offered, so the pick stays`() {
+        doctorRepo.setDoctors("a1", listOf(tarek))
+        viewModel.onEvent(PlanVisitEvents.SelectPlace(place("مستشفى الجامعة")))
+        viewModel.onEvent(PlanVisitEvents.RemoveDoctor("d2"))
+        assertEquals(listOf("d2"), state.visit.doctors.map { it.id })
+    }
+
+    @Test
     fun `step 1 needs a doctor only when the account has doctors`() {
         fillEntityStep()
         assertEquals(true, state.canGoNext)
@@ -611,8 +653,17 @@ class PlanVisitViewModelTest {
     }
 
     @Test
-    fun `options follow the stored data`() {
-        accountRepo.current.value = accountRepo.current.value + Account("a3", name = "مركز", city = m("الباجور"), district = m("x"), accountType = m("مركز طبي"), specialty = m("عظام"))
+    fun `districts follow the chosen city`() {
+        assertEquals(listOf("وسط البلد", "البر الشرقى"), state.districtOptions.map { it.name })
+        viewModel.onEvent(PlanVisitEvents.SelectCity(opt("قويسنا")))
+        assertEquals(listOf("البر الشرقى"), state.districtOptions.map { it.name })
+        viewModel.onEvent(PlanVisitEvents.SelectCity(opt("منوف")))
+        assertEquals(listOf("وسط البلد"), state.districtOptions.map { it.name })
+    }
+
+    @Test
+    fun `options follow the stored data`() = runTest(dispatcher) {
+        geoRepo.save(listOf(m("منوف"), m("قويسنا"), m("الباجور")), emptyList())
         assertTrue("الباجور" in state.cityOptions.map { it.name })
         repRepo.current.value = repRepo.current.value + Rep("s2", "د. وائل", role = RepRole.Supervisor)
         assertEquals(listOf("د. سارة أحمد", "د. وائل"), state.supervisorOptions.map { it.name })
@@ -780,10 +831,10 @@ class PlanVisitViewModelTest {
 
     @Test
     fun `confirm with empty list keeps sheet open and visit unchanged`() {
-        viewModel.onEvent(PlanVisitEvents.OpenAddItem(ProductType.Product))
+        viewModel.onEvent(PlanVisitEvents.OpenAddItem(ProductType.Sample))
         val before = state.visit
         viewModel.onEvent(PlanVisitEvents.ConfirmAddItems(emptyList()))
-        assertEquals(PlanVisitOverlay.AddItem(ProductType.Product), state.overlay)
+        assertEquals(PlanVisitOverlay.AddItem(ProductType.Sample), state.overlay)
         assertEquals(before, state.visit)
     }
 
@@ -804,10 +855,10 @@ class PlanVisitViewModelTest {
 
     @Test
     fun `decreasing to zero removes the row`() {
-        viewModel.onEvent(PlanVisitEvents.OpenAddItem(ProductType.Product))
+        viewModel.onEvent(PlanVisitEvents.OpenAddItem(ProductType.Sample))
         viewModel.onEvent(PlanVisitEvents.ConfirmAddItems(state.productCatalog))
         assertEquals(listOf("sample-1"), state.visit.products.map { it.id })
-        viewModel.onEvent(PlanVisitEvents.ChangeQuantity(ProductType.Product, "sample-1", -1))
+        viewModel.onEvent(PlanVisitEvents.ChangeQuantity(ProductType.Sample, "sample-1", -1))
         assertEquals(emptyList<String>(), state.visit.products.map { it.id })
     }
 

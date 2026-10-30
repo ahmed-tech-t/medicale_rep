@@ -1,5 +1,6 @@
 package com.example.medicalrep.data.seed
 
+import com.example.medicalrep.data.repo.GeoRepoImpl
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.medicalrep.data.repo.AccountRepoImpl
 import com.example.medicalrep.data.repo.DoctorRepoImpl
@@ -24,13 +25,15 @@ import org.junit.runner.RunWith
 class DebugSeederTest : RepoTestBase() {
 
     private val accounts get() = AccountRepoImpl(db.accountDao())
+    private val geo get() = GeoRepoImpl(db.geoDao())
     private val syncInfo get() = SyncInfoRepoImpl(db.syncInfoDao())
     private val seeder
         get() = DebugSeeder(
             RepRepoImpl(db.repDao()),
+            geo,
             accounts,
             DoctorRepoImpl(db.doctorDao()),
-            ProductRepoImpl(db.productDao(), db.custodyDao()),
+            ProductRepoImpl(db.catalogDao()),
             VisitRepoImpl(db.visitDao(), media),
             OrderRepoImpl(db.orderDao()),
             TrackPointRepoImpl(db.trackPointDao()),
@@ -45,7 +48,8 @@ class DebugSeederTest : RepoTestBase() {
         assertEquals(expected.visits.size, db.visitDao().getAll().first().size)
         assertEquals(expected.trackPoints.size, db.trackPointDao().getByRepAndDay("rep-1", 0, Long.MAX_VALUE).first().size + db.trackPointDao().getByRepAndDay("rep-2", 0, Long.MAX_VALUE).first().size + db.trackPointDao().getByRepAndDay("rep-3", 0, Long.MAX_VALUE).first().size)
         assertEquals(expected.orders.map { it.number }, db.orderDao().getAll().first().map { it.order.number }.sorted())
-        assertEquals(expected.accounts.mapNotNull { it.city?.name }.toSet().sorted(), accounts.cities().first().map { it.name })
+        assertEquals(expected.cities.map { it.name }.sorted(), geo.cities().first().map { it.name }.sorted())
+        assertEquals(expected.districts.size, geo.districts().first().size)
         seeder.seedIfEmpty(now = 1_792_000_000_000L + 1)
         assertEquals(expected.visits.size, db.visitDao().getAll().first().size)
     }

@@ -60,7 +60,7 @@ class SampleAndGiftsViewModelTest {
         collectItems()
         runCurrent()
         assertEquals(SampleAndGiftsTab.Samples, viewModel.state.value.selectedTab)
-        assertEquals(listOf<ProductType?>(ProductType.Product), repo.requestedKinds)
+        assertEquals(listOf(ProductType.Sample), repo.requestedKinds)
     }
 
     @Test
@@ -71,7 +71,7 @@ class SampleAndGiftsViewModelTest {
         runCurrent()
         viewModel.onEvent(SampleAndGiftsEvents.SelectTab(SampleAndGiftsTab.Samples))
         runCurrent()
-        assertEquals(listOf<ProductType?>(ProductType.Product, ProductType.Gift), repo.requestedKinds)
+        assertEquals(listOf(ProductType.Sample, ProductType.Gift), repo.requestedKinds)
     }
 
     @Test
@@ -84,12 +84,12 @@ class SampleAndGiftsViewModelTest {
     @Test
     fun `a tab that is not shown does not ask the repo`() = runTest(dispatcher) {
         collectItems()
-        assertEquals(listOf<ProductType?>(ProductType.Product), repo.requestedKinds)
+        assertEquals(listOf(ProductType.Sample), repo.requestedKinds)
     }
 
     @Test
     fun `tabs map to the custody kinds`() {
-        assertEquals(ProductType.Product, SampleAndGiftsTab.Samples.kind)
+        assertEquals(ProductType.Sample, SampleAndGiftsTab.Samples.kind)
         assertEquals(ProductType.Gift, SampleAndGiftsTab.Gifts.kind)
     }
 }

@@ -44,16 +44,13 @@ class FakeAccountRepo(initial: List<Account> = emptyList()) : AccountRepo {
         accounts.forEach { save(it) }
     }
 
-    override fun places(city: String?, district: String?, entityType: String?): Flow<List<Account>> = current.map { list ->
+    override fun places(cityId: String?, districtId: String?, entityType: String?): Flow<List<Account>> = current.map { list ->
         list.filter {
-            (city == null || it.city?.id == city) && (district == null || it.district?.id == district) &&
+            (cityId == null || it.city?.id == cityId) && (districtId == null || it.district?.id == districtId) &&
                 (entityType == null || it.accountType?.id == entityType)
         }
     }
 
-    override fun cities(): Flow<List<BasicModel>> = current.map { list -> list.mapNotNull { it.city }.distinct() }
-    override fun districts(): Flow<List<BasicModel>> = current.map { list -> list.mapNotNull { it.district }.distinct() }
-    override fun specialties(): Flow<List<BasicModel>> = current.map { list -> list.mapNotNull { it.specialty }.distinct() }
     override fun entityTypes(): Flow<List<BasicModel>> = current.map { list -> list.mapNotNull { it.accountType }.distinct() }
 
     override suspend fun notSynced(): List<Account> = emptyList()

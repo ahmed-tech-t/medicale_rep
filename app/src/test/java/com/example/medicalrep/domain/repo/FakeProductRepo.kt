@@ -19,8 +19,8 @@ class FakeProductRepo(
     /** The search text of every `products` call, in order. */
     val requestedQueries = mutableListOf<String>()
 
-    /** The kind of every `custody` call, in order (null = both). */
-    val requestedKinds = mutableListOf<ProductType?>()
+    /** The kind of every `custody` call, in order. */
+    val requestedKinds = mutableListOf<ProductType>()
 
     override fun products(query: String): Flow<PagingData<Product>> {
         requestedQueries += query
@@ -29,7 +29,7 @@ class FakeProductRepo(
 
     override suspend fun getProduct(id: String): Product? = productList.value.firstOrNull { it.id == id }
 
-    override suspend fun saveProducts(products: List<Product>) {
+    override suspend fun saveProducts(repId: String, products: List<Product>) {
         productList.value = products
     }
 
@@ -37,10 +37,10 @@ class FakeProductRepo(
         productList.value = productList.value.filter { it.id != id }
     }
 
-    override fun custody(query: String, kind: ProductType?): Flow<PagingData<Custody>> {
+    override fun custody(kind: ProductType, query: String): Flow<PagingData<Custody>> {
         requestedKinds += kind
         return custodyList.map { list ->
-            PagingData.from(list.filter { (kind == null || it.kind == kind) && it.name.contains(query, ignoreCase = true) })
+            PagingData.from(list.filter { it.kind == kind && it.name.contains(query, ignoreCase = true) })
         }
     }
 
@@ -48,7 +48,7 @@ class FakeProductRepo(
 
     override suspend fun getCustody(id: String): Custody? = custodyList.value.firstOrNull { it.id == id }
 
-    override suspend fun saveCustody(custody: List<Custody>) {
+    override suspend fun saveCustody(repId: String, custody: List<Custody>) {
         custodyList.value = custody
     }
 }

@@ -2,6 +2,7 @@ package com.example.medicalrep.data.seed
 
 import com.example.medicalrep.domain.repo.AccountRepo
 import com.example.medicalrep.domain.repo.DoctorRepo
+import com.example.medicalrep.domain.repo.GeoRepo
 import com.example.medicalrep.domain.repo.OrderRepo
 import com.example.medicalrep.domain.repo.ProductRepo
 import com.example.medicalrep.domain.repo.SyncInfoRepo
@@ -18,6 +19,7 @@ import javax.inject.Singleton
 @Singleton
 class DebugSeeder @Inject constructor(
     private val repRepo: RepRepo,
+    private val geoRepo: GeoRepo,
     private val accountRepo: AccountRepo,
     private val doctorRepo: DoctorRepo,
     private val productRepo: ProductRepo,
@@ -31,11 +33,13 @@ class DebugSeeder @Inject constructor(
         if (syncInfoRepo.get(SEED_KEY) != null) return
         val data = SeedDataFactory.build(now)
         // Order matters: visits and orders point at reps and accounts.
+        geoRepo.save(data.cities, data.districts)
         data.reps.forEach { repRepo.save(it) }
         data.accounts.forEach { accountRepo.save(it) }
         data.doctors.forEach { doctorRepo.save(it.doctor, it.accountIds) }
-        productRepo.saveProducts(data.products)
-        productRepo.saveCustody(data.custody)
+        val repId = data.reps.first().id
+        productRepo.saveProducts(repId, data.products)
+        productRepo.saveCustody(repId, data.custody)
         data.visits.forEach { visitRepo.save(it) }
         data.orders.forEach { orderRepo.save(it) }
         data.trackPoints.forEach { trackPointRepo.add(it) }
@@ -43,6 +47,6 @@ class DebugSeeder @Inject constructor(
     }
 
     companion object {
-        const val SEED_KEY = "debug_seed_v5"
+        const val SEED_KEY = "debug_seed_v6"
     }
 }

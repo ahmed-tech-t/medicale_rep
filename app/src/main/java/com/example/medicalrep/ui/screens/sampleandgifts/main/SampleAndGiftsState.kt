@@ -5,7 +5,7 @@ import com.example.medicalrep.domain.models.ProductType
 
 /** Samples are the custody of kind Product, gifts the custody of kind Gift. */
 enum class SampleAndGiftsTab(val kind: ProductType) {
-    Samples(ProductType.Product),
+    Samples(ProductType.Sample),
     Gifts(ProductType.Gift),
 }
 

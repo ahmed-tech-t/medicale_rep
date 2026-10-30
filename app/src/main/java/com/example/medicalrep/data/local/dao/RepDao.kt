@@ -36,7 +36,7 @@ abstract class RepDao : BaseDao<RepEntity> {
     @Query("DELETE FROM reps")
     abstract suspend fun clear()
 
-    @Query("UPDATE visits SET searchText = $VISIT_SEARCH_TEXT_SQL WHERE supervisorId = :userId")
+    @Query("UPDATE visits SET searchText = $VISIT_SEARCH_TEXT_SQL WHERE accompanyingRepId = :userId")
     abstract suspend fun refreshVisitSearchText(userId: String)
 
     @Query("UPDATE orders SET searchText = $ORDER_SEARCH_TEXT_SQL WHERE repId = :userId")

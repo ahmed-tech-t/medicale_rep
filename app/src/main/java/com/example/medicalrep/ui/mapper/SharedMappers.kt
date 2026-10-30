@@ -45,6 +45,7 @@ fun Visit.toUi(): VisitUi {
         travelSeconds = travelSeconds,
         noIssueFound = noIssueFound,
         imageNotes = imageNotes.map(Uri::parse),
+        doctors = doctors.map { it.toUi() },
         isDoubleVisit = visitMode == VisitMode.Double,
         type = type ?: VisitType.Planned,
         supervisor = supervisor?.toUi(),

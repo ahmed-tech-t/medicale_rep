@@ -9,6 +9,7 @@ import androidx.room.Transaction
 import com.example.medicalrep.data.local.entity.OrderEntity
 import com.example.medicalrep.data.local.entity.OrderItemEntity
 import com.example.medicalrep.data.local.relation.OrderWithDetails
+import com.example.medicalrep.domain.models.OrderStatus
 import com.example.medicalrep.domain.models.SyncStatus
 import kotlinx.coroutines.flow.Flow
 
@@ -86,6 +87,10 @@ abstract class OrderDao : BaseDao<OrderEntity> {
         refreshSearchText(order.id)
         return true
     }
+
+    /** Moves a pending order to Delivered or Cancelled; an answered order stays as it is. */
+    @Query("UPDATE orders SET status = :status WHERE id = :id AND status = 'Pending'")
+    abstract suspend fun setStatus(id: String, status: OrderStatus): Int
 
     /** The rep cancels an order that is not uploaded yet. */
     @Query("DELETE FROM orders WHERE id = :id AND syncStatus = 'NotSynced'")

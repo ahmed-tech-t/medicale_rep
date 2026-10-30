@@ -2,6 +2,7 @@ package com.example.medicalrep.data.local.mapper
 
 import com.example.medicalrep.data.local.entity.DraftVisitEntity
 import com.example.medicalrep.domain.models.BasicModel
+import com.example.medicalrep.domain.models.Doctor
 import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.Product
 import com.example.medicalrep.domain.models.ProductType
@@ -41,10 +42,14 @@ private data class DraftVisitJson(
     val travelSeconds: Int = 0,
     val gifts: List<DraftLineJson> = emptyList(),
     val products: List<DraftLineJson> = emptyList(),
+    val doctors: List<DraftDoctorJson> = emptyList(),
 )
 
 @Serializable
 private data class DraftOptionJson(val id: String, val name: String)
+
+@Serializable
+private data class DraftDoctorJson(val id: String, val name: String, val classCategory: DraftOptionJson? = null)
 
 @Serializable
 private data class DraftLineJson(
@@ -89,6 +94,7 @@ fun DraftVisit.toEntity(voiceNotePath: String?): DraftVisitEntity {
         travelSeconds = v.travelSeconds,
         gifts = v.gifts.orEmpty().map { it.toLine() },
         products = v.products.orEmpty().map { it.toLine() },
+        doctors = v.doctors.map { DraftDoctorJson(it.id, it.name, it.classCategory?.toJson()) },
     )
     return DraftVisitEntity(step = step, json = draftJson.encodeToString(form))
 }
@@ -127,6 +133,7 @@ fun DraftVisitEntity.toDomain(readVoice: (String) -> ByteArray?): DraftVisit {
             travelSeconds = form.travelSeconds,
             gifts = form.gifts.map { it.toProduct() },
             products = form.products.map { it.toProduct() },
+            doctors = form.doctors.map { Doctor(it.id, name = it.name, classCategory = it.classCategory?.toModel()) },
         ),
     )
 }

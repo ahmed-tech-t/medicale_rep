@@ -1,6 +1,7 @@
 package com.example.medicalrep.ui.mapper
 
 import com.example.medicalrep.ui.models.BasicModelUi
+import com.example.medicalrep.ui.models.DoctorUi
 import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.Product
 import com.example.medicalrep.domain.models.ProductType
@@ -23,7 +24,7 @@ class VisitUiMapperTest {
             shift = Shift.Pm, type = VisitType.Planned, isDoubleVisit = true, supervisor = BasicModelUi("s1", "Boss"), noIssueFound = false,
             visitLatitude = 1.0, visitLongitude = 2.0, travelSeconds = 30,
             gifts = listOf(ProductUi("g1", "Pen", 2, ProductType.Gift, 8, "")),
-            products = listOf(ProductUi("p1", "Drug", 1, ProductType.Product, 4, "", 50, 10)),
+            products = listOf(ProductUi("p1", "Drug", 1, ProductType.Sample, 4, "", 50, 10)),
         )
         val visit = ui.toDomain()
         assertEquals("v1", visit.id)
@@ -41,7 +42,7 @@ class VisitUiMapperTest {
     @Test
     fun `blank id gives no id and ui round trip keeps the lists`() {
         assertNull(VisitUi().toDomain().id)
-        val ui = VisitUi(id = "v", placeName = "x", gifts = listOf(ProductUi("g", "Pen", 1, ProductType.Gift, 5, "")))
+        val ui = VisitUi(id = "v", placeName = "x", doctors = listOf(DoctorUi("d1", "Dr. Ali", BasicModelUi("A", "A"))), gifts = listOf(ProductUi("g", "Pen", 1, ProductType.Gift, 5, "")))
         assertEquals(ui, ui.toDomain().toUi().copy(date = "", time = ""))
     }
 }

@@ -13,7 +13,9 @@ data class Product(
     val received: Int = 0,
 )
 
+/** A product for sale, or a sample or gift the rep carries. */
 enum class ProductType {
-    Gift,
     Product,
+    Sample,
+    Gift,
 }

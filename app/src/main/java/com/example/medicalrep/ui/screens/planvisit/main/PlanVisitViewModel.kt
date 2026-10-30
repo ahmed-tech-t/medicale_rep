@@ -18,6 +18,7 @@ import com.example.medicalrep.domain.models.VisitType
 import com.example.medicalrep.domain.models.WorkingTime
 import com.example.medicalrep.domain.models.lastLocation
 import com.example.medicalrep.domain.repo.AccountRepo
+import com.example.medicalrep.domain.repo.GeoRepo
 import com.example.medicalrep.domain.repo.DoctorRepo
 import com.example.medicalrep.domain.repo.DraftVisitRepo
 import com.example.medicalrep.domain.repo.ProductRepo
@@ -62,6 +63,7 @@ class PlanVisitViewModel @Inject constructor(
     private val session: AuthSessionManager,
     private val draftRepo: DraftVisitRepo,
     private val accountRepo: AccountRepo,
+    private val geoRepo: GeoRepo,
     private val doctorRepo: DoctorRepo,
     private val repRepo: RepRepo,
     productRepo: ProductRepo,
@@ -82,8 +84,7 @@ class PlanVisitViewModel @Inject constructor(
     init {
         visitId?.let(::loadPlannedVisit)
         if (resumeDraft) loadDraft()
-        collectInto(accountRepo.cities()) { state, cities -> state.copy(cityOptions = cities.map { it.toUi() }) }
-        collectInto(accountRepo.districts()) { state, districts -> state.copy(districtOptions = districts.map { it.toUi() }) }
+        collectInto(geoRepo.cities()) { state, cities -> state.copy(cityOptions = cities.map { it.toUi() }) }
         collectInto(accountRepo.entityTypes()) { state, types -> state.copy(entityTypeOptions = types.map { it.toUi() }) }
         viewModelScope.launch {
             repRepo.byRole(RepRole.Supervisor)
@@ -93,14 +94,24 @@ class PlanVisitViewModel @Inject constructor(
             state.copy(
                 giftCatalog = gifts.map { it.toCatalogItem() })
         }
-        collectInto(productRepo.custodyList(ProductType.Product)) { state, samples ->
+        collectInto(productRepo.custodyList(ProductType.Sample)) { state, samples ->
             state.copy(productCatalog = samples.map { it.toCatalogItem() })
+        }
+        viewModelScope.launch {
+            _state.map { it.visit.city?.id }
+                .distinctUntilChanged()
+                .flatMapLatest { cityId -> geoRepo.districts(cityId) }
+                .collect { districts -> _state.update { it.copy(districtOptions = districts.map { district -> district.toUi() }) } }
         }
         viewModelScope.launch {
             _state.map { it.visit.accountId }
                 .distinctUntilChanged()
                 .flatMapLatest { accountId -> if (accountId.isBlank()) flowOf(emptyList()) else doctorRepo.doctorsOf(accountId) }
-                .collect { doctors -> _state.update { it.copy(doctorOptions = doctors.map { doctor -> doctor.toUi() }) } }
+                .collect { doctors ->
+                    val options = doctors.map { doctor -> doctor.toUi() }
+                    // A place with a single doctor (a clinic) needs no choice: its doctor is the visit's doctor.
+                    _state.update { it.copy(doctorOptions = options, visit = if (options.size == 1) it.visit.copy(doctors = options) else it.visit) }
+                }
         }
         viewModelScope.launch {
             _state.map { PlaceFilter(it.visit.city?.id, it.visit.region?.id, it.visit.account?.id) }
@@ -167,13 +178,13 @@ class PlanVisitViewModel @Inject constructor(
             PlanVisitEvents.DiscardDraft -> discardDraftAndLeave()
             PlanVisitEvents.Next -> moveStep(forward = true)
             PlanVisitEvents.Previous -> moveStep(forward = false)
-            is PlanVisitEvents.SelectCity -> updateVisit { it.copy(city = event.value) }
+            is PlanVisitEvents.SelectCity -> updateVisit { it.copy(city = event.value, region = if (it.city == event.value) it.region else null) }
             is PlanVisitEvents.SelectDistrict -> updateVisit { it.copy(region = event.value) }
             is PlanVisitEvents.SelectEntityType -> updateVisit { it.copy(account = event.value) }
             is PlanVisitEvents.SelectPlace -> selectAccount(event.value)
             is PlanVisitEvents.SelectSupervisor -> updateVisit { it.copy(supervisor = event.value) }
             is PlanVisitEvents.SelectDoctors -> updateVisit { it.copy(doctors = event.doctors.distinctBy { doctor -> doctor.id }) }
-            is PlanVisitEvents.RemoveDoctor -> updateVisit { visit -> visit.copy(doctors = visit.doctors.filter { it.id != event.id }) }
+            is PlanVisitEvents.RemoveDoctor -> if (_state.value.showDoctors) updateVisit { visit -> visit.copy(doctors = visit.doctors.filter { it.id != event.id }) }
             is PlanVisitEvents.SelectShift -> updateVisit { it.copy(shift = event.shift) }
             is PlanVisitEvents.SelectDoubleVisit -> updateVisit { it.copy(isDoubleVisit = event.isDouble) }
             is PlanVisitEvents.OpenAddItem -> _state.update { it.copy(overlay = AddItem(event.kind)) }
@@ -428,12 +439,12 @@ class PlanVisitViewModel @Inject constructor(
 
     private fun VisitUi.itemsOf(kind: ProductType): List<ProductUi> = when (kind) {
         ProductType.Gift -> gifts
-        ProductType.Product -> products
+        else -> products
     }
 
     private fun VisitUi.withItems(kind: ProductType, items: List<ProductUi>): VisitUi =
         when (kind) {
             ProductType.Gift -> copy(gifts = items)
-            ProductType.Product -> copy(products = items)
+            else -> copy(products = items)
         }
 }

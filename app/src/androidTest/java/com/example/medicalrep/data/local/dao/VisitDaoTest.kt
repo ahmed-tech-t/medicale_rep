@@ -7,7 +7,8 @@ import org.junit.Assert.*
 import com.example.medicalrep.domain.models.RepRole
 import org.junit.Test
 import org.junit.runner.RunWith
-import com.example.medicalrep.data.local.entity.VisitCustodyEntity
+import com.example.medicalrep.data.local.entity.VisitDoctorEntity
+import com.example.medicalrep.data.local.entity.VisitItemEntity
 import com.example.medicalrep.data.local.search.normalizeSearch
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Shift
@@ -58,28 +59,41 @@ class VisitDaoTest : DaoTestBase() {
     @Test fun detailsCarryAccountSupervisorAndLines() = runBlocking {
         db.accountDao().save(account("a1", "Clinic"))
         db.repDao().save(rep("s", "Boss", RepRole.Supervisor))
-        db.custodyDao().insertAll(listOf(custody("c1", kind = ProductType.Gift), custody("c2", kind = ProductType.Product)))
-        dao.save(visit("v1", accountId = "a1", supervisorId = "s"), listOf(VisitCustodyEntity("v1", "c1", 2), VisitCustodyEntity("v1", "c2", 1)))
+        db.catalogDao().insertAll(listOf(custody("c1", kind = ProductType.Gift), custody("c2", kind = ProductType.Sample)))
+        dao.save(visit("v1", accountId = "a1", supervisorId = "s"), listOf(VisitItemEntity("v1", "c1", 2), VisitItemEntity("v1", "c2", 1)))
         val details = dao.getWithDetails("v1")!!
-        assertEquals("Clinic", details.account?.name)
+        assertEquals("Clinic", details.account?.account?.name)
         assertEquals("Boss", details.supervisor?.displayName)
-        assertEquals(setOf("c1", "c2"), details.custody.map { it.id }.toSet())
+        assertEquals(setOf("c1", "c2"), details.items.map { it.id }.toSet())
         assertEquals(3, details.lines.sumOf { it.quantity })
     }
 
+    @Test fun doctorsSeenAreSavedReplacedAndLinkedOnly() = runBlocking {
+        db.accountDao().save(account("a1"))
+        db.addDoctor("a1", id = "d1")
+        db.addDoctor("a1", id = "d2")
+        dao.save(visit("v1", accountId = "a1"), emptyList(), listOf(VisitDoctorEntity("v1", "d1"), VisitDoctorEntity("v1", "d2")))
+        assertEquals(setOf("d1", "d2"), dao.getWithDetails("v1")!!.doctors.map { it.id }.toSet())
+        dao.save(visit("v1", accountId = "a1"), emptyList(), listOf(VisitDoctorEntity("v1", "d2")))
+        assertEquals(listOf("d2"), dao.getWithDetails("v1")!!.doctors.map { it.id })
+        db.doctorDao().delete(db.doctorDao().getById("d2")!!)
+        assertTrue(dao.getWithDetails("v1")!!.doctors.isEmpty())
+        assertEquals("v1", dao.getWithDetails("v1")!!.visit.id)
+    }
+
     @Test fun replaceLinesAndCascadeDelete() = runBlocking {
-        db.custodyDao().insertAll(listOf(custody("c1"), custody("c2")))
-        dao.save(visit("v1"), listOf(VisitCustodyEntity("v1", "c1", 2)))
-        dao.replaceLines("v1", listOf(VisitCustodyEntity("v1", "c2", 5)))
-        assertEquals(listOf("c2"), dao.getWithDetails("v1")!!.lines.map { it.custodyId })
+        db.catalogDao().insertAll(listOf(custody("c1"), custody("c2")))
+        dao.save(visit("v1"), listOf(VisitItemEntity("v1", "c1", 2)))
+        dao.replaceLines("v1", listOf(VisitItemEntity("v1", "c2", 5)))
+        assertEquals(listOf("c2"), dao.getWithDetails("v1")!!.lines.map { it.itemId })
         dao.deleteById("v1")
         assertTrue(dao.getWithDetails("v1") == null)
     }
 
-    @Test fun replacingACustodyRowKeepsVisitLines() = runBlocking {
-        db.custodyDao().upsert(custody("c1", received = 10))
-        dao.save(visit("v1"), listOf(VisitCustodyEntity("v1", "c1", 2)))
-        db.custodyDao().upsert(custody("c1", received = 20))
+    @Test fun replacingACatalogRowKeepsVisitLines() = runBlocking {
+        db.catalogDao().upsert(custody("c1", "Pen"))
+        dao.save(visit("v1"), listOf(VisitItemEntity("v1", "c1", 2)))
+        db.catalogDao().upsert(custody("c1", "Cap"))
         assertEquals(1, dao.getWithDetails("v1")!!.lines.size)
     }
 
@@ -147,8 +161,10 @@ class VisitDaoTest : DaoTestBase() {
     }
 
     @Test fun requiredAndDoneListsUseTheCompletedTime() = runBlocking {
-        db.accountDao().save(account("a1", "A", classCategory = "A"))
-        db.accountDao().save(account("a2", "B", classCategory = "B"))
+        db.accountDao().save(account("a1", "A"))
+        db.accountDao().save(account("a2", "B"))
+        db.addDoctor("a1", classCategory = "A")
+        db.addDoctor("a2", classCategory = "B")
         dao.save(visit("todo-am", accountId = "a1", type = VisitType.Planned, dateTimeMillis = 100), emptyList())
         dao.save(visit("todo-pm", accountId = "a2", type = VisitType.Planned, shift = Shift.Pm, dateTimeMillis = 200), emptyList())
         dao.save(visit("done-planned", accountId = "a1", type = VisitType.Planned, status = VisitStatus.Completed, completedAtMillis = 300), emptyList())
@@ -202,8 +218,10 @@ class VisitDaoTest : DaoTestBase() {
     }
 
     @Test fun pendingRequestsAreFilteredByShiftAndClass() = runBlocking {
-        db.accountDao().save(account("a1", "A", classCategory = "A"))
-        db.accountDao().save(account("a2", "B", classCategory = "B"))
+        db.accountDao().save(account("a1", "A"))
+        db.accountDao().save(account("a2", "B"))
+        db.addDoctor("a1", classCategory = "A")
+        db.addDoctor("a2", classCategory = "B")
         dao.save(visit("am", accountId = "a1", type = VisitType.Planning, status = VisitStatus.PendingApproval, requestedAtMillis = 1), emptyList())
         dao.save(visit("pm", accountId = "a2", type = VisitType.Planning, status = VisitStatus.PendingApproval, requestedAtMillis = 2, shift = Shift.Pm), emptyList())
         assertEquals(2, dao.pendingFilteredCount(null, null).first())

@@ -1,5 +1,7 @@
 package com.example.medicalrep.domain.models
 
+enum class OrderStatus { Pending, Delivered, Cancelled }
+
 /** An order a rep takes for an account; it is sent to the server and no answer comes back. */
 data class Order(
     val id: String,
@@ -8,6 +10,9 @@ data class Order(
     val backendId: String? = null,
     val repId: String? = null,
     val accountId: String? = null,
+    /** The doctor who asked for it, when there is one. */
+    val doctorId: String? = null,
+    val status: OrderStatus = OrderStatus.Pending,
     /** Read from the account; null when the account was deleted. */
     val accountName: String? = null,
     val createdAtMillis: Long = 0L,

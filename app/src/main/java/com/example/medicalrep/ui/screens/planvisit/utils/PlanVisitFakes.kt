@@ -19,7 +19,7 @@ object PlanVisitFakes {
     )
 
     private fun product(id: String, name: String, quantity: Int, remaining: Int) = ProductUi(
-        id = id, name = name, quantity = quantity, kind = ProductType.Product, remaining = remaining, description = "",
+        id = id, name = name, quantity = quantity, kind = ProductType.Sample, remaining = remaining, description = "",
     )
 
     val giftCatalog: List<ProductUi> = listOf(

@@ -19,12 +19,15 @@ import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.WorkingTime
 import com.example.medicalrep.domain.models.GeoPoint
+import com.example.medicalrep.domain.models.District
 import com.example.medicalrep.domain.repo.FakeAccountRepo
+import com.example.medicalrep.domain.repo.FakeGeoRepo
 import com.example.medicalrep.domain.repo.FakeSession
 import com.appcore.core.ui.utils.document_picker.PickedDocument
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -45,9 +48,13 @@ class AddAccountViewModelTest {
     private val dispatcher = UnconfinedTestDispatcher()
     private val repo = FakeAccountRepo(
         listOf(
-            Account("a1", name = "عيادة د. محمود", city = BasicModel("منوف", "منوف"), district = BasicModel("وسط البلد", "وسط البلد"), accountType = BasicModel("عيادة", "عيادة"), specialty = BasicModel("باطنة", "باطنة")),
-            Account("a2", name = "صيدلية الشفاء", city = BasicModel("قويسنا", "قويسنا"), district = BasicModel("البر الشرقى", "البر الشرقى"), accountType = BasicModel("صيدلية", "صيدلية"), specialty = BasicModel("صيدلة", "صيدلة")),
+            Account("a1", name = "عيادة د. محمود", city = BasicModel("منوف", "منوف"), district = BasicModel("وسط البلد", "وسط البلد"), accountType = BasicModel("عيادة", "عيادة")),
+            Account("a2", name = "صيدلية الشفاء", city = BasicModel("قويسنا", "قويسنا"), district = BasicModel("البر الشرقى", "البر الشرقى"), accountType = BasicModel("صيدلية", "صيدلية")),
         ),
+    )
+    private val geo = FakeGeoRepo(
+        cities = listOf(BasicModel("c-minuf", "منوف"), BasicModel("c-qwesna", "قويسنا")),
+        districts = listOf(District("d-mid", "وسط البلد", "c-minuf"), District("d-east", "البر الشرقى", "c-qwesna")),
     )
     private val session = FakeSession().also { it.setLocation(GeoPoint(30.1, 31.2)) }
     private lateinit var viewModel: AddAccountViewModel
@@ -56,7 +63,7 @@ class AddAccountViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
-        viewModel = AddAccountViewModel(FakeSettingsRepo, repo, session.manager)
+        viewModel = AddAccountViewModel(FakeSettingsRepo, repo, geo, session.manager)
     }
 
     @After
@@ -68,25 +75,47 @@ class AddAccountViewModelTest {
         assertTrue(state.nameBlank)
         assertEquals(null, state.pin)
         assertEquals(null, state.signPhoto)
-        assertEquals(listOf("A", "B", "C"), state.classOptions)
         assertEquals(listOf("منوف", "قويسنا"), state.cityOptions)
         assertEquals(listOf("وسط البلد", "البر الشرقى"), state.districtOptions)
         assertEquals(listOf("عيادة", "صيدلية"), state.entityTypeOptions)
-        assertEquals(listOf("باطنة", "صيدلة"), state.specialtyOptions)
         assertEquals(30.1, state.userLocation.latitude, 0.0)
         assertFalse(state.canSave)
     }
 
     @Test
-    fun `options follow the stored accounts`() {
-        repo.current.value = repo.current.value + Account("a3", name = "مركز", city = BasicModel("الباجور", "الباجور"), district = BasicModel("x", "x"), accountType = BasicModel("مركز طبي", "مركز طبي"), specialty = BasicModel("عظام", "عظام"))
-        assertTrue("الباجور" in state.cityOptions)
+    fun `options follow the stored data`() = runTest(dispatcher) {
+        geo.save(listOf(BasicModel("c-bagour", "الباجور")), emptyList())
+        repo.current.value = repo.current.value + Account("a3", name = "مركز", accountType = BasicModel("مركز طبي", "مركز طبي"))
+        assertEquals(listOf("الباجور"), state.cityOptions)
         assertTrue("مركز طبي" in state.entityTypeOptions)
     }
 
     @Test
+    fun `districts follow the chosen city and changing the city clears the district`() {
+        assertEquals(listOf("وسط البلد", "البر الشرقى"), state.districtOptions)
+        viewModel.onEvent(AddAccountEvents.SelectCity("قويسنا"))
+        assertEquals(listOf("البر الشرقى"), state.districtOptions)
+        viewModel.onEvent(AddAccountEvents.SelectDistrict("البر الشرقى"))
+        viewModel.onEvent(AddAccountEvents.SelectCity("منوف"))
+        assertEquals("", state.district)
+        assertEquals(listOf("وسط البلد"), state.districtOptions)
+    }
+
+    @Test
+    fun `save needs a stored district`() = runTest(dispatcher) {
+        val events = collectEvents()
+        fillAllExceptName()
+        viewModel.onEvent(AddAccountEvents.SelectDistrict("غير موجود"))
+        state.name.edit { append("Dr Ali") }
+        viewModel.onEvent(AddAccountEvents.SignPhotoCaptured(PickedDocument(android.net.FakeUri(), "sign.png", 10L)))
+        viewModel.onEvent(AddAccountEvents.Save)
+        assertTrue(events.isEmpty())
+        assertEquals(2, repo.current.value.size)
+    }
+
+    @Test
     fun `without a location the map keeps its default start`() {
-        viewModel = AddAccountViewModel(FakeSettingsRepo, repo, FakeSession().manager)
+        viewModel = AddAccountViewModel(FakeSettingsRepo, repo, geo, FakeSession().manager)
         assertEquals(AddAccountState().userLocation, state.userLocation)
     }
 
@@ -100,7 +129,10 @@ class AddAccountViewModelTest {
         viewModel.onEvent(AddAccountEvents.Save)
         val saved = repo.current.value.single { it.name == "Dr Ali" }
         assertEquals(SyncStatus.NotSynced, saved.syncStatus)
-        assertEquals(listOf("c", "d", "e", "A", "s"), listOf(saved.city, saved.district, saved.accountType, saved.classCategory, saved.specialty).map { it?.name })
+        assertEquals(listOf("منوف", "وسط البلد", "e"), listOf(saved.city, saved.district, saved.accountType).map { it?.name })
+        assertNull(saved.classCategory)
+        assertNull(saved.specialty)
+        assertEquals(listOf("c-minuf", "d-mid"), listOf(saved.city?.id, saved.district?.id))
         assertEquals(30.0, saved.latitude, 0.0)
         assertEquals(31.0, saved.longitude, 0.0)
         assertTrue(saved.signPhoto != null)
@@ -120,10 +152,7 @@ class AddAccountViewModelTest {
         viewModel.onEvent(AddAccountEvents.SelectCity("c"))
         viewModel.onEvent(AddAccountEvents.SelectDistrict("d"))
         viewModel.onEvent(AddAccountEvents.SelectEntityType("e"))
-        viewModel.onEvent(AddAccountEvents.SelectClass("A"))
-        viewModel.onEvent(AddAccountEvents.SelectSpecialty("s"))
-        assertEquals(listOf("c", "d", "e", "A", "s"),
-            listOf(state.city, state.district, state.entityType, state.classCategory, state.specialty))
+        assertEquals(listOf("c", "d", "e"), listOf(state.city, state.district, state.entityType))
 
         viewModel.onEvent(AddAccountEvents.PinPlaced(30.0, 31.0))
         viewModel.onEvent(AddAccountEvents.PinPlaced(30.5, 31.5))
@@ -163,11 +192,9 @@ class AddAccountViewModelTest {
     }
 
     private fun fillAllExceptName() { // everything except the name and the photo
-        viewModel.onEvent(AddAccountEvents.SelectCity("c"))
-        viewModel.onEvent(AddAccountEvents.SelectDistrict("d"))
+        viewModel.onEvent(AddAccountEvents.SelectCity("منوف"))
+        viewModel.onEvent(AddAccountEvents.SelectDistrict("وسط البلد"))
         viewModel.onEvent(AddAccountEvents.SelectEntityType("e"))
-        viewModel.onEvent(AddAccountEvents.SelectClass("A"))
-        viewModel.onEvent(AddAccountEvents.SelectSpecialty("s"))
         viewModel.onEvent(AddAccountEvents.PinPlaced(30.0, 31.0))
     }
 

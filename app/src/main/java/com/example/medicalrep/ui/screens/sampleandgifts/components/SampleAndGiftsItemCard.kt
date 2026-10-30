@@ -53,7 +53,7 @@ fun SampleAndGiftsItemCard(
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.ExtraBold),
                     color = Slate900,
                 )
-                ReceivedDispatchedRow(received = item.received, dispatched = item.dispatched)
+                ReceivedDispatchedRow(received = item.received, dispatched = item.received - item.remaining)
             }
             NexoraChip(
                 text = stringResource(R.string.sample_and_gifts_pieces_format, item.remaining),

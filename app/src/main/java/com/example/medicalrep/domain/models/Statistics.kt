@@ -7,7 +7,7 @@ import kotlin.math.roundToInt
 @Immutable
 data class StockCount(val total: Int, val used: Int, val remaining: Int) {
     companion object {
-        /** What came in is the sum of what was received; what is left already loses what is in visits not uploaded yet. */
+        /** What came in is the sum of what was received; what is left already loses what the visits gave. */
         fun of(custody: List<Custody>): StockCount {
             val total = custody.sumOf(Custody::received)
             val remaining = custody.sumOf(Custody::remaining)

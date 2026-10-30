@@ -5,21 +5,17 @@ import com.example.medicalrep.domain.models.WorkingTime
 import com.example.medicalrep.ui.screens.planvisit.components.entity.SegmentOption
 import com.example.medicalrep.ui.screens.planvisit.components.entity.SegmentedChoiceRow
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
-import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.components.primitives.NexoraTextField
 import com.example.medicalrep.ui.components.widgets.LabelWrapperComponent
 import com.example.medicalrep.ui.components.widgets.SearchFieldComponent
@@ -29,7 +25,6 @@ import com.example.medicalrep.ui.screens.addaccount.main.AddAccountEvents
 import com.example.medicalrep.ui.screens.addaccount.main.AddAccountState
 import com.example.medicalrep.ui.screens.planvisit.components.StepCard
 import com.example.medicalrep.ui.screens.planvisit.components.StepCardTitle
-import com.example.medicalrep.ui.ui.theme.Slate500
 
 /** City and district. */
 @Composable
@@ -113,58 +108,18 @@ private fun WorkingTime.labelRes() = when (this) {
     WorkingTime.Both -> R.string.working_time_both
 }
 
-/** Class (select), name (typed) and specialty. */
+/** The place name, typed. */
 @Composable
 internal fun NameCard(state: AddAccountState, onEvent: (AddAccountEvents) -> Unit) {
-    var showSpecialtyPopup by remember { mutableStateOf(false) }
-
     StepCard {
-        Column(verticalArrangement = Arrangement.spacedBy(spacing.spaceExtraSmall)) {
-            StepCardTitle(stringResource(R.string.unplanned_section_place_specialty))
-            NexoraText(
-                text = stringResource(R.string.unplanned_place_list_hint),
-                style = MaterialTheme.typography.labelSmall,
-                color = Slate500,
-            )
-        }
         LabelWrapperComponent(
             title = stringResource(R.string.add_account_name_label),
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                SelectFieldComponent(
-                    value = state.classCategory,
-                    options = state.classOptions,
-                    onSelect = { onEvent(AddAccountEvents.SelectClass(it)) },
-                    placeholder = stringResource(R.string.add_account_class_placeholder),
-                    optionLabel = { stringResource(R.string.unplanned_class_format, it) },
-                    modifier = Modifier.weight(1f),
-                )
-                NexoraTextField(
-                    state = state.name,
-                    placeholder = stringResource(R.string.enter_place_name),
-                    modifier = Modifier.weight(2f),
-                )
-            }
-        }
-        LabelWrapperComponent(
-            title = stringResource(R.string.unplanned_specialty_select_hint),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            SearchFieldComponent(
+            NexoraTextField(
+                state = state.name,
+                placeholder = stringResource(R.string.enter_place_name),
                 modifier = Modifier.fillMaxWidth(),
-                value = state.specialty,
-                options = state.specialtyOptions.toSearchItems(),
-                onSelect = {
-                    onEvent(AddAccountEvents.SelectSpecialty(it.name))
-                    showSpecialtyPopup = false
-                },
-                placeholder = stringResource(R.string.enter_specialty),
-                showPopup = showSpecialtyPopup,
-                onClick = { showSpecialtyPopup = !showSpecialtyPopup }
             )
         }
     }

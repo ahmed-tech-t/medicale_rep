@@ -11,10 +11,15 @@ import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.repo.AccountRepo
+import com.example.medicalrep.domain.repo.GeoRepo
 import com.appcore.core.data.local.session.AuthSessionManager
 import com.example.medicalrep.domain.models.lastLocation
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,21 +28,36 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AddAccountViewModel @Inject constructor(
     appSettingsRepo: AppSettingsRepo,
     private val accountRepo: AccountRepo,
+    private val geoRepo: GeoRepo,
     session: AuthSessionManager,
 ) : BaseViewModel(appSettingsRepo) {
 
     private val _state = MutableStateFlow(AddAccountState())
     val state: StateFlow<AddAccountState> = _state.asStateFlow()
 
+    private var cities: List<BasicModel> = emptyList()
+    private var districts: List<BasicModel> = emptyList()
+
     init {
-        collectInto(accountRepo.cities()) { state, cities -> state.copy(cityOptions = cities.map { it.name }) }
-        collectInto(accountRepo.districts()) { state, districts -> state.copy(districtOptions = districts.map { it.name }) }
+        collectInto(geoRepo.cities()) { state, list ->
+            cities = list
+            state.copy(cityOptions = list.map { it.name })
+        }
+        viewModelScope.launch {
+            _state.map { form -> cities.firstOrNull { it.name == form.city }?.id }
+                .distinctUntilChanged()
+                .flatMapLatest { cityId -> geoRepo.districts(cityId) }
+                .collect { list ->
+                    districts = list
+                    _state.update { it.copy(districtOptions = list.map { district -> district.name }) }
+                }
+        }
         collectInto(accountRepo.entityTypes()) { state, types -> state.copy(entityTypeOptions = types.map { it.name }) }
-        collectInto(accountRepo.specialties()) { state, specialties -> state.copy(specialtyOptions = specialties.map { it.name }) }
         viewModelScope.launch {
             session.user.value.lastLocation?.let { location -> _state.update { it.copy(userLocation = location) } }
         }
@@ -50,11 +70,9 @@ class AddAccountViewModel @Inject constructor(
     fun onEvent(event: AddAccountEvents) {
         when (event) {
             AddAccountEvents.Back -> sendEvent(UiEvent.NavigationUp)
-            is AddAccountEvents.SelectCity -> _state.update { it.copy(city = event.value) }
+            is AddAccountEvents.SelectCity -> _state.update { if (it.city == event.value) it else it.copy(city = event.value, district = "") }
             is AddAccountEvents.SelectDistrict -> _state.update { it.copy(district = event.value) }
             is AddAccountEvents.SelectEntityType -> _state.update { it.copy(entityType = event.value) }
-            is AddAccountEvents.SelectClass -> _state.update { it.copy(classCategory = event.value) }
-            is AddAccountEvents.SelectSpecialty -> _state.update { it.copy(specialty = event.value) }
             is AddAccountEvents.SelectWorkingTime -> _state.update { it.copy(workingTime = event.value) }
             is AddAccountEvents.PinPlaced -> _state.update {
                 it.copy(pin = GeoPoint(event.latitude, event.longitude))
@@ -70,17 +88,17 @@ class AddAccountViewModel @Inject constructor(
     private fun save() {
         val form = _state.value
         val pin = form.pin
-        if (!form.canSave || pin == null) return
+        val city = cities.firstOrNull { it.name == form.city }
+        val district = districts.firstOrNull { it.name == form.district }
+        if (!form.canSave || pin == null || city == null || district == null) return
         viewModelScope.launch {
             accountRepo.save(
                 Account(
                     id = UUID.randomUUID().toString(),
                     name = form.name.text.toString().trim(),
                     accountType = form.entityType.toOption(),
-                    classCategory = form.classCategory.toOption(),
-                    specialty = form.specialty.toOption(),
-                    city = form.city.toOption(),
-                    district = form.district.toOption(),
+                    city = city,
+                    district = district,
                     workingTime = form.workingTime,
                     latitude = pin.latitude,
                     longitude = pin.longitude,

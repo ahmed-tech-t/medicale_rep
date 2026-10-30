@@ -17,8 +17,14 @@ import com.example.medicalrep.domain.models.SyncStatus
             childColumns = ["supervisorId"],
             onDelete = ForeignKey.SET_NULL,
         ),
+        ForeignKey(
+            entity = DistrictEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["districtId"],
+            onDelete = ForeignKey.SET_NULL,
+        ),
     ],
-    indices = [Index("supervisorId"), Index("backendId"), Index("syncStatus"), Index("accountType")],
+    indices = [Index("districtId"), Index("supervisorId"), Index("backendId"), Index("syncStatus"), Index("accountType")],
 )
 data class AccountEntity(
     @PrimaryKey val id: String,
@@ -26,10 +32,8 @@ data class AccountEntity(
     val supervisorId: String?,
     val name: String,
     val entityType: String,
-    val classCategory: String,
-    val specialty: String,
-    val city: String,
-    val district: String,
+    /** The district the account is in; its city comes from the district. */
+    val districtId: String?,
     val address: String,
     val latitude: Double,
     val longitude: Double,

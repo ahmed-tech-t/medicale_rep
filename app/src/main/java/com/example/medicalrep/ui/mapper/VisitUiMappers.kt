@@ -26,7 +26,7 @@ fun VisitUi.toDomain() = Visit(
     classCategory = classCategory?.toDomain(),
     gifts = gifts.map { it.toDomain() },
     products = products.map { it.toDomain() },
-    // TODO(room): store the picked doctors with the visit (a visit_doctors link) and the draft.
+    doctors = doctors.map { it.toDomain() },
     voiceNote = voiceNote,
     imageNotes = imageNotes.map { it.toString() },
     noIssueFound = noIssueFound,

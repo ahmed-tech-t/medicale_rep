@@ -28,7 +28,7 @@ class DraftVisitMapperTest {
         visitMode = VisitMode.Double, noIssueFound = false, imageNotes = listOf("content://img/1"),
         visitLatitude = 1.5, visitLongitude = 2.5, accountLatitude = 3.5, accountLongitude = 4.5, travelSeconds = 90,
         gifts = listOf(Product("g1", "Pen", 2, ProductType.Gift, "Blue", 8, 0, 0)),
-        products = listOf(Product("p1", "Drug", 1, ProductType.Product, "", 4, 50, 10)),
+        products = listOf(Product("p1", "Drug", 1, ProductType.Sample, "", 4, 50, 10)),
     )
 
     @Test

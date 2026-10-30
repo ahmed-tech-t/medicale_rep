@@ -3,15 +3,15 @@ package com.example.medicalrep.domain.models
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-/** A stock sums what came in; what is left also loses what went out and what is in visits not uploaded yet; used is the rest. */
+/** A stock sums what came in; what is left already loses what the visits gave; used is the rest. */
 class StockCountTest {
 
     @Test
-    fun `used is what came in minus what is left, pending included`() {
+    fun `used is what came in minus what is left`() {
         val stock = StockCount.of(
             listOf(
-                Custody("c1", "Pen", received = 150, dispatched = 100, pending = 10),
-                Custody("c2", "Cap", received = 100, dispatched = 50, pending = 5),
+                Custody("c1", "Pen", received = 150, remaining = 40),
+                Custody("c2", "Cap", received = 100, remaining = 45),
             ),
         )
         assertEquals(StockCount(total = 250, used = 165, remaining = 85), stock)

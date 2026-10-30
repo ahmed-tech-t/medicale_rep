@@ -3,6 +3,7 @@ package com.example.medicalrep.data.repo
 import com.example.medicalrep.data.local.dao.VisitDao
 import com.example.medicalrep.data.local.mapper.toDomain
 import com.example.medicalrep.data.local.mapper.toEntity
+import com.example.medicalrep.data.local.mapper.toDoctorLinks
 import com.example.medicalrep.data.local.mapper.toLines
 import com.example.medicalrep.data.local.media.MediaFileStorage
 import com.example.medicalrep.data.local.search.normalizeSearch
@@ -71,7 +72,7 @@ class VisitRepoImpl @Inject constructor(
         val id = requireNotNull(visit.id) { "A stored visit needs an id" }
         val voiceNotePath = visit.voiceNote?.let { media.save("voice_$id.m4a", it) } ?: visit.voiceNotePath
         val imageNotes = visit.imageNotes.mapIndexed { index, uri -> media.copy("image_${id}_$index.jpg", uri) }
-        dao.save(visit.copy(voiceNotePath = voiceNotePath, imageNotes = imageNotes).toEntity(), visit.toLines())
+        dao.save(visit.copy(voiceNotePath = voiceNotePath, imageNotes = imageNotes).toEntity(), visit.toLines(), visit.toDoctorLinks())
     }
 
     override suspend fun delete(id: String) {

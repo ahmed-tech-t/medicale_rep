@@ -42,20 +42,19 @@ class AccountRepoTest : RepoTestBase() {
     }
 
     @Test fun placesAreFilteredByCityDistrictAndTypeWithBlankMeaningAny() = runTest {
-        repo.save(Account("1", name = "أ", city = BasicModel("منوف", "منوف"), district = BasicModel("وسط البلد", "وسط البلد"), accountType = BasicModel("عيادة", "عيادة")))
-        repo.save(Account("2", name = "ب", city = BasicModel("منوف", "منوف"), district = BasicModel("البر الشرقى", "البر الشرقى"), accountType = BasicModel("صيدلية", "صيدلية")))
-        repo.save(Account("3", name = "ج", city = BasicModel("قويسنا", "قويسنا"), district = BasicModel("وسط البلد", "وسط البلد"), accountType = BasicModel("عيادة", "عيادة")))
+        val minuf = BasicModel("c1", "منوف")
+        val qwesna = BasicModel("c2", "قويسنا")
+        val center = BasicModel("d1", "وسط البلد")
+        val east = BasicModel("d2", "البر الشرقى")
+        val centerOfQwesna = BasicModel("d3", "وسط البلد")
+        GeoRepoImpl(db.geoDao()).save(listOf(minuf, qwesna), listOf(District("d1", "وسط البلد", "c1"), District("d2", "البر الشرقى", "c1"), District("d3", "وسط البلد", "c2")))
+        repo.save(Account("1", name = "أ", city = minuf, district = center, accountType = BasicModel("عيادة", "عيادة")))
+        repo.save(Account("2", name = "ب", city = minuf, district = east, accountType = BasicModel("صيدلية", "صيدلية")))
+        repo.save(Account("3", name = "ج", city = qwesna, district = centerOfQwesna, accountType = BasicModel("عيادة", "عيادة")))
         assertEquals(3, repo.places().first().size)
-        assertEquals(listOf("أ", "ب"), repo.places(city = "منوف").first().map { it.name })
-        assertEquals(listOf("أ"), repo.places("منوف", "وسط البلد", "عيادة").first().map { it.name })
-        assertEquals(emptyList<String>(), repo.places("قويسنا", "", "صيدلية").first().map { it.name })
-    }
-
-    @Test fun distinctValues() = runTest {
-        repo.save(Account("1", name = "a", city = BasicModel("Cairo", "Cairo"), specialty = BasicModel("Cardio", "Cardio")))
-        repo.save(Account("2", name = "b", city = BasicModel("Cairo", "Cairo")))
-        assertEquals(listOf("Cairo"), repo.cities().first())
-        assertEquals(listOf("Cardio"), repo.specialties().first())
+        assertEquals(listOf("أ", "ب"), repo.places(cityId = "c1").first().map { it.name })
+        assertEquals(listOf("أ"), repo.places("c1", "d1", "عيادة").first().map { it.name })
+        assertEquals(emptyList<String>(), repo.places("c2", "", "صيدلية").first().map { it.name })
     }
 
     @Test fun downloadDoesNotOverwriteLocalEdits() = runTest {

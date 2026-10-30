@@ -5,11 +5,11 @@ import com.example.medicalrep.domain.models.ProductType
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-/** A custody row becomes a catalog item with quantity 1 and what is left in custody (pending included). */
+/** A custody row becomes a catalog item with quantity 1 and what is left in custody. */
 class CatalogItemTest {
     @Test
     fun `custody becomes a catalog item`() {
-        val item = Custody("c1", "Pen", ProductType.Gift, "Blue", received = 10, dispatched = 3, pending = 2).toCatalogItem()
+        val item = Custody("c1", "Pen", ProductType.Gift, "Blue", received = 10, remaining = 5).toCatalogItem()
         assertEquals("c1", item.id)
         assertEquals("Pen", item.name)
         assertEquals(ProductType.Gift, item.kind)

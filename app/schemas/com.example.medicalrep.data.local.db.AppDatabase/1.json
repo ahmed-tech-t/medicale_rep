@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "6d90a13214df9e10b8a828ced6d10387",
+    "identityHash": "ed624978a085440a6c96a2c50939e178",
     "entities": [
       {
         "tableName": "reps",
@@ -91,8 +91,146 @@
         ]
       },
       {
+        "tableName": "cities",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "districts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `cityId` TEXT NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`cityId`) REFERENCES `cities`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cityId",
+            "columnName": "cityId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_districts_cityId",
+            "unique": false,
+            "columnNames": [
+              "cityId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_districts_cityId` ON `${TABLE_NAME}` (`cityId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "cities",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "cityId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "user_districts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`repId` TEXT NOT NULL, `districtId` TEXT NOT NULL, PRIMARY KEY(`repId`, `districtId`), FOREIGN KEY(`repId`) REFERENCES `reps`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`districtId`) REFERENCES `districts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "repId",
+            "columnName": "repId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "districtId",
+            "columnName": "districtId",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "repId",
+            "districtId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_user_districts_districtId",
+            "unique": false,
+            "columnNames": [
+              "districtId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_user_districts_districtId` ON `${TABLE_NAME}` (`districtId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "reps",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "repId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "districts",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "districtId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
         "tableName": "accounts",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `backendId` TEXT, `supervisorId` TEXT, `name` TEXT NOT NULL, `entityType` TEXT NOT NULL, `classCategory` TEXT NOT NULL, `specialty` TEXT NOT NULL, `city` TEXT NOT NULL, `district` TEXT NOT NULL, `address` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `syncStatus` TEXT NOT NULL, `signPhoto` TEXT, `createdAt` INTEGER NOT NULL, `accountType` TEXT, `searchText` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`supervisorId`) REFERENCES `reps`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `backendId` TEXT, `supervisorId` TEXT, `name` TEXT NOT NULL, `entityType` TEXT NOT NULL, `districtId` TEXT, `address` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `syncStatus` TEXT NOT NULL, `signPhoto` TEXT, `createdAt` INTEGER NOT NULL, `accountType` TEXT, `workingTime` TEXT NOT NULL DEFAULT 'Both', `searchText` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`supervisorId`) REFERENCES `reps`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`districtId`) REFERENCES `districts`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
         "fields": [
           {
             "fieldPath": "id",
@@ -123,28 +261,9 @@
             "notNull": true
           },
           {
-            "fieldPath": "classCategory",
-            "columnName": "classCategory",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "specialty",
-            "columnName": "specialty",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "city",
-            "columnName": "city",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "district",
-            "columnName": "district",
-            "affinity": "TEXT",
-            "notNull": true
+            "fieldPath": "districtId",
+            "columnName": "districtId",
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "address",
@@ -187,6 +306,13 @@
             "affinity": "TEXT"
           },
           {
+            "fieldPath": "workingTime",
+            "columnName": "workingTime",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'Both'"
+          },
+          {
             "fieldPath": "searchText",
             "columnName": "searchText",
             "affinity": "TEXT",
@@ -200,6 +326,15 @@
           ]
         },
         "indices": [
+          {
+            "name": "index_accounts_districtId",
+            "unique": false,
+            "columnNames": [
+              "districtId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_accounts_districtId` ON `${TABLE_NAME}` (`districtId`)"
+          },
           {
             "name": "index_accounts_supervisorId",
             "unique": false,
@@ -248,12 +383,23 @@
             "referencedColumns": [
               "id"
             ]
+          },
+          {
+            "table": "districts",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "districtId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
           }
         ]
       },
       {
-        "tableName": "products",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL, `price` INTEGER NOT NULL, `discountPercent` INTEGER NOT NULL, `quantity` INTEGER NOT NULL, `searchText` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "tableName": "doctors",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `backendId` TEXT, `name` TEXT NOT NULL, `classCategory` TEXT NOT NULL, `specialty` TEXT NOT NULL, `syncStatus` TEXT NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -262,38 +408,31 @@
             "notNull": true
           },
           {
+            "fieldPath": "backendId",
+            "columnName": "backendId",
+            "affinity": "TEXT"
+          },
+          {
             "fieldPath": "name",
             "columnName": "name",
             "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "description",
-            "columnName": "description",
+            "fieldPath": "classCategory",
+            "columnName": "classCategory",
             "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "price",
-            "columnName": "price",
-            "affinity": "INTEGER",
+            "fieldPath": "specialty",
+            "columnName": "specialty",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "discountPercent",
-            "columnName": "discountPercent",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "quantity",
-            "columnName": "quantity",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "searchText",
-            "columnName": "searchText",
+            "fieldPath": "syncStatus",
+            "columnName": "syncStatus",
             "affinity": "TEXT",
             "notNull": true
           }
@@ -303,11 +442,91 @@
           "columnNames": [
             "id"
           ]
-        }
+        },
+        "indices": [
+          {
+            "name": "index_doctors_backendId",
+            "unique": false,
+            "columnNames": [
+              "backendId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_doctors_backendId` ON `${TABLE_NAME}` (`backendId`)"
+          },
+          {
+            "name": "index_doctors_syncStatus",
+            "unique": false,
+            "columnNames": [
+              "syncStatus"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_doctors_syncStatus` ON `${TABLE_NAME}` (`syncStatus`)"
+          }
+        ]
       },
       {
-        "tableName": "custody",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `kind` TEXT NOT NULL, `description` TEXT NOT NULL, `received` INTEGER NOT NULL, `dispatched` INTEGER NOT NULL, `searchText` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "tableName": "account_doctors",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`accountId` TEXT NOT NULL, `doctorId` TEXT NOT NULL, PRIMARY KEY(`accountId`, `doctorId`), FOREIGN KEY(`accountId`) REFERENCES `accounts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`doctorId`) REFERENCES `doctors`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "accountId",
+            "columnName": "accountId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "doctorId",
+            "columnName": "doctorId",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "accountId",
+            "doctorId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_account_doctors_doctorId",
+            "unique": false,
+            "columnNames": [
+              "doctorId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_account_doctors_doctorId` ON `${TABLE_NAME}` (`doctorId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "accounts",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "accountId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "doctors",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "doctorId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "catalog_items",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL, `type` TEXT NOT NULL, `price` INTEGER, `discountPercent` INTEGER NOT NULL, `searchText` TEXT NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -322,26 +541,25 @@
             "notNull": true
           },
           {
-            "fieldPath": "kind",
-            "columnName": "kind",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
             "fieldPath": "description",
             "columnName": "description",
             "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "received",
-            "columnName": "received",
-            "affinity": "INTEGER",
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "dispatched",
-            "columnName": "dispatched",
+            "fieldPath": "price",
+            "columnName": "price",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "discountPercent",
+            "columnName": "discountPercent",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -360,19 +578,91 @@
         },
         "indices": [
           {
-            "name": "index_custody_kind",
+            "name": "index_catalog_items_type",
             "unique": false,
             "columnNames": [
-              "kind"
+              "type"
             ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_custody_kind` ON `${TABLE_NAME}` (`kind`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_catalog_items_type` ON `${TABLE_NAME}` (`type`)"
+          }
+        ]
+      },
+      {
+        "tableName": "user_inventory",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`repId` TEXT NOT NULL, `itemId` TEXT NOT NULL, `original` INTEGER NOT NULL, `current` INTEGER NOT NULL, PRIMARY KEY(`repId`, `itemId`), FOREIGN KEY(`repId`) REFERENCES `reps`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`itemId`) REFERENCES `catalog_items`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "repId",
+            "columnName": "repId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "itemId",
+            "columnName": "itemId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "original",
+            "columnName": "original",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "current",
+            "columnName": "current",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "repId",
+            "itemId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_user_inventory_itemId",
+            "unique": false,
+            "columnNames": [
+              "itemId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_user_inventory_itemId` ON `${TABLE_NAME}` (`itemId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "reps",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "repId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "catalog_items",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "itemId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
           }
         ]
       },
       {
         "tableName": "visits",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `backendId` TEXT, `repId` TEXT, `supervisorId` TEXT, `accountId` TEXT, `dateTimeMillis` INTEGER NOT NULL, `shift` TEXT NOT NULL, `type` TEXT NOT NULL, `visitMode` TEXT NOT NULL, `visitLatitude` REAL NOT NULL, `visitLongitude` REAL NOT NULL, `travelSeconds` INTEGER NOT NULL, `noIssueFound` INTEGER NOT NULL, `imageNote` TEXT, `voiceNotePath` TEXT, `syncStatus` TEXT NOT NULL, `durationLabel` TEXT NOT NULL, `status` TEXT NOT NULL, `requestedAtMillis` INTEGER, `decidedAtMillis` INTEGER, `completedAtMillis` INTEGER, `searchText` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`supervisorId`) REFERENCES `reps`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`accountId`) REFERENCES `accounts`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `backendId` TEXT, `repId` TEXT, `accompanyingRepId` TEXT, `accountId` TEXT, `dateTimeMillis` INTEGER NOT NULL, `shift` TEXT NOT NULL, `type` TEXT NOT NULL, `visitMode` TEXT NOT NULL, `visitLatitude` REAL NOT NULL, `visitLongitude` REAL NOT NULL, `travelSeconds` INTEGER NOT NULL, `noIssueFound` INTEGER NOT NULL, `imageNotes` TEXT NOT NULL, `voiceNotePath` TEXT, `syncStatus` TEXT NOT NULL, `durationLabel` TEXT NOT NULL, `approvalStatus` TEXT NOT NULL, `executionStatus` TEXT NOT NULL, `cancelReason` TEXT, `textNote` TEXT, `requestId` TEXT, `requestedAtMillis` INTEGER, `decidedAtMillis` INTEGER, `completedAtMillis` INTEGER, `searchText` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`accompanyingRepId`) REFERENCES `reps`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`accountId`) REFERENCES `accounts`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
         "fields": [
           {
             "fieldPath": "id",
@@ -391,8 +681,8 @@
             "affinity": "TEXT"
           },
           {
-            "fieldPath": "supervisorId",
-            "columnName": "supervisorId",
+            "fieldPath": "accompanyingRepId",
+            "columnName": "accompanyingRepId",
             "affinity": "TEXT"
           },
           {
@@ -449,9 +739,10 @@
             "notNull": true
           },
           {
-            "fieldPath": "imageNote",
-            "columnName": "imageNote",
-            "affinity": "TEXT"
+            "fieldPath": "imageNotes",
+            "columnName": "imageNotes",
+            "affinity": "TEXT",
+            "notNull": true
           },
           {
             "fieldPath": "voiceNotePath",
@@ -471,10 +762,31 @@
             "notNull": true
           },
           {
-            "fieldPath": "status",
-            "columnName": "status",
+            "fieldPath": "approvalStatus",
+            "columnName": "approvalStatus",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "executionStatus",
+            "columnName": "executionStatus",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cancelReason",
+            "columnName": "cancelReason",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "textNote",
+            "columnName": "textNote",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "requestId",
+            "columnName": "requestId",
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "requestedAtMillis",
@@ -515,13 +827,13 @@
             "createSql": "CREATE INDEX IF NOT EXISTS `index_visits_repId` ON `${TABLE_NAME}` (`repId`)"
           },
           {
-            "name": "index_visits_supervisorId",
+            "name": "index_visits_accompanyingRepId",
             "unique": false,
             "columnNames": [
-              "supervisorId"
+              "accompanyingRepId"
             ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_visits_supervisorId` ON `${TABLE_NAME}` (`supervisorId`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_visits_accompanyingRepId` ON `${TABLE_NAME}` (`accompanyingRepId`)"
           },
           {
             "name": "index_visits_accountId",
@@ -569,13 +881,22 @@
             "createSql": "CREATE INDEX IF NOT EXISTS `index_visits_syncStatus` ON `${TABLE_NAME}` (`syncStatus`)"
           },
           {
-            "name": "index_visits_status",
+            "name": "index_visits_approvalStatus",
             "unique": false,
             "columnNames": [
-              "status"
+              "approvalStatus"
             ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_visits_status` ON `${TABLE_NAME}` (`status`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_visits_approvalStatus` ON `${TABLE_NAME}` (`approvalStatus`)"
+          },
+          {
+            "name": "index_visits_executionStatus",
+            "unique": false,
+            "columnNames": [
+              "executionStatus"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_visits_executionStatus` ON `${TABLE_NAME}` (`executionStatus`)"
           },
           {
             "name": "index_visits_completedAtMillis",
@@ -593,7 +914,7 @@
             "onDelete": "SET NULL",
             "onUpdate": "NO ACTION",
             "columns": [
-              "supervisorId"
+              "accompanyingRepId"
             ],
             "referencedColumns": [
               "id"
@@ -613,8 +934,8 @@
         ]
       },
       {
-        "tableName": "visit_custody",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`visitId` TEXT NOT NULL, `custodyId` TEXT NOT NULL, `quantity` INTEGER NOT NULL, PRIMARY KEY(`visitId`, `custodyId`), FOREIGN KEY(`visitId`) REFERENCES `visits`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "tableName": "visit_items",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`visitId` TEXT NOT NULL, `itemId` TEXT NOT NULL, `quantity` INTEGER NOT NULL, PRIMARY KEY(`visitId`, `itemId`), FOREIGN KEY(`visitId`) REFERENCES `visits`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "visitId",
@@ -623,8 +944,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "custodyId",
-            "columnName": "custodyId",
+            "fieldPath": "itemId",
+            "columnName": "itemId",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -639,18 +960,18 @@
           "autoGenerate": false,
           "columnNames": [
             "visitId",
-            "custodyId"
+            "itemId"
           ]
         },
         "indices": [
           {
-            "name": "index_visit_custody_custodyId",
+            "name": "index_visit_items_itemId",
             "unique": false,
             "columnNames": [
-              "custodyId"
+              "itemId"
             ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_visit_custody_custodyId` ON `${TABLE_NAME}` (`custodyId`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_visit_items_itemId` ON `${TABLE_NAME}` (`itemId`)"
           }
         ],
         "foreignKeys": [
@@ -660,6 +981,66 @@
             "onUpdate": "NO ACTION",
             "columns": [
               "visitId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "visit_doctors",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`visitId` TEXT NOT NULL, `doctorId` TEXT NOT NULL, PRIMARY KEY(`visitId`, `doctorId`), FOREIGN KEY(`visitId`) REFERENCES `visits`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`doctorId`) REFERENCES `doctors`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "visitId",
+            "columnName": "visitId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "doctorId",
+            "columnName": "doctorId",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "visitId",
+            "doctorId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_visit_doctors_doctorId",
+            "unique": false,
+            "columnNames": [
+              "doctorId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_visit_doctors_doctorId` ON `${TABLE_NAME}` (`doctorId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "visits",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "visitId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "doctors",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "doctorId"
             ],
             "referencedColumns": [
               "id"
@@ -699,7 +1080,7 @@
       },
       {
         "tableName": "orders",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `backendId` TEXT, `repId` TEXT, `accountId` TEXT, `createdAtMillis` INTEGER NOT NULL, `syncStatus` TEXT NOT NULL, `number` INTEGER NOT NULL, `searchText` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`accountId`) REFERENCES `accounts`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `backendId` TEXT, `repId` TEXT, `accountId` TEXT, `createdAtMillis` INTEGER NOT NULL, `syncStatus` TEXT NOT NULL, `doctorId` TEXT, `status` TEXT NOT NULL, `totalAmount` REAL NOT NULL, `number` INTEGER NOT NULL, `searchText` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`accountId`) REFERENCES `accounts`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`doctorId`) REFERENCES `doctors`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
         "fields": [
           {
             "fieldPath": "id",
@@ -732,6 +1113,23 @@
             "fieldPath": "syncStatus",
             "columnName": "syncStatus",
             "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "doctorId",
+            "columnName": "doctorId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalAmount",
+            "columnName": "totalAmount",
+            "affinity": "REAL",
             "notNull": true
           },
           {
@@ -773,6 +1171,15 @@
             "createSql": "CREATE INDEX IF NOT EXISTS `index_orders_accountId` ON `${TABLE_NAME}` (`accountId`)"
           },
           {
+            "name": "index_orders_doctorId",
+            "unique": false,
+            "columnNames": [
+              "doctorId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_orders_doctorId` ON `${TABLE_NAME}` (`doctorId`)"
+          },
+          {
             "name": "index_orders_createdAtMillis",
             "unique": false,
             "columnNames": [
@@ -798,6 +1205,17 @@
             "onUpdate": "NO ACTION",
             "columns": [
               "accountId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "doctors",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "doctorId"
             ],
             "referencedColumns": [
               "id"
@@ -1002,11 +1420,209 @@
             "key"
           ]
         }
+      },
+      {
+        "tableName": "rep_requests",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `repId` TEXT NOT NULL, `dateMillis` INTEGER NOT NULL, `category` TEXT NOT NULL, `subType` TEXT NOT NULL, `shift` TEXT, `status` TEXT NOT NULL, `notes` TEXT NOT NULL, `createdAtMillis` INTEGER NOT NULL, `decidedAtMillis` INTEGER, PRIMARY KEY(`id`), FOREIGN KEY(`repId`) REFERENCES `reps`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repId",
+            "columnName": "repId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dateMillis",
+            "columnName": "dateMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "category",
+            "columnName": "category",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subType",
+            "columnName": "subType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "shift",
+            "columnName": "shift",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtMillis",
+            "columnName": "createdAtMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "decidedAtMillis",
+            "columnName": "decidedAtMillis",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_rep_requests_repId_dateMillis",
+            "unique": false,
+            "columnNames": [
+              "repId",
+              "dateMillis"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_rep_requests_repId_dateMillis` ON `${TABLE_NAME}` (`repId`, `dateMillis`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "reps",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "repId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "notifications",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `repId` TEXT NOT NULL, `title` TEXT NOT NULL, `message` TEXT NOT NULL, `type` TEXT NOT NULL, `isRead` INTEGER NOT NULL, `createdAtMillis` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`repId`) REFERENCES `reps`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repId",
+            "columnName": "repId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "message",
+            "columnName": "message",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isRead",
+            "columnName": "isRead",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtMillis",
+            "columnName": "createdAtMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_notifications_repId_createdAtMillis",
+            "unique": false,
+            "columnNames": [
+              "repId",
+              "createdAtMillis"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_notifications_repId_createdAtMillis` ON `${TABLE_NAME}` (`repId`, `createdAtMillis`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "reps",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "repId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "system_settings",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`key` TEXT NOT NULL, `value` TEXT NOT NULL, PRIMARY KEY(`key`))",
+        "fields": [
+          {
+            "fieldPath": "key",
+            "columnName": "key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "value",
+            "columnName": "value",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "key"
+          ]
+        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6d90a13214df9e10b8a828ced6d10387')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ed624978a085440a6c96a2c50939e178')"
     ]
   }
 }

@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.screens.statistics
 
+import com.example.medicalrep.data.local.dao.addDoctor
 import com.example.medicalrep.domain.models.BasicModel
 import android.content.Context
 import androidx.activity.ComponentActivity
@@ -41,7 +42,8 @@ class StatisticsFlowTest {
     fun setUp() {
         db = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext<Context>(), AppDatabase::class.java).build()
         runBlocking {
-            db.accountDao().save(Account("a1", name = "عيادة د. محمود", accountType = BasicModel("clinic", "clinic"), specialty = BasicModel("Cardio", "Cardio"), classCategory = BasicModel("A", "A")).toEntity())
+            db.accountDao().save(Account("a1", name = "عيادة د. محمود", accountType = BasicModel("clinic", "clinic")).toEntity())
+            db.addDoctor("a1", classCategory = "A", specialty = "Cardio")
             val now = System.currentTimeMillis()
             db.visitDao().save(visit("done", accountId = "a1", status = VisitStatus.Completed, dateTimeMillis = now, completedAtMillis = now), emptyList())
             db.visitDao().save(visit("todo", accountId = "a1", status = VisitStatus.Scheduled, dateTimeMillis = now), emptyList())
@@ -53,7 +55,7 @@ class StatisticsFlowTest {
 
     @Test
     fun showsTheWeeksVisitsAndFollowsTheData() {
-        val viewModel = StatisticsViewModel(FakeSettingsRepo, StatisticsRepoImpl(db.statisticsDao(), db.custodyDao()))
+        val viewModel = StatisticsViewModel(FakeSettingsRepo, StatisticsRepoImpl(db.statisticsDao(), db.catalogDao()))
         composeRule.setContent {
             MedicalRepTheme {
                 val state by viewModel.state.collectAsStateWithLifecycle()

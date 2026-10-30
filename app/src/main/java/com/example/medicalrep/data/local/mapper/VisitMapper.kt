@@ -1,12 +1,16 @@
 package com.example.medicalrep.data.local.mapper
 
-import com.example.medicalrep.data.local.entity.CustodyEntity
-import com.example.medicalrep.data.local.entity.VisitCustodyEntity
+import com.example.medicalrep.data.local.entity.CatalogItemEntity
+import com.example.medicalrep.data.local.entity.VisitDoctorEntity
+import com.example.medicalrep.data.local.entity.VisitItemEntity
 import com.example.medicalrep.data.local.entity.VisitEntity
 import com.example.medicalrep.data.local.relation.VisitWithDetails
 import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.Product
 import com.example.medicalrep.domain.models.ProductType
+import com.example.medicalrep.domain.models.approval
+import com.example.medicalrep.domain.models.execution
+import com.example.medicalrep.domain.models.visitStatusOf
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.Visit
@@ -15,55 +19,61 @@ import com.example.medicalrep.domain.models.VisitType
 
 /**
  * The account columns (city, address, place name, ...) and the supervisor name come from the linked rows.
- * Samples are the custody of kind [ProductType.Product], gifts the custody of kind [ProductType.Gift].
+ * Samples are the catalog items of type [ProductType.Sample], gifts the ones of type [ProductType.Gift].
  */
 fun VisitWithDetails.toDomain(): Visit {
-    val quantities = lines.associate { it.custodyId to it.quantity }
-    fun linesOf(kind: ProductType) = custody.filter { it.kind == kind }.map { it.toLine(quantities.getValue(it.id)) }
+    val domainAccount = account?.toDomain()
+    val quantities = lines.associate { it.itemId to it.quantity }
+    fun linesOf(kind: ProductType) = items.filter { it.type == kind }.map { it.toLine(quantities.getValue(it.id)) }
     return Visit(
         id = visit.id,
         backendId = visit.backendId,
         accountId = visit.accountId,
         repId = visit.repId,
-        supervisorId = visit.supervisorId,
+        supervisorId = visit.accompanyingRepId,
         dateTimeMillis = visit.dateTimeMillis.takeIf { it > 0 },
-        city = account?.city.toBasicModel(),
-        region = account?.district.toBasicModel(),
-        address = account?.address,
-        account = account?.entityType.toBasicModel(),
-        placeName = account?.name,
-        specialty = account?.specialty.toBasicModel(),
-        classCategory = account?.classCategory.toBasicModel(),
-        accountLatitude = account?.latitude ?: 0.0,
-        accountLongitude = account?.longitude ?: 0.0,
+        city = domainAccount?.city,
+        region = domainAccount?.district,
+        address = domainAccount?.address,
+        account = domainAccount?.accountType,
+        placeName = domainAccount?.name,
+        specialty = domainAccount?.specialty,
+        classCategory = domainAccount?.classCategory,
+        accountLatitude = domainAccount?.latitude ?: 0.0,
+        accountLongitude = domainAccount?.longitude ?: 0.0,
         supervisor = supervisor?.let { BasicModel(it.id, it.displayName) },
         shift = visit.shift,
         type = visit.type,
         visitMode = visit.visitMode,
         gifts = linesOf(ProductType.Gift),
-        products = linesOf(ProductType.Product),
+        products = linesOf(ProductType.Sample),
         visitLatitude = visit.visitLatitude,
         visitLongitude = visit.visitLongitude,
         travelSeconds = visit.travelSeconds,
         noIssueFound = visit.noIssueFound,
         imageNotes = visit.imageNotes,
+        doctors = doctors.map { it.toDomain() },
         voiceNotePath = visit.voiceNotePath,
         syncStatus = visit.syncStatus,
         durationLabel = visit.durationLabel,
-        status = visit.status,
+        status = visitStatusOf(visit.approvalStatus, visit.executionStatus),
+        cancelReason = visit.cancelReason,
+        textNote = visit.textNote,
+        requestId = visit.requestId,
         requestedAtMillis = visit.requestedAtMillis,
         decidedAtMillis = visit.decidedAtMillis,
         completedAtMillis = visit.completedAtMillis,
     )
 }
 
-private fun CustodyEntity.toLine(quantity: Int) = Product(
+/** The stock is not read with a visit, so a line can only be kept as it is: nothing more than its own quantity is left. */
+private fun CatalogItemEntity.toLine(quantity: Int) = Product(
     id = id,
     name = name,
     quantity = quantity,
-    kind = kind,
+    kind = type,
     description = description,
-    remaining = received - dispatched,
+    remaining = quantity,
 )
 
 /** The visit's own columns; its account text is added to `searchText` by the DAO when the visit is saved. */
@@ -71,7 +81,7 @@ fun Visit.toEntity() = VisitEntity(
     id = requireNotNull(id) { "A stored visit needs an id" },
     backendId = backendId,
     repId = repId,
-    supervisorId = supervisorId,
+    accompanyingRepId = supervisorId,
     accountId = accountId,
     dateTimeMillis = dateTimeMillis ?: 0L,
     shift = shift ?: Shift.Am,
@@ -85,21 +95,27 @@ fun Visit.toEntity() = VisitEntity(
     voiceNotePath = voiceNotePath,
     syncStatus = syncStatus ?: SyncStatus.NotSynced,
     durationLabel = durationLabel.orEmpty(),
-    status = requireNotNull(status) { "A stored visit needs a status" },
+    approvalStatus = requireNotNull(status) { "A stored visit needs a status" }.approval,
+    executionStatus = status.execution,
+    cancelReason = cancelReason,
+    textNote = textNote,
+    requestId = requestId,
     requestedAtMillis = requestedAtMillis,
     decidedAtMillis = decidedAtMillis,
     completedAtMillis = completedAtMillis,
 )
 
+/** The doctors seen in this visit. */
+fun Visit.toDoctorLinks(): List<VisitDoctorEntity> =
+    doctors.map { VisitDoctorEntity(requireNotNull(id) { "A stored visit needs an id" }, it.id) }
+
 /** The samples and gifts given in this visit, with their quantities. */
-fun Visit.toLines(): List<VisitCustodyEntity> =
+fun Visit.toLines(): List<VisitItemEntity> =
     (gifts.orEmpty() + products.orEmpty()).map {
-        VisitCustodyEntity(
+        VisitItemEntity(
             visitId = requireNotNull(id) { "A stored visit needs an id" },
-            custodyId = requireNotNull(it.id) { "A visit line needs a custody id" },
+            itemId = requireNotNull(it.id) { "A visit line needs an item id" },
             quantity = it.quantity,
         )
     }
 
-/** The account columns are plain text for now, so the text is also the id. */
-private fun String?.toBasicModel() = this?.let { BasicModel(it, it) }

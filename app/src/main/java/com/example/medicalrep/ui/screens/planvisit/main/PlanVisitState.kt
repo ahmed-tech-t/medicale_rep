@@ -66,8 +66,8 @@ data class PlanVisitState(
     /** The shifts the rep can pick: both, or only the one the place is open. */
     val shiftOptions: List<Shift> get() = visit.workingTime.shifts
 
-    /** The doctor card shows only for a place that has doctors. */
-    val showDoctors: Boolean get() = doctorOptions.isNotEmpty()
+    /** The doctor card shows only when there is a choice: a place with a single doctor selects it for the rep. */
+    val showDoctors: Boolean get() = doctorOptions.size > 1
 
     /** The id of the supervisor chosen on the form; null when none is chosen or the visit is single. */
     val chosenSupervisorId: String?

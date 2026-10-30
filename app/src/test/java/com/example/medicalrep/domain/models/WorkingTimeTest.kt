@@ -1,7 +1,6 @@
 package com.example.medicalrep.domain.models
 
-import com.example.medicalrep.data.local.mapper.toDomain
-import com.example.medicalrep.data.local.mapper.toEntity
+import com.example.medicalrep.data.local.mapper.throughRoom
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -29,7 +28,7 @@ class WorkingTimeTest {
 
     @Test
     fun `an account keeps its working time through Room and a new one defaults to both`() {
-        assertEquals(WorkingTime.Pm, Account("a", name = "x", workingTime = WorkingTime.Pm).toEntity().toDomain().workingTime)
-        assertEquals(WorkingTime.Both, Account("a", name = "x").toEntity().toDomain().workingTime)
+        assertEquals(WorkingTime.Pm, Account("a", name = "x", workingTime = WorkingTime.Pm).throughRoom().workingTime)
+        assertEquals(WorkingTime.Both, Account("a", name = "x").throughRoom().workingTime)
     }
 }

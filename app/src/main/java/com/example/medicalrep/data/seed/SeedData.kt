@@ -3,6 +3,7 @@ package com.example.medicalrep.data.seed
 import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.Custody
+import com.example.medicalrep.domain.models.District
 import com.example.medicalrep.domain.models.Doctor
 import com.example.medicalrep.domain.models.Order
 import com.example.medicalrep.domain.models.OrderItem
@@ -26,6 +27,8 @@ data class DoctorPlacement(val doctor: Doctor, val accountIds: List<String>)
 
 /** Everything the debug seed writes into Room. */
 data class SeedData(
+    val cities: List<BasicModel>,
+    val districts: List<District>,
     val reps: List<Rep>,
     val accounts: List<Account>,
     val doctors: List<DoctorPlacement>,
@@ -55,9 +58,11 @@ object SeedDataFactory {
         val reps = reps()
         val visits = visits(nowMillis, accounts) + trackVisits(nowMillis, reps, accounts)
         return SeedData(
+            cities = cities,
+            districts = districts,
             reps = reps,
             accounts = accounts,
-            doctors = doctors(),
+            doctors = doctors() + generatedDoctors(),
             products = products,
             custody = custody,
             visits = visits,
@@ -101,8 +106,6 @@ object SeedDataFactory {
         id: Int,
         name: String,
         type: String,
-        specialty: String,
-        classCategory: String,
         city: String,
         district: String,
         address: String,
@@ -111,10 +114,8 @@ object SeedDataFactory {
         id = "acc-$id",
         name = name,
         accountType = option(type),
-        classCategory = option(classCategory),
-        specialty = option(specialty),
-        city = option(city),
-        district = option(district),
+        city = cityModel(city),
+        district = districtModel(city, district),
         workingTime = when (id % 4) {
             0 -> WorkingTime.Am
             1 -> WorkingTime.Pm
@@ -153,18 +154,18 @@ object SeedDataFactory {
     )
 
     private fun baseAccounts() = listOf(
-        account(1, "عيادة د. محمود عبد الرحمن", "عيادة", "باطنة وجهاز هضمي", "A", "شبين الكوم", "البر الشرقى", "برج الأطباء - الدور الثالث", "sup-1"),
-        account(2, "عيادة د. هاني المسيري", "عيادة", "باطنة", "B", "شبين الكوم", "البر الشرقى", "شارع البحر", "sup-1"),
-        account(3, "عيادة د. سارة فتحي", "عيادة", "أطفال", "A", "شبين الكوم", "البر الغربى", "شارع جمال عبد الناصر", "sup-1"),
-        account(4, "عيادة د. كريم عادل", "عيادة", "عظام", "C", "منوف", "وسط البلد", "شارع الجيش", "sup-2"),
-        account(5, "مستشفى شبين الكوم الجامعي", "مستشفى", "قلب", "A", "شبين الكوم", "البر الغربى", "طريق الجامعة", "sup-1"),
-        account(6, "مستشفى الدلتا", "مستشفى", "عام", "B", "منوف", "وسط البلد", "شارع السادات", "sup-2"),
-        account(7, "صيدلية الشفاء", "صيدلية", "صيدلة", "A", "شبين الكوم", "وسط البلد", "الميدان الرئيسي", "sup-1"),
-        account(8, "صيدلية النور", "صيدلية", "صيدلة", "B", "قويسنا", "وسط البلد", "شارع الجمهورية", "sup-2"),
-        account(9, "صيدلية الأمل", "صيدلية", "صيدلة", "C", "منوف", "البر الشرقى", "شارع المحطة", "sup-2"),
-        account(10, "مركز الأمل الطبي", "مركز طبي", "تخصصات متعددة", "B", "شبين الكوم", "البر الشرقى", "شارع البحر", "sup-1"),
-        account(11, "مركز النيل الطبي", "مركز طبي", "تخصصات متعددة", "C", "قويسنا", "البر الغربى", "شارع المحطة", "sup-2"),
-        account(12, "عيادة د. أميرة سعد", "عيادة", "جلدية", "B", "قويسنا", "وسط البلد", "شارع الجلاء", "sup-2"),
+        account(1, "عيادة د. محمود عبد الرحمن", "عيادة", "شبين الكوم", "البر الشرقى", "برج الأطباء - الدور الثالث", "sup-1"),
+        account(2, "عيادة د. هاني المسيري", "عيادة", "شبين الكوم", "البر الشرقى", "شارع البحر", "sup-1"),
+        account(3, "عيادة د. سارة فتحي", "عيادة", "شبين الكوم", "البر الغربى", "شارع جمال عبد الناصر", "sup-1"),
+        account(4, "عيادة د. كريم عادل", "عيادة", "منوف", "وسط البلد", "شارع الجيش", "sup-2"),
+        account(5, "مستشفى شبين الكوم الجامعي", "مستشفى", "شبين الكوم", "البر الغربى", "طريق الجامعة", "sup-1"),
+        account(6, "مستشفى الدلتا", "مستشفى", "منوف", "وسط البلد", "شارع السادات", "sup-2"),
+        account(7, "صيدلية الشفاء", "صيدلية", "شبين الكوم", "وسط البلد", "الميدان الرئيسي", "sup-1"),
+        account(8, "صيدلية النور", "صيدلية", "قويسنا", "وسط البلد", "شارع الجمهورية", "sup-2"),
+        account(9, "صيدلية الأمل", "صيدلية", "منوف", "البر الشرقى", "شارع المحطة", "sup-2"),
+        account(10, "مركز الأمل الطبي", "مركز طبي", "شبين الكوم", "البر الشرقى", "شارع البحر", "sup-1"),
+        account(11, "مركز النيل الطبي", "مركز طبي", "قويسنا", "البر الغربى", "شارع المحطة", "sup-2"),
+        account(12, "عيادة د. أميرة سعد", "عيادة", "قويسنا", "وسط البلد", "شارع الجلاء", "sup-2"),
     )
 
     private fun product(id: Int, name: String, price: Int, discountPercent: Int, received: Int) =
@@ -186,8 +187,17 @@ object SeedDataFactory {
         "نادية رشاد", "عمر خليل", "هبة إبراهيم", "وليد مصطفى", "ريم عادل", "خالد منصور", "دينا فاروق", "إسلام جمال",
     )
 
-    private val cities = listOf("شبين الكوم", "منوف", "قويسنا", "الباجور")
-    private val districts = listOf("البر الشرقى", "البر الغربى", "وسط البلد")
+    private val cityNames = listOf("شبين الكوم", "منوف", "قويسنا", "الباجور")
+    private val districtNames = listOf("البر الشرقى", "البر الغربى", "وسط البلد")
+    private val cities = cityNames.mapIndexed { index, name -> BasicModel("city-${index + 1}", name) }
+    private val districts = cities.flatMap { city ->
+        districtNames.mapIndexed { index, name -> District("${city.id}-district-${index + 1}", name, city.id) }
+    }
+
+    private fun cityModel(name: String) = cities.first { it.name == name }
+
+    private fun districtModel(cityName: String, name: String) =
+        districts.first { it.cityId == cityModel(cityName).id && it.name == name }.let { BasicModel(it.id, it.name) }
     private val specialties = listOf("باطنة", "أطفال", "عظام", "جلدية", "قلب", "نساء وتوليد", "أسنان", "عيون")
     private val kinds = listOf("عيادة" to "عيادة د.", "صيدلية" to "صيدلية", "مستشفى" to "مستشفى", "مركز طبي" to "مركز")
 
@@ -195,25 +205,35 @@ object SeedDataFactory {
      * Accounts 13..50. The combinations of city, district and type that the first twelve do not cover come first, so
      * choosing any city, district and type in the visit form finds at least one account.
      */
-    private fun generatedAccounts(): List<Account> {
+    private data class GeneratedPlace(val number: Int, val city: String, val district: String, val type: String)
+
+    private fun generatedPlaces(): List<GeneratedPlace> {
         val covered = baseAccounts().map { Triple(it.city?.name.orEmpty(), it.district?.name.orEmpty(), it.accountType?.name.orEmpty()) }.toSet()
-        val all = cities.flatMap { city -> districts.flatMap { district -> kinds.map { (type, _) -> Triple(city, district, type) } } }
+        val all = cityNames.flatMap { city -> districtNames.flatMap { district -> kinds.map { (type, _) -> Triple(city, district, type) } } }
         val combos = ((all - covered) + all).take(38)
-        return combos.mapIndexed { index, (city, district, type) ->
-            val n = 13 + index
-            val prefix = kinds.first { it.first == type }.second
-            account(
-                id = n,
-                name = "$prefix ${doctorNames[n % doctorNames.size]}",
-                type = type,
-                specialty = if (type == "صيدلية") "صيدلة" else specialties[n % specialties.size],
-                classCategory = listOf("A", "B", "C")[n % 3],
-                city = city,
-                district = district,
-                address = "شارع ${n * 7 % 90 + 1}",
-                supervisorId = if (n % 2 == 0) "sup-1" else "sup-2",
-            )
-        }
+        return combos.mapIndexed { index, (city, district, type) -> GeneratedPlace(13 + index, city, district, type) }
+    }
+
+    private fun generatedAccounts(): List<Account> = generatedPlaces().map { place ->
+        val n = place.number
+        account(
+            id = n,
+            name = "${kinds.first { it.first == place.type }.second} ${doctorNames[n % doctorNames.size]}",
+            type = place.type,
+            city = place.city,
+            district = place.district,
+            address = "شارع ${n * 7 % 90 + 1}",
+            supervisorId = if (n % 2 == 0) "sup-1" else "sup-2",
+        )
+    }
+
+    /** One doctor for every generated place that is not a pharmacy. */
+    private fun generatedDoctors(): List<DoctorPlacement> = generatedPlaces().filter { it.type != "صيدلية" }.map { place ->
+        val n = place.number
+        DoctorPlacement(
+            doctor(100 + n, "د. ${doctorNames[n % doctorNames.size]}", listOf("A", "B", "C")[n % 3], specialties[n % specialties.size]),
+            listOf("acc-$n"),
+        )
     }
 
     private val drugs = listOf(
@@ -229,12 +249,12 @@ object SeedDataFactory {
     }
 
     private fun custody() = listOf(
-        Custody("gift-1", "مج حراري + قلم معدني بشعار الشركة", ProductType.Gift, received = 40, dispatched = 12),
-        Custody("gift-2", "دفتر ملاحظات جلد فاخر", ProductType.Gift, received = 30, dispatched = 10),
-        Custody("gift-3", "حقيبة قماش بشعار الشركة", ProductType.Gift, received = 25, dispatched = 5),
-        Custody("sample-1", "GastroCure 40mg (عينة)", ProductType.Product, received = 60, dispatched = 22),
-        Custody("sample-2", "Pediamol Syrup (عينة)", ProductType.Product, received = 40, dispatched = 18),
-        Custody("sample-3", "Cardex Plus 10mg (عينة)", ProductType.Product, received = 30, dispatched = 6),
+        Custody("gift-1", "مج حراري + قلم معدني بشعار الشركة", ProductType.Gift, received = 40, remaining = 28),
+        Custody("gift-2", "دفتر ملاحظات جلد فاخر", ProductType.Gift, received = 30, remaining = 20),
+        Custody("gift-3", "حقيبة قماش بشعار الشركة", ProductType.Gift, received = 25, remaining = 20),
+        Custody("sample-1", "GastroCure 40mg (عينة)", ProductType.Sample, received = 60, remaining = 38),
+        Custody("sample-2", "Pediamol Syrup (عينة)", ProductType.Sample, received = 40, remaining = 22),
+        Custody("sample-3", "Cardex Plus 10mg (عينة)", ProductType.Sample, received = 30, remaining = 24),
     )
 
     private fun line(id: String, kind: ProductType, name: String, quantity: Int) =
@@ -310,7 +330,7 @@ object SeedDataFactory {
      */
     private fun trackVisits(now: Long, reps: List<Rep>, accounts: List<Account>): List<Visit> {
         val gift = line("gift-1", ProductType.Gift, "مج حراري + قلم معدني بشعار الشركة", 1)
-        val sample = line("sample-1", ProductType.Product, "GastroCure 40mg (عينة)", 2)
+        val sample = line("sample-1", ProductType.Sample, "GastroCure 40mg (عينة)", 2)
         return reps.filter { it.role == RepRole.Rep }.flatMapIndexed { repIndex, rep ->
             (0 until TRACK_DAYS).flatMap { day ->
                 val count = 3 + (repIndex + day) % 2
@@ -401,7 +421,7 @@ object SeedDataFactory {
     private fun visits(now: Long, accounts: List<Account>): List<Visit> {
         fun acc(n: Int) = accounts[n - 1]
         val gift = line("gift-1", ProductType.Gift, "مج حراري + قلم معدني بشعار الشركة", 1)
-        val sample = line("sample-1", ProductType.Product, "GastroCure 40mg (عينة)", 2)
+        val sample = line("sample-1", ProductType.Sample, "GastroCure 40mg (عينة)", 2)
         val planned = listOf(
             visit("v-planned-1", acc(1), VisitType.Planned, Shift.Am, now + 2 * HOUR),
             visit("v-planned-2", acc(2), VisitType.Planned, Shift.Pm, now + 6 * HOUR),

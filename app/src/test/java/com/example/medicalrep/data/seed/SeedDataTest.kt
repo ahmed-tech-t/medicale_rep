@@ -40,13 +40,28 @@ class SeedDataTest {
     }
 
     @Test
-    fun `every city, district and type has an account so the place list is never empty`() {
-        val existing = data.accounts.map { Triple(it.city, it.district, it.accountType) }.toSet()
-        val cities = data.accounts.map { it.city }.toSet()
-        val districts = data.accounts.map { it.district }.toSet()
-        val types = data.accounts.map { it.accountType }.toSet()
-        val missing = cities.flatMap { c -> districts.flatMap { d -> types.map { t -> Triple(c, d, t) } } } - existing
-        assertEquals(emptyList<Triple<String, String, String>>(), missing)
+    fun `every district of every city has an account of every type so the place list is never empty`() {
+        val existing = data.accounts.map { Triple(it.city?.id, it.district?.id, it.accountType?.id) }.toSet()
+        val types = data.accounts.map { it.accountType?.id }.toSet()
+        val missing = data.districts.flatMap { d -> types.map { t -> Triple(d.cityId, d.id, t) } } - existing
+        assertEquals(emptyList<Triple<String?, String?, String?>>(), missing)
+    }
+
+    @Test
+    fun `every account except a pharmacy has a doctor and every doctor works at a real account`() {
+        val accountIds = data.accounts.map { it.id }.toSet()
+        assertTrue(data.doctors.all { placement -> placement.accountIds.isNotEmpty() && accountIds.containsAll(placement.accountIds) })
+        val withDoctors = data.doctors.flatMap { it.accountIds }.toSet()
+        val withoutDoctors = data.accounts.filter { it.id !in withDoctors }
+        assertTrue(withoutDoctors.all { it.accountType?.name == "صيدلية" })
+    }
+
+    @Test
+    fun `districts belong to seeded cities and every account sits in a district of its own city`() {
+        val cityIds = data.cities.map { it.id }.toSet()
+        assertTrue(data.districts.all { it.cityId in cityIds })
+        val cityOfDistrict = data.districts.associate { it.id to it.cityId }
+        assertTrue(data.accounts.all { cityOfDistrict[it.district?.id] == it.city?.id })
     }
 
     @Test
@@ -109,17 +124,17 @@ class SeedDataTest {
     fun `accounts cover every type, class and several places`() {
         val types = data.accounts.mapNotNull { AccountType.fromEntityType(it.accountType?.name.orEmpty()) }.toSet()
         assertEquals(AccountType.entries.toSet(), types)
-        assertEquals(setOf("A", "B", "C"), data.accounts.map { it.classCategory?.name }.toSet())
+        assertEquals(setOf("A", "B", "C"), data.doctors.map { it.doctor.classCategory?.name }.toSet())
         assertTrue(data.accounts.map { it.city }.toSet().size >= 2)
         assertTrue(data.accounts.map { it.district }.toSet().size >= 2)
-        assertTrue(data.accounts.map { it.specialty }.toSet().size >= 3)
+        assertTrue(data.doctors.map { it.doctor.specialty }.toSet().size >= 3)
         assertTrue(data.accounts.all { it.syncStatus == SyncStatus.Synced })
     }
 
     @Test
     fun `products and custody have stock`() {
         assertTrue(data.products.size >= 5 && data.products.all { it.price > 0 })
-        assertEquals(setOf(ProductType.Gift, ProductType.Product), data.custody.map { it.kind }.toSet())
+        assertEquals(setOf(ProductType.Gift, ProductType.Sample), data.custody.map { it.kind }.toSet())
         assertTrue(data.custody.all { it.remaining > 0 })
     }
 

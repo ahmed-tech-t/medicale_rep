@@ -1,5 +1,6 @@
 package com.example.medicalrep.ui.mapper
 
+import com.example.medicalrep.domain.models.Doctor
 import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.AccountType
@@ -27,7 +28,10 @@ class NewUiMappersTest {
 
     @Test
     fun `account maps all fields and sync flag`() {
-        val ui = Account("a1", "b", "Clinic", BasicModel("Pharmacy", "Pharmacy"), BasicModel("A", "A"), BasicModel("Cardio", "Cardio"), BasicModel("Cairo", "Cairo"), BasicModel("Nasr", "Nasr"), "St 1", 1.5, 2.5, "s", SyncStatus.Synced).toUi()
+        val ui = Account(
+            "a1", "b", "Clinic", BasicModel("Pharmacy", "Pharmacy"), BasicModel("Cairo", "Cairo"), BasicModel("Nasr", "Nasr"), "St 1", 1.5, 2.5, "s", SyncStatus.Synced,
+            doctors = listOf(Doctor("d1", name = "Dr. Ali", classCategory = BasicModel("A", "A"), specialty = BasicModel("Cardio", "Cardio"))),
+        ).toUi()
         assertEquals("a1", ui.id)
         assertEquals("Clinic", ui.name)
         assertEquals("Pharmacy", ui.accountType?.name)
@@ -49,12 +53,11 @@ class NewUiMappersTest {
     }
 
     @Test
-    fun `custody maps kind and remaining with pending`() {
-        val ui = Custody("c1", "Pen", ProductType.Gift, "Blue", received = 10, dispatched = 3, pending = 2).toUi()
+    fun `custody maps kind and remaining`() {
+        val ui = Custody("c1", "Pen", ProductType.Gift, "Blue", received = 10, remaining = 5).toUi()
         assertTrue(ui.isGift)
         assertEquals(5, ui.remaining)
-        assertEquals(2, ui.pending)
-        assertFalse(Custody("c2", "Drug", ProductType.Product).toUi().isGift)
+        assertFalse(Custody("c2", "Drug", ProductType.Sample).toUi().isGift)
     }
 
     @Test

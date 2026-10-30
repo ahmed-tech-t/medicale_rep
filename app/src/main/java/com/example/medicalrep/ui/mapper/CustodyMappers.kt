@@ -10,7 +10,5 @@ fun Custody.toUi() = CustodyUi(
     isGift = kind == ProductType.Gift,
     description = description,
     received = received,
-    dispatched = dispatched,
-    pending = pending,
     remaining = remaining,
 )

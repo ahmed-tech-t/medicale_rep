@@ -36,10 +36,15 @@ data class Visit(
     val travelSeconds: Int = 0,
     val noIssueFound: Boolean = true,
     val imageNotes: List<String> = emptyList(),
+    /** The doctors seen in this visit. */
+    val doctors: List<Doctor> = emptyList(),
     /** Where the saved voice note file is; [voiceNote] holds the bytes of one that is not saved yet. */
     val voiceNotePath: String? = null,
     /** Where the visit stands; null for a form that is not saved yet. */
     val status: VisitStatus? = null,
+    val cancelReason: String? = null,
+    val textNote: String? = null,
+    val requestId: String? = null,
     val requestedAtMillis: Long? = null,
     val decidedAtMillis: Long? = null,
     /** When the visit was finished; null while it is still to do. */

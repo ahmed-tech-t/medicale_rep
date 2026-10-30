@@ -1,15 +1,15 @@
 package com.example.medicalrep.data.repo
 
-import com.example.medicalrep.data.local.dao.CustodyDao
+import com.example.medicalrep.data.local.dao.CatalogDao
 import com.example.medicalrep.data.local.dao.StatisticsDao
-import com.example.medicalrep.data.local.mapper.toDomain
+import com.example.medicalrep.data.local.mapper.toCustody
 import com.example.medicalrep.domain.models.AccountType
 import com.example.medicalrep.domain.models.ClassShare
+import com.example.medicalrep.domain.models.ExecutionStatus
 import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.Statistics
 import com.example.medicalrep.domain.models.StockCount
 import com.example.medicalrep.domain.models.VisitProgress
-import com.example.medicalrep.domain.models.VisitStatus
 import com.example.medicalrep.domain.repo.StatisticsRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 class StatisticsRepoImpl @Inject constructor(
     private val dao: StatisticsDao,
-    private val custodyDao: CustodyDao,
+    private val catalogDao: CatalogDao,
 ) : StatisticsRepo {
 
     override fun progress(fromMillis: Long, toMillis: Long): Flow<VisitProgress> = combine(
@@ -26,9 +26,9 @@ class StatisticsRepoImpl @Inject constructor(
     ) { completed, planned -> VisitProgress(completed = completed, planned = planned) }
 
     override fun progressOf(repId: String, fromMillis: Long, toMillis: Long): Flow<VisitProgress> = combine(
-        dao.countOfRep(repId, VisitStatus.Completed, fromMillis, toMillis),
-        dao.countOfRep(repId, VisitStatus.Scheduled, fromMillis, toMillis),
-        dao.countOfRep(repId, VisitStatus.Missed, fromMillis, toMillis),
+        dao.countOfRep(repId, ExecutionStatus.Completed, fromMillis, toMillis),
+        dao.countOfRep(repId, ExecutionStatus.Scheduled, fromMillis, toMillis),
+        dao.countOfRep(repId, ExecutionStatus.Cancelled, fromMillis, toMillis),
     ) { completed, scheduled, missed -> VisitProgress(completed = completed, planned = completed + scheduled + missed, missed = missed) }
 
     override fun between(fromMillis: Long, toMillis: Long): Flow<Statistics> {
@@ -48,17 +48,17 @@ class StatisticsRepoImpl @Inject constructor(
                 medicalCenters = accountsOf[AccountType.MedicalCenter] ?: 0,
             )
         }
-        // Gifts are custody of kind Gift, samples custody of kind Product; products are the ones for sale (received, sold by orders).
+        // Gifts and samples are counted from the stock the rep holds; products are the ones for sale (received, sold by orders).
         val stock = combine(
-            custodyDao.getByKind(ProductType.Gift),
-            custodyDao.getByKind(ProductType.Product),
+            catalogDao.ofType(ProductType.Gift),
+            catalogDao.ofType(ProductType.Sample),
             dao.orderedQuantity(),
             dao.classCounts(),
             dao.productQuantity(),
         ) { gifts, samples, sold, classes, received ->
             Statistics(
-                gifts = StockCount.of(gifts.map { it.toDomain() }),
-                samples = StockCount.of(samples.map { it.toDomain() }),
+                gifts = StockCount.of(gifts.map { it.toCustody() }),
+                samples = StockCount.of(samples.map { it.toCustody() }),
                 products = StockCount.of(total = received, used = sold),
                 classes = classes.map { ClassShare(it.grade, it.accounts) },
             )

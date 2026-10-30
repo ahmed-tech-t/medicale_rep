@@ -189,7 +189,7 @@ class RepTrackingViewModelTest {
         repId = repId,
         status = VisitStatus.Completed,
         dateTimeMillis = at,
-        products = if (samples > 0) listOf(Product(id = "s", name = "s", quantity = samples, kind = ProductType.Product)) else emptyList(),
+        products = if (samples > 0) listOf(Product(id = "s", name = "s", quantity = samples, kind = ProductType.Sample)) else emptyList(),
         gifts = if (gifts > 0) listOf(Product(id = "g", name = "g", quantity = gifts, kind = ProductType.Gift)) else emptyList(),
     )
 

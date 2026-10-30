@@ -16,7 +16,6 @@
     <string name="select_account">اختر نوع الجهة</string>
     <string name="enter_place_name">أدخل اسم المكان / الطبيب</string>
     <string name="enter_district">أدخل الحي</string>
-    <string name="enter_specialty">أدخل التخصص</string>
     <string name="select_supervisor">اختر المشرف</string>
     <string name="login_device_notice">يتم ربط الحساب بمعرف هاتفك الشخصي (Device ID) لمنع الدخول من أي جهاز آخر.</string>
     <string name="login_sign_in">تسجيل الدخول</string>
@@ -159,7 +158,6 @@
     <string name="unplanned_datetime_label">التاريخ والوقت</string>
     <string name="unplanned_datetime_hint">يسجل تلقائياً من السيرفر (Default)</string>
     <string name="unplanned_section_location">تحديد المكان والمنطقة الجغرافية</string>
-    <string name="unplanned_section_place_specialty">اسم المكان والتخصص</string>
     <string name="unplanned_section_place">اسم المكان</string>
     <string name="unplanned_place_list_hint">تظهر القائمة بناءً على المنطقة والنوع المختارين</string>
     <string name="unplanned_place_select_hint">اختر اسم المكان / الطبيب من القائمة</string>
@@ -230,7 +228,6 @@
     <string name="terms_and_conditions">الشروط والاحكام</string>
     <string name="add_account_title">تسجيل طبيب جديد</string>
     <string name="add_account_name_label">ادخل اسم المكان / الطبيب</string>
-    <string name="add_account_class_placeholder">الفئة</string>
     <string name="add_account_pin_title">1. التقاط إحداثيات العيادة الحالية (GPS Pin)</string>
     <string name="add_account_pin_hint">اضغط على الخريطة لتحديد موقع العيادة</string>
     <string name="add_account_pin_format">%1$.4f, %2$.4f</string>

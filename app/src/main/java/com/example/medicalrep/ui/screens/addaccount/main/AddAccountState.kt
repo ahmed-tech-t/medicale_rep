@@ -11,8 +11,6 @@ data class AddAccountState(
     val city: String = "",
     val district: String = "",
     val entityType: String = "",
-    val classCategory: String = "",
-    val specialty: String = "",
     val workingTime: WorkingTime = WorkingTime.Both,
     val name: TextFieldState = TextFieldState(),
     /** Where the map starts: the rep's location once known, the work area until then. */
@@ -23,12 +21,10 @@ data class AddAccountState(
     val cityOptions: List<String> = emptyList(),
     val districtOptions: List<String> = emptyList(),
     val entityTypeOptions: List<String> = emptyList(),
-    val classOptions: List<String> = listOf("A", "B", "C"),
-    val specialtyOptions: List<String> = emptyList(),
 ) {
     val nameBlank: Boolean get() = name.text.isBlank()
 
     val canSave: Boolean
-        get() = listOf(city, district, entityType, classCategory, specialty).all { it.isNotBlank() } &&
+        get() = listOf(city, district, entityType).all { it.isNotBlank() } &&
             !nameBlank && pin != null && signPhoto != null
 }

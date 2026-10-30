@@ -7,6 +7,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.example.medicalrep.data.local.db.AppDatabase
 import com.example.medicalrep.data.local.entity.*
 import com.example.medicalrep.data.local.mapper.toEntity
+import com.example.medicalrep.data.local.mapper.toItem
 import com.example.medicalrep.data.local.search.searchTextOf
 import com.example.medicalrep.domain.models.*
 import org.junit.After
@@ -28,13 +29,32 @@ abstract class DaoTestBase {
 fun rep(id: String, name: String = id, role: RepRole = RepRole.Rep, supervisorId: String? = null) =
     Rep(id = id, displayName = name, role = role, supervisorId = supervisorId).toEntity()
 
-fun account(id: String, name: String = id, city: String = "", syncStatus: SyncStatus = SyncStatus.Synced, classCategory: String = "") =
-    Account(id = id, name = name, city = city.opt(), syncStatus = syncStatus, classCategory = classCategory.opt()).toEntity()
+fun account(id: String, name: String = id, districtId: String? = null, syncStatus: SyncStatus = SyncStatus.Synced) =
+    Account(id = id, name = name, district = districtId?.let { BasicModel(it, it) }, syncStatus = syncStatus).toEntity()
 
-fun product(id: String, name: String = id) = Product(id = id, name = name).toEntity()
+/** A doctor working at [accountId]; the id is made from the account so one call per account gives different doctors. */
+suspend fun AppDatabase.addDoctor(accountId: String, classCategory: String = "", specialty: String = "", id: String = "doc-$accountId") =
+    doctorDao().save(
+        DoctorEntity(id = id, backendId = null, name = id, classCategory = classCategory, specialty = specialty, syncStatus = SyncStatus.Synced),
+        listOf(accountId),
+    )
 
-fun custody(id: String, name: String = id, kind: ProductType = ProductType.Gift, received: Int = 10, dispatched: Int = 0) =
-    Custody(id = id, name = name, kind = kind, received = received, dispatched = dispatched).toEntity()
+fun product(id: String, name: String = id) = Product(id = id, name = name).toItem()
+
+fun custody(id: String, name: String = id, kind: ProductType = ProductType.Gift) =
+    Custody(id = id, name = name, kind = kind).toItem()
+
+fun inventory(repId: String, itemId: String, original: Int = 10, current: Int = original) =
+    UserInventoryEntity(repId, itemId, original, current)
+
+/** An item the rep holds [original] pieces of. */
+suspend fun AppDatabase.addStock(itemId: String, original: Int = 10, type: ProductType = ProductType.Gift, repId: String = "r1") {
+    repDao().save(rep(repId))
+    catalogDao().saveItems(
+        listOf(if (type == ProductType.Product) product(itemId) else custody(itemId, kind = type)),
+        listOf(inventory(repId, itemId, original)),
+    )
+}
 
 fun visit(
     id: String,
@@ -67,3 +87,6 @@ suspend fun <T : Any> PagingSource<Int, T>.allRows(): List<T> = firstPage(1000).
 
 /** Test text as an account option: the text is also the id; blank means not set. */
 fun String.opt() = takeIf { it.isNotBlank() }?.let { BasicModel(it, it) }
+
+/** The state the screens show, read from the two stored states. */
+val VisitEntity.status: VisitStatus get() = visitStatusOf(approvalStatus, executionStatus)

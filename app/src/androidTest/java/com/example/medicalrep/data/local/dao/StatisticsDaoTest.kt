@@ -7,8 +7,9 @@ import com.example.medicalrep.data.local.entity.VisitEntity
 import com.example.medicalrep.data.local.mapper.toEntity
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.AccountType
+import com.example.medicalrep.domain.models.ExecutionStatus
 import com.example.medicalrep.domain.models.Order
-import com.example.medicalrep.domain.models.Product
+import com.example.medicalrep.domain.models.ProductType
 import com.example.medicalrep.domain.models.VisitStatus
 import com.example.medicalrep.domain.models.VisitType
 import kotlinx.coroutines.flow.first
@@ -25,8 +26,7 @@ private const val TO = 2_000L
 class StatisticsDaoTest : DaoTestBase() {
     private val dao get() = db.statisticsDao()
 
-    private fun account(id: String, entityType: String, specialty: String = "", classCategory: String = "") =
-        Account(id = id, name = id, accountType = entityType.opt(), specialty = specialty.opt(), classCategory = classCategory.opt()).toEntity()
+    private fun account(id: String, entityType: String) = Account(id = id, name = id, accountType = entityType.opt()).toEntity()
 
     @Test fun completedCountsOnlyCompletedVisitsFinishedInTheRange() = runBlocking {
         save(visit("in", status = VisitStatus.Completed, dateTimeMillis = FROM, completedAtMillis = FROM))
@@ -52,18 +52,21 @@ class StatisticsDaoTest : DaoTestBase() {
         save(visit("done-other", repId = "r2", status = VisitStatus.Completed, dateTimeMillis = 1_500))
         save(visit("done-tomorrow", repId = "r1", status = VisitStatus.Completed, dateTimeMillis = TO))
         save(visit("missed", repId = "r1", status = VisitStatus.Missed, dateTimeMillis = 1_500))
-        assertEquals(2, dao.countOfRep("r1", VisitStatus.Completed, FROM, TO).first())
-        assertEquals(1, dao.countOfRep("r1", VisitStatus.Missed, FROM, TO).first())
-        assertEquals(0, dao.countOfRep("r1", VisitStatus.Scheduled, FROM, TO).first())
-        assertEquals(0, dao.countOfRep("nobody", VisitStatus.Completed, FROM, TO).first())
+        assertEquals(2, dao.countOfRep("r1", ExecutionStatus.Completed, FROM, TO).first())
+        assertEquals(1, dao.countOfRep("r1", ExecutionStatus.Cancelled, FROM, TO).first())
+        assertEquals(0, dao.countOfRep("r1", ExecutionStatus.Scheduled, FROM, TO).first())
+        assertEquals(0, dao.countOfRep("nobody", ExecutionStatus.Completed, FROM, TO).first())
     }
 
     @Test fun accountsOfTodaysVisitsAreCountedOncePerTypeAndDoctorsNeedASpecialty() = runBlocking {
-        db.accountDao().save(account("clinic-1", "clinic", specialty = "Cardio"))
+        db.accountDao().save(account("clinic-1", "clinic"))
+        db.addDoctor("clinic-1", specialty = "Cardio")
         db.accountDao().save(account("clinic-2", "clinic"))
         db.accountDao().save(account("pharmacy-1", "pharmacy"))
-        db.accountDao().save(account("missed-one", "hospital", specialty = "x"))
-        db.accountDao().save(account("tomorrow", "pharmacy", specialty = "y"))
+        db.accountDao().save(account("missed-one", "hospital"))
+        db.addDoctor("missed-one", specialty = "x")
+        db.accountDao().save(account("tomorrow", "pharmacy"))
+        db.addDoctor("tomorrow", specialty = "y")
         save(visit("v1", accountId = "clinic-1", status = VisitStatus.Scheduled, dateTimeMillis = 1_100))
         save(visit("v2", accountId = "clinic-1", status = VisitStatus.Completed, dateTimeMillis = 1_200, completedAtMillis = 1_300))
         save(visit("v3", accountId = "clinic-2", status = VisitStatus.Scheduled, dateTimeMillis = 1_400))
@@ -77,15 +80,19 @@ class StatisticsDaoTest : DaoTestBase() {
 
     @Test fun classCountsOnlyCoverClassesAToC() = runBlocking {
         listOf("A" to 2, "B" to 1, "C" to 3, "D" to 4, "" to 5).forEach { (grade, count) ->
-            (1..count).forEach { db.accountDao().save(account("$grade-$it", "clinic", classCategory = grade)) }
+            (1..count).forEach {
+                db.accountDao().save(account("$grade-$it", "clinic"))
+                db.addDoctor("$grade-$it", classCategory = grade)
+            }
         }
         assertEquals(listOf("A" to 2, "B" to 1, "C" to 3), dao.classCounts().first().map { it.grade to it.accounts })
     }
 
     @Test fun productQuantitySumsWhatTheRepReceived() = runBlocking {
         assertEquals(0, dao.productQuantity().first())
-        db.productDao().insert(Product(id = "p1", name = "A", received = 100).toEntity())
-        db.productDao().insert(Product(id = "p2", name = "B", received = 50).toEntity())
+        db.addStock("p1", original = 100, type = ProductType.Product)
+        db.addStock("p2", original = 50, type = ProductType.Product)
+        db.addStock("g1", original = 7, type = ProductType.Gift)
         assertEquals(150, dao.productQuantity().first())
     }
 

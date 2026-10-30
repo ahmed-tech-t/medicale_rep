@@ -6,8 +6,6 @@ data class Account(
     val name: String,
 
     val accountType:  BasicModel? = null,
-    val classCategory:  BasicModel? = null, //A B C
-    val specialty: BasicModel? = null,
     val city: BasicModel? = null,
     val district: BasicModel? = null,
 
@@ -19,4 +17,12 @@ data class Account(
     val signPhoto: String? = null,
     val createdAt: Long = 0L,
     val workingTime: WorkingTime = WorkingTime.Both,
-)
+    /** The doctors who work here; read from Room, never saved with the account. */
+    val doctors: List<Doctor> = emptyList(),
+) {
+    /** The best class among its doctors (A before B before C); null when none has one. */
+    val classCategory: BasicModel? get() = doctors.mapNotNull { it.classCategory }.minByOrNull { it.name }
+
+    /** The specialty its doctors share; null when they differ or none has one. */
+    val specialty: BasicModel? get() = doctors.mapNotNull { it.specialty }.distinct().singleOrNull()
+}

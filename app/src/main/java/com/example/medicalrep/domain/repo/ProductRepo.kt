@@ -6,18 +6,18 @@ import com.example.medicalrep.domain.models.Product
 import com.example.medicalrep.domain.models.ProductType
 import kotlinx.coroutines.flow.Flow
 
-/** Items for sale, and the samples and gifts the rep carries (custody). */
+/** Items for sale, and the samples and gifts the rep carries (custody). Saving also sets the rep's stock of them. */
 interface ProductRepo {
     fun products(query: String = ""): Flow<PagingData<Product>>
     suspend fun getProduct(id: String): Product?
-    suspend fun saveProducts(products: List<Product>)
+    suspend fun saveProducts(repId: String, products: List<Product>)
     suspend fun deleteProduct(id: String)
 
-    /** [kind] null means both samples and gifts. `remaining` already subtracts what visits not uploaded yet gave. */
-    fun custody(query: String = "", kind: ProductType? = null): Flow<PagingData<Custody>>
-    /** All custody of one kind (for pickers); `remaining` already subtracts what visits not uploaded yet gave. */
+    /** Samples or gifts ([kind]); `remaining` is what is left after the visits. */
+    fun custody(kind: ProductType, query: String = ""): Flow<PagingData<Custody>>
+    /** All custody of one kind (for pickers). */
     fun custodyList(kind: ProductType): Flow<List<Custody>>
 
     suspend fun getCustody(id: String): Custody?
-    suspend fun saveCustody(custody: List<Custody>)
+    suspend fun saveCustody(repId: String, custody: List<Custody>)
 }

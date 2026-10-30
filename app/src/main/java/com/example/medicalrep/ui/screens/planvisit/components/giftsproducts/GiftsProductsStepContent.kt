@@ -51,10 +51,10 @@ fun GiftsProductsStepContent(
             pillColors = PillColors(container = BrandTint, border = InfoBorder, content = Brand),
             items = state.visit.products,
             catalog = state.productCatalog.filter { it.remaining > 0 },
-            showPopup = state.overlay == PlanVisitOverlay.AddItem(ProductType.Product),
-            onAdd = { onEvent(addOrDismiss(state, ProductType.Product)) },
+            showPopup = state.overlay == PlanVisitOverlay.AddItem(ProductType.Sample),
+            onAdd = { onEvent(addOrDismiss(state, ProductType.Sample)) },
             onConfirm = { onEvent(PlanVisitEvents.ConfirmAddItems(it.map { item -> item.copy(quantity = 1) })) },
-            onChange = { id, delta -> onEvent(PlanVisitEvents.ChangeQuantity(ProductType.Product, id, delta)) },
+            onChange = { id, delta -> onEvent(PlanVisitEvents.ChangeQuantity(ProductType.Sample, id, delta)) },
         )
     }
 }

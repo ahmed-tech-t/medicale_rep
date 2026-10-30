@@ -20,7 +20,7 @@ object RepTrackingFakes {
             .toUi()
             .copy(
                 time = "09:30 ص",
-                products = listOf(item("p1", ProductType.Product, 10)),
+                products = listOf(item("p1", ProductType.Sample, 10)),
                 gifts = listOf(item("g1", ProductType.Gift, 2)),
             ),
         VisitSamples.planned(
@@ -28,7 +28,7 @@ object RepTrackingFakes {
             placeName = "د. محمود عبد الرحمن",
             account = "عيادة",
             specialty = "استشاري باطنة",
-        ).toUi().copy(time = "10:45 ص", products = listOf(item("p2", ProductType.Product, 8))),
+        ).toUi().copy(time = "10:45 ص", products = listOf(item("p2", ProductType.Sample, 8))),
     )
 
     fun state(): RepTrackingState = RepTrackingState(

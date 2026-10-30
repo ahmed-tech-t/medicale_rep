@@ -10,7 +10,6 @@ object SampleAndGiftsFakes {
         name = name,
         isGift = isGift,
         received = received,
-        dispatched = dispatched,
         remaining = received - dispatched,
     )
 

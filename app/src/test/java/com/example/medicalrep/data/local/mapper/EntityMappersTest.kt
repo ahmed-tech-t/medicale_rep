@@ -1,9 +1,12 @@
 package com.example.medicalrep.data.local.mapper
 
-import com.example.medicalrep.data.local.entity.VisitCustodyEntity
-import com.example.medicalrep.data.local.relation.CustodyWithPending
-import com.example.medicalrep.data.local.relation.ProductWithSold
+import com.example.medicalrep.data.local.entity.UserInventoryEntity
+import com.example.medicalrep.data.local.entity.VisitDoctorEntity
+import com.example.medicalrep.data.local.entity.VisitItemEntity
+import com.example.medicalrep.data.local.relation.CatalogItemWithStock
 import com.example.medicalrep.data.local.relation.VisitWithDetails
+import com.example.medicalrep.domain.models.visitStatusOf
+import com.example.medicalrep.domain.models.Doctor
 import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.Account
 import com.example.medicalrep.domain.models.Custody
@@ -42,9 +45,13 @@ class EntityMappersTest {
 
     @Test
     fun `account round trip`() {
-        val account = Account("a1", "b1", "صيدلية", BasicModel("Pharmacy", "Pharmacy"), BasicModel("A", "A"), BasicModel("Cardio", "Cardio"), BasicModel("Cairo", "Cairo"), BasicModel("Nasr", "Nasr"), "St 1", 30.1, 31.2, "s1", SyncStatus.Synced, "p.png", 99L)
+        val doctor = Doctor("d1", name = "Dr. Ali", classCategory = BasicModel("A", "A"), specialty = BasicModel("Cardio", "Cardio"))
+        val account = Account(
+            "a1", "b1", "صيدلية", BasicModel("Pharmacy", "Pharmacy"), BasicModel("Cairo", "Cairo"), BasicModel("Nasr", "Nasr"),
+            "St 1", 30.1, 31.2, "s1", SyncStatus.Synced, "p.png", 99L, doctors = listOf(doctor),
+        )
         val entity = account.toEntity()
-        assertEquals(account, entity.toDomain())
+        assertEquals(account, entity.withPlaceOf(account).toDomain())
         assertTrue(entity.searchText.contains("صيدليه"))
         assertTrue(entity.searchText.contains("cairo"))
     }
@@ -57,30 +64,30 @@ class EntityMappersTest {
 
     @Test
     fun `what orders sold is taken off what the rep received, and never goes below zero`() {
-        val entity = Product(id = "p1", name = "Panadol", received = 100).toEntity()
-        assertEquals(60, ProductWithSold(entity, sold = 40).toDomain().remaining)
-        assertEquals(100, ProductWithSold(entity, sold = 40).toDomain().received)
-        assertEquals(0, ProductWithSold(entity, sold = 130).toDomain().remaining)
+        val item = Product(id = "p1", name = "Panadol", received = 100).toItem()
+        assertEquals(60, CatalogItemWithStock(item, original = 100, stock = 100, sold = 40).toProduct().remaining)
+        assertEquals(100, CatalogItemWithStock(item, original = 100, stock = 100, sold = 40).toProduct().received)
+        assertEquals(0, CatalogItemWithStock(item, original = 100, stock = 100, sold = 130).toProduct().remaining)
     }
 
     @Test
     fun `product round trip and id is required`() {
         val product = Product(id = "p1", name = "Panadol", description = "Pain", price = 50, discountPercent = 10, received = 100, remaining = 100)
-        val entity = product.toEntity()
-        assertEquals(100, entity.quantity)
-        assertEquals(product, ProductWithSold(entity, sold = 0).toDomain())
-        assertEquals("panadol pain", entity.searchText)
-        assertTrue(runCatching { Product(name = "x").toEntity() }.isFailure)
+        val item = product.toItem()
+        assertEquals(50, item.price)
+        assertEquals(ProductType.Product, item.type)
+        assertEquals(UserInventoryEntity("r1", "p1", original = 100, current = 100), product.toInventory("r1"))
+        assertEquals(product, CatalogItemWithStock(item, original = 100, stock = 100, sold = 0).toProduct())
+        assertEquals("panadol pain", item.searchText)
+        assertTrue(runCatching { Product(name = "x").toItem() }.isFailure)
     }
 
     @Test
-    fun `custody round trip and remaining counts pending`() {
-        val custody = Custody("c1", "Pen", ProductType.Gift, "Blue", received = 10, dispatched = 3)
-        assertEquals(custody, custody.toEntity().toDomain())
-        assertEquals(7, custody.remaining)
-        val withPending = CustodyWithPending(custody.toEntity(), pending = 2).toDomain()
-        assertEquals(2, withPending.pending)
-        assertEquals(5, withPending.remaining)
+    fun `custody round trip keeps what came in and what is left`() {
+        val custody = Custody("c1", "Pen", ProductType.Gift, "Blue", received = 10, remaining = 7)
+        assertNull(custody.toItem().price)
+        assertEquals(UserInventoryEntity("r1", "c1", original = 10, current = 7), custody.toInventory("r1"))
+        assertEquals(custody, CatalogItemWithStock(custody.toItem(), original = 10, stock = 7, sold = 0).toCustody())
     }
 
     @Test
@@ -98,23 +105,26 @@ class EntityMappersTest {
             shift = Shift.Pm, type = VisitType.Planning, visitMode = VisitMode.Double, visitLatitude = 1.0, visitLongitude = 2.0,
             travelSeconds = 60, noIssueFound = false, imageNotes = listOf("img", "img2"), voiceNotePath = "voice.m4a", syncStatus = SyncStatus.Synced,
             durationLabel = "10 min", status = VisitStatus.Rejected, requestedAtMillis = 1L, decidedAtMillis = 2L,
+            cancelReason = "Sick", textNote = "Call back", requestId = "req1",
         )
-        val back = VisitWithDetails(visit.toEntity(), null, null, emptyList(), emptyList()).toDomain()
+        val back = VisitWithDetails(visit.toEntity(), null, null, emptyList(), emptyList(), emptyList()).toDomain()
         assertEquals(visit.copy(gifts = emptyList(), products = emptyList()), back)
     }
 
     @Test
     fun `visit takes account supervisor and lines from the relations`() {
-        val account = Account("a1", name = "Clinic", accountType = BasicModel("Pharmacy", "Pharmacy"), city = BasicModel("Cairo", "Cairo"), district = BasicModel("Nasr", "Nasr"), address = "St 1", specialty = BasicModel("Cardio", "Cardio"), classCategory = BasicModel("A", "A"), latitude = 3.0, longitude = 4.0).toEntity()
+        val accountDomain = Account("a1", name = "Clinic", accountType = BasicModel("Pharmacy", "Pharmacy"), city = BasicModel("Cairo", "Cairo"), district = BasicModel("Nasr", "Nasr"), address = "St 1", latitude = 3.0, longitude = 4.0, doctors = listOf(Doctor("d1", name = "Dr. Ali", classCategory = BasicModel("A", "A"), specialty = BasicModel("Cardio", "Cardio"))))
+        val account = accountDomain.toEntity()
         val supervisor = Rep("s1", "Boss").toEntity()
-        val gift = Custody("c1", "Pen", ProductType.Gift, received = 10, dispatched = 2).toEntity()
-        val sample = Custody("c2", "Drug", ProductType.Product, received = 5).toEntity()
+        val gift = Custody("c1", "Pen", ProductType.Gift, received = 10).toItem()
+        val sample = Custody("c2", "Drug", ProductType.Sample, received = 5).toItem()
         val details = VisitWithDetails(
             visit = Visit(id = "v1", accountId = "a1", supervisorId = "s1", status = VisitStatus.Scheduled).toEntity(),
-            account = account,
+            account = account.withPlaceOf(accountDomain),
             supervisor = supervisor,
-            custody = listOf(gift, sample),
-            lines = listOf(VisitCustodyEntity("v1", "c1", 2), VisitCustodyEntity("v1", "c2", 1)),
+            items = listOf(gift, sample),
+            lines = listOf(VisitItemEntity("v1", "c1", 2), VisitItemEntity("v1", "c2", 1)),
+            doctors = emptyList(),
         )
         val visit = details.toDomain()
         assertEquals("Pharmacy", visit.account?.name)
@@ -126,15 +136,24 @@ class EntityMappersTest {
         assertEquals("Boss", visit.supervisor?.name)
         assertEquals(listOf("c1"), visit.gifts?.map { it.id })
         assertEquals(2, visit.gifts?.single()?.quantity)
-        assertEquals(8, visit.gifts?.single()?.remaining)
+        assertEquals(2, visit.gifts?.single()?.remaining)
         assertEquals(listOf("c2"), visit.products?.map { it.id })
         assertEquals(1, visit.products?.single()?.quantity)
     }
 
     @Test
+    fun `visit doctors come from the relation and back to links`() {
+        val doctor = Doctor("d1", name = "Dr. Ali")
+        val details = VisitWithDetails(Visit(id = "v1", status = VisitStatus.Scheduled).toEntity(), null, null, emptyList(), emptyList(), listOf(doctor.toEntity()))
+        assertEquals(listOf("d1"), details.toDomain().doctors.map { it.id })
+        assertEquals(listOf(VisitDoctorEntity("v1", "d1")), Visit(id = "v1", doctors = listOf(doctor)).toDoctorLinks())
+        assertTrue(Visit(id = "v1").toDoctorLinks().isEmpty())
+    }
+
+    @Test
     fun `visit lines come from gifts and products`() {
         val visit = Visit(id = "v1", gifts = listOf(Product(id = "c1", quantity = 2)), products = listOf(Product(id = "c2", quantity = 1)))
-        assertEquals(listOf(VisitCustodyEntity("v1", "c1", 2), VisitCustodyEntity("v1", "c2", 1)), visit.toLines())
+        assertEquals(listOf(VisitItemEntity("v1", "c1", 2), VisitItemEntity("v1", "c2", 1)), visit.toLines())
         assertTrue(Visit(id = "v1").toLines().isEmpty())
     }
 
@@ -146,7 +165,7 @@ class EntityMappersTest {
         assertEquals(VisitMode.Single, entity.visitMode)
         assertEquals(SyncStatus.NotSynced, entity.syncStatus)
         assertEquals(0L, entity.dateTimeMillis)
-        assertNull(VisitWithDetails(entity, null, null, emptyList(), emptyList()).toDomain().dateTimeMillis)
+        assertNull(VisitWithDetails(entity, null, null, emptyList(), emptyList(), emptyList()).toDomain().dateTimeMillis)
     }
 
     @Test
@@ -163,6 +182,6 @@ class EntityMappersTest {
 
     @Test
     fun `every status is stored as it is`() {
-        VisitStatus.entries.forEach { assertEquals(it, Visit(id = "v1", status = it).toEntity().status) }
+        VisitStatus.entries.forEach { assertEquals(it, Visit(id = "v1", status = it).toEntity().let { e -> visitStatusOf(e.approvalStatus, e.executionStatus) }) }
     }
 }
