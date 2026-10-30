@@ -21,6 +21,9 @@ import com.example.medicalrep.ui.models.UserUi
 import com.example.medicalrep.ui.models.VisitUi
 import com.example.medicalrep.ui.utils.formatClockTime
 import com.example.medicalrep.ui.utils.formatDate
+import com.example.medicalrep.ui.utils.formatDayChip
+import com.example.medicalrep.domain.models.ApprovalStatus
+import com.example.medicalrep.domain.models.approval
 import kotlin.collections.map
 
 fun Visit.toUi(): VisitUi {
@@ -54,6 +57,10 @@ fun Visit.toUi(): VisitUi {
         voiceNote = voiceNote,
         syncStatus = syncStatus ?: SyncStatus.NotSynced,
         durationLabel = durationLabel.orEmpty(),
+        approval = status?.approval ?: ApprovalStatus.Approved,
+        rejectionReason = rejectionReason.orEmpty(),
+        requestedAtLabel = requestedAtMillis?.let { "${formatDate(it)} • ${formatClockTime(it)}" }.orEmpty(),
+        dayLabel = dateTimeMillis?.let(::formatDayChip).orEmpty(),
     )
 }
 

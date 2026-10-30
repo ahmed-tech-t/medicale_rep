@@ -273,6 +273,7 @@ object SeedDataFactory {
         completedAtMillis: Long? = null,
         status: VisitStatus = VisitStatus.Scheduled,
         requestedAtMillis: Long? = null,
+        rejectionReason: String? = null,
         gifts: List<Product> = emptyList(),
         samples: List<Product> = emptyList(),
     ) = Visit(
@@ -289,6 +290,7 @@ object SeedDataFactory {
         completedAtMillis = completedAtMillis,
         status = status,
         requestedAtMillis = requestedAtMillis,
+        rejectionReason = rejectionReason,
         visitLatitude = account.latitude,
         visitLongitude = account.longitude,
         accountLatitude = account.latitude,
@@ -315,6 +317,7 @@ object SeedDataFactory {
                 syncStatus = if (n % 2 == 0) SyncStatus.NotSynced else SyncStatus.Synced,
                 status = if (n % 4 == 0) VisitStatus.Rejected else VisitStatus.PendingApproval,
                 requestedAtMillis = now - (n % 6 + 1) * DAY,
+                rejectionReason = if (n % 4 == 0) "The daily visit limit of this line was exceeded." else null,
             )
         }
     }
@@ -441,7 +444,8 @@ object SeedDataFactory {
         val requests = listOf(
             visit("v-request-1", acc(11), VisitType.Planning, Shift.Am, now + 4 * DAY, SyncStatus.NotSynced, status = VisitStatus.PendingApproval, requestedAtMillis = now - HOUR),
             visit("v-request-2", acc(3), VisitType.Planning, Shift.Pm, now + 5 * DAY, SyncStatus.Synced, status = VisitStatus.PendingApproval, requestedAtMillis = now - DAY),
-            visit("v-request-3", acc(2), VisitType.Planning, Shift.Am, now + 2 * DAY, SyncStatus.Synced, status = VisitStatus.Rejected, requestedAtMillis = now - 2 * DAY),
+            visit("v-request-3", acc(2), VisitType.Planning, Shift.Am, now + 2 * DAY, SyncStatus.Synced, status = VisitStatus.Rejected, requestedAtMillis = now - 2 * DAY, rejectionReason = "The daily visit limit of this line was exceeded."),
+            visit("v-request-4", acc(4), VisitType.Planned, Shift.Am, now + DAY, SyncStatus.Synced, status = VisitStatus.Scheduled, requestedAtMillis = now - 3 * DAY),
         )
         return planned + done + requests + generatedVisits(now, accounts)
     }

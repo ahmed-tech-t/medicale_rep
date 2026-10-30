@@ -4,17 +4,20 @@ import com.example.medicalrep.domain.models.BasicModel
 import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
+import com.example.medicalrep.domain.models.ApprovalStatus
 import com.example.medicalrep.domain.models.Shift
+import com.example.medicalrep.ui.components.widgets.filter.ClassFilter
+import com.example.medicalrep.ui.components.widgets.filter.FilterEvents
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.Visit
 import com.example.medicalrep.domain.models.VisitStatus
 import com.example.medicalrep.domain.models.VisitType
 import com.example.medicalrep.domain.repo.FakeVisitRepo
-import com.example.medicalrep.ui.models.VisitFilter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
@@ -25,6 +28,18 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import com.example.medicalrep.domain.models.District
+import com.example.medicalrep.domain.models.Doctor
+import com.example.medicalrep.domain.models.VisitListFilter
+import com.example.medicalrep.domain.repo.DoctorRepo
+import com.example.medicalrep.domain.repo.GeoRepo
+import com.example.medicalrep.domain.repo.SystemSettingRepo
+import com.example.medicalrep.ui.models.VisitUi
+import com.example.medicalrep.ui.screens.visitplanning.utils.PLAN_DAYS_AHEAD
+import com.example.medicalrep.ui.screens.visitplanning.utils.SETTING_PLAN_RANGE_END
+import com.example.medicalrep.ui.screens.visitplanning.utils.SETTING_PLAN_RANGE_START
+import com.example.medicalrep.ui.utils.startOfDay
+import kotlinx.coroutines.test.advanceTimeBy
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -33,14 +48,21 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * 1. Given the screen opens, Then Visits is selected, the repo is asked for done visits and the count is theirs.
- * 2. When the Pending tab is selected, Then the repo is asked for pending requests and the count follows.
- * 3. Filters (shift, class) reach the repo for the selected tab, the count follows, the icon is on; the filter stays on tab switch.
- * 4. When a visit is toggled, Then it is selected; toggling again clears it; several can be selected; it survives a tab switch.
- * 5. When Set appointment, Then the schedule sheet opens; Dismiss closes it; a date change is stored.
- * 6. When Request visit, Then one pending plan request is stored per selected visit (same account, chosen date, not uploaded),
- *    the selection and sheet clear and one snackbar shows. With nothing selected nothing is stored.
- * 7. When Back, Then NavigationUp.
+ * 1. Given the screen opens, Then Visits is selected, the repo is asked for done visits with no filter, the count is theirs,
+ *    14 days are offered starting today and nothing is picked.
+ * 2. When the Pending tab is selected, Then the repo is asked for every request and the count follows; choosing an answer asks
+ *    the repo for that answer and the count follows; choosing All asks for every one again.
+ * 3. Search: typing waits for a pause before the repo is asked; clearing the box asks at once; the text is trimmed.
+ * 4. Filter sheet: its form is used only after Apply; Apply closes the sheet and the icon turns on; reset and Apply clears it.
+ * 5. Picking a day selects it for that visit; picking it again clears it; days of several visits are kept apart and survive a tab switch.
+ * 6. Schedule: one pending request per visit and picked day (same account, that day, not uploaded); the picks clear and one snackbar
+ *    shows. With nothing picked nothing is stored.
+ * 7. Pick another time on a rejected request opens the schedule sheet for it; the sheet's Request stores one pending request for its
+ *    account on the chosen date (not the picks); dismissing forgets it.
+ * 8. When Back, Then NavigationUp.
+ * 9. Settings start+end → days starts at D, size = (end-start)/day.
+ * 10. Settings missing → days size = PLAN_DAYS_AHEAD (fallback).
+ * 11. bookedDaysFlow emits → state.bookedDays contains those entries.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class VisitPlanningViewModelTest {
@@ -56,13 +78,15 @@ class VisitPlanningViewModelTest {
             Visit(id = "p3", type = VisitType.Planning, status = VisitStatus.PendingApproval, shift = Shift.Pm, classCategory = BasicModel("B", "B")),
         ),
     )
+    private val existing = setOf("d1", "d2", "d3", "p1", "p2", "p3")
+    private val fakeSettingRepo = FakeSystemSettingRepo()
     private lateinit var viewModel: VisitPlanningViewModel
     private val state get() = viewModel.state.value
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
-        viewModel = VisitPlanningViewModel(FakeSettingsRepo, repo)
+        viewModel = VisitPlanningViewModel(FakeSettingsRepo, repo, fakeSettingRepo, FakeGeoRepo, FakeDoctorRepo)
     }
 
     @After
@@ -86,21 +110,35 @@ class VisitPlanningViewModelTest {
     }
 
     @Test
-    fun `starts on visits asking for done visits with their count`() = runTest(dispatcher) {
+    fun `starts on visits asking for done visits with their count and the days to plan`() = runTest(dispatcher) {
         collectVisits()
         assertEquals(VisitPlanningTab.Visits, state.selectedTab)
-        assertEquals(listOf<Shift?>(null), repo.doneRequests.map { it.shift })
+        assertEquals(listOf(VisitListFilter()), repo.doneRequests)
         assertEquals(3, state.resultCount)
+        assertEquals(PLAN_DAYS_AHEAD, state.days.size)
+        assertEquals(startOfDay(System.currentTimeMillis()), state.days.first().millis)
         assertFalse(state.hasSelection)
+        assertFalse(state.isFiltered)
     }
 
     @Test
-    fun `pending tab asks for pending requests and the count follows`() = runTest(dispatcher) {
+    fun `pending tab asks for every request and an answer narrows it`() = runTest(dispatcher) {
         collectVisits()
         viewModel.onEvent(VisitPlanningEvents.SelectTab(VisitPlanningTab.Pending))
         runCurrent()
-        assertEquals(listOf<Pair<Shift?, String?>>(null to null), repo.pendingRequestsAsked)
+        assertEquals(listOf<ApprovalStatus?>(null), repo.requestsAsked)
+        assertEquals(3, state.resultCount)
+        viewModel.onEvent(VisitPlanningEvents.SelectApproval(ApprovalStatus.Rejected))
+        runCurrent()
+        assertEquals(ApprovalStatus.Rejected, repo.requestsAsked.last())
+        assertEquals(1, state.resultCount)
+        viewModel.onEvent(VisitPlanningEvents.SelectApproval(ApprovalStatus.Pending))
+        runCurrent()
         assertEquals(2, state.resultCount)
+        viewModel.onEvent(VisitPlanningEvents.SelectApproval(null))
+        runCurrent()
+        assertEquals(null, repo.requestsAsked.last())
+        assertEquals(3, state.resultCount)
     }
 
     @Test
@@ -111,79 +149,133 @@ class VisitPlanningViewModelTest {
     }
 
     @Test
-    fun `filters reach the repo for the selected tab and stay when the tab changes`() = runTest(dispatcher) {
+    fun `search waits for a pause, is trimmed, and clearing it asks at once`() = runTest(dispatcher) {
+        collectVisits()
+        viewModel.onEvent(VisitPlanningEvents.OnSearchChange("  mona "))
+        runCurrent()
+        assertEquals("", repo.doneRequests.last().query)
+        advanceTimeBy(300)
+        runCurrent()
+        assertEquals("mona", repo.doneRequests.last().query)
+        assertFalse(state.isFiltered)
+        viewModel.onEvent(VisitPlanningEvents.OnSearchChange(""))
+        runCurrent()
+        assertEquals("", repo.doneRequests.last().query)
+    }
+
+    @Test
+    fun `the filter sheet is used after apply and resetting it clears the filter`() = runTest(dispatcher) {
         collectVisits()
         viewModel.onEvent(VisitPlanningEvents.OpenFilter)
-        viewModel.onEvent(VisitPlanningEvents.SelectFilter(VisitFilter.Morning))
+        assertEquals(VisitPlanningOverlay.Filter, state.overlay)
+        viewModel.onEvent(VisitPlanningEvents.OnFilterEvent(FilterEvents.OnClassSelect(ClassFilter.B)))
         runCurrent()
-        assertEquals(Shift.Am, repo.doneRequests.last().shift)
-        assertEquals(2, state.resultCount)
+        assertEquals(null, repo.doneRequests.last().classCategory)
+        viewModel.onEvent(VisitPlanningEvents.ApplyFilter)
+        runCurrent()
+        assertEquals("B", repo.doneRequests.last().classCategory)
+        assertEquals(1, state.resultCount)
         assertTrue(state.isFiltered)
         assertEquals(VisitPlanningOverlay.None, state.overlay)
-        viewModel.onEvent(VisitPlanningEvents.SelectTab(VisitPlanningTab.Pending))
+        viewModel.onEvent(VisitPlanningEvents.OnFilterEvent(FilterEvents.OnReset))
+        viewModel.onEvent(VisitPlanningEvents.ApplyFilter)
         runCurrent()
-        assertEquals(Shift.Am to null, repo.pendingRequestsAsked.last())
-        assertEquals(1, state.resultCount)
-        viewModel.onEvent(VisitPlanningEvents.SelectFilter(VisitFilter.ClassB))
-        runCurrent()
-        assertEquals(null to "B", repo.pendingRequestsAsked.last())
-        viewModel.onEvent(VisitPlanningEvents.SelectFilter(VisitFilter.All))
-        runCurrent()
+        assertEquals(null, repo.doneRequests.last().classCategory)
+        assertEquals(3, state.resultCount)
         assertFalse(state.isFiltered)
-        assertEquals(2, state.resultCount)
     }
 
     @Test
-    fun `toggling selects and clears visits and keeps them across tabs`() {
-        viewModel.onEvent(VisitPlanningEvents.ToggleSelect("d1"))
-        viewModel.onEvent(VisitPlanningEvents.ToggleSelect("d2"))
-        assertEquals(setOf("d1", "d2"), state.selectedIds)
+    fun `picking a day selects it for that visit only and keeps it across tabs`() {
+        val (today, tomorrow) = state.days
+        viewModel.onEvent(VisitPlanningEvents.ToggleDay("d1", today.millis))
+        viewModel.onEvent(VisitPlanningEvents.ToggleDay("d1", tomorrow.millis))
+        viewModel.onEvent(VisitPlanningEvents.ToggleDay("d2", today.millis))
+        assertEquals(mapOf("d1" to setOf(today.millis, tomorrow.millis), "d2" to setOf(today.millis)), state.selectedDays)
         viewModel.onEvent(VisitPlanningEvents.SelectTab(VisitPlanningTab.Pending))
-        assertEquals(setOf("d1", "d2"), state.selectedIds)
-        viewModel.onEvent(VisitPlanningEvents.ToggleSelect("d1"))
-        assertEquals(setOf("d2"), state.selectedIds)
-        viewModel.onEvent(VisitPlanningEvents.ToggleSelect("d2"))
+        assertTrue(state.hasSelection)
+        viewModel.onEvent(VisitPlanningEvents.ToggleDay("d1", today.millis))
+        assertEquals(setOf(tomorrow.millis), state.selectedDays["d1"])
+        viewModel.onEvent(VisitPlanningEvents.ToggleDay("d1", tomorrow.millis))
+        viewModel.onEvent(VisitPlanningEvents.ToggleDay("d2", today.millis))
         assertFalse(state.hasSelection)
     }
 
     @Test
-    fun `schedule sheet opens and dismisses and the date is stored`() {
-        viewModel.onEvent(VisitPlanningEvents.OpenSchedule)
-        assertEquals(VisitPlanningOverlay.ScheduleVisit, state.overlay)
-        viewModel.onEvent(VisitPlanningEvents.DateChanged(1234L))
-        assertEquals(1234L, state.scheduleDateMillis)
-        viewModel.onEvent(VisitPlanningEvents.DismissOverlay)
-        assertEquals(VisitPlanningOverlay.None, state.overlay)
-    }
-
-    @Test
-    fun `requesting stores one pending request per selected visit and clears the selection`() = runTest(dispatcher) {
+    fun `scheduling stores one pending request per visit and picked day and clears the picks`() = runTest(dispatcher) {
         val events = collectEvents()
-        viewModel.onEvent(VisitPlanningEvents.ToggleSelect("d1"))
-        viewModel.onEvent(VisitPlanningEvents.ToggleSelect("d3"))
-        viewModel.onEvent(VisitPlanningEvents.DateChanged(5_000L))
-        viewModel.onEvent(VisitPlanningEvents.OpenSchedule)
-        viewModel.onEvent(VisitPlanningEvents.RequestVisit)
+        val (today, tomorrow) = state.days
+        viewModel.onEvent(VisitPlanningEvents.ToggleDay("d1", today.millis))
+        viewModel.onEvent(VisitPlanningEvents.ToggleDay("d1", tomorrow.millis))
+        viewModel.onEvent(VisitPlanningEvents.ToggleDay("d3", tomorrow.millis))
+        viewModel.onEvent(VisitPlanningEvents.ScheduleSelectedDays)
         runCurrent()
-        val requests = repo.current.value.filter { it.type == VisitType.Planning && it.id !in setOf("p1", "p2", "p3") }
-        assertEquals(setOf("a1", "a3"), requests.map { it.accountId }.toSet())
-        assertTrue(requests.all { it.status == VisitStatus.PendingApproval && it.syncStatus == SyncStatus.NotSynced })
-        assertTrue(requests.all { it.dateTimeMillis == 5_000L })
-        assertEquals(2, requests.map { it.id }.toSet().size)
+        val requests = repo.current.value.filter { it.id !in existing }
+        assertEquals(3, requests.size)
+        assertEquals(3, requests.map { it.id }.toSet().size)
+        assertEquals(listOf("a1" to today.millis, "a1" to tomorrow.millis, "a3" to tomorrow.millis), requests.map { it.accountId to it.dateTimeMillis }.sortedBy { it.first + it.second })
+        assertTrue(requests.all { it.type == VisitType.Planning && it.status == VisitStatus.PendingApproval && it.syncStatus == SyncStatus.NotSynced })
         assertFalse(state.hasSelection)
-        assertEquals(VisitPlanningOverlay.None, state.overlay)
         assertEquals(1, events.size)
         assertTrue(events[0] is UiEvent.ShowSnackBar)
     }
 
     @Test
-    fun `requesting with nothing selected stores nothing`() = runTest(dispatcher) {
+    fun `scheduling with nothing picked stores nothing`() = runTest(dispatcher) {
         val events = collectEvents()
         val before = repo.current.value.size
-        viewModel.onEvent(VisitPlanningEvents.RequestVisit)
+        viewModel.onEvent(VisitPlanningEvents.ScheduleSelectedDays)
         runCurrent()
         assertEquals(before, repo.current.value.size)
         assertEquals(0, events.size)
+    }
+
+    @Test
+    fun `picking another time for a rejected request requests that account again on the chosen date`() = runTest(dispatcher) {
+        collectEvents()
+        viewModel.onEvent(VisitPlanningEvents.ToggleDay("d1", state.days.first().millis))
+        viewModel.onEvent(VisitPlanningEvents.PickAnotherTime(VisitUi(id = "p2")))
+        assertEquals(VisitPlanningOverlay.ScheduleVisit, state.overlay)
+        viewModel.onEvent(VisitPlanningEvents.DismissOverlay)
+        assertEquals(null, state.rescheduleId)
+        viewModel.onEvent(VisitPlanningEvents.PickAnotherTime(VisitUi(id = "p2")))
+        viewModel.onEvent(VisitPlanningEvents.ToggleDay("p2", 7_000L))
+        viewModel.onEvent(VisitPlanningEvents.RequestVisit)
+        runCurrent()
+        val fresh = repo.current.value.filter { it.id !in existing }
+        assertEquals(1, fresh.size)
+        assertEquals(VisitStatus.PendingApproval, fresh.single().status)
+        assertEquals(7_000L, fresh.single().dateTimeMillis)
+        assertEquals(null, state.rescheduleId)
+        assertEquals(VisitPlanningOverlay.None, state.overlay)
+        assertTrue(state.hasSelection)
+    }
+
+    @Test
+    fun `days come from server range when settings are present`() = runTest(dispatcher) {
+        val startD = 1_800_000_000_000L
+        val endD = startD + 30 * 86_400_000L
+        val vm = VisitPlanningViewModel(
+            FakeSettingsRepo, repo,
+            FakeSystemSettingRepo(mapOf(SETTING_PLAN_RANGE_START to "$startD", SETTING_PLAN_RANGE_END to "$endD")),
+            FakeGeoRepo, FakeDoctorRepo,
+        )
+        runCurrent()
+        assertEquals(30, vm.state.value.days.size)
+    }
+
+    @Test
+    fun `days fall back to PLAN_DAYS_AHEAD when settings are missing`() = runTest(dispatcher) {
+        runCurrent()
+        assertEquals(PLAN_DAYS_AHEAD, state.days.size)
+    }
+
+    @Test
+    fun `booked days flow updates state when repo emits`() = runTest(dispatcher) {
+        val D = state.days.first().millis
+        repo.bookedDaysFlow.value = mapOf("a1" to setOf(D))
+        runCurrent()
+        assertTrue(state.bookedDays["a1"]?.contains(D) == true)
     }
 
     @Test
@@ -196,9 +288,14 @@ class VisitPlanningViewModelTest {
 
     private companion object {
         fun done(id: String, accountId: String, shift: Shift, classCategory: String) = Visit(
-            id = id, accountId = accountId, type = VisitType.Unplanned, shift = shift, classCategory = classCategory?.let { BasicModel(it, it) }, status = VisitStatus.Completed, completedAtMillis = 1L,
+            id = id, accountId = accountId, type = VisitType.Unplanned, shift = shift, classCategory = BasicModel(classCategory, classCategory), status = VisitStatus.Completed, completedAtMillis = 1L,
         )
     }
+}
+
+private class FakeSystemSettingRepo(private val data: Map<String, String> = emptyMap()) : SystemSettingRepo {
+    override fun get(key: String): Flow<String?> = flowOf(data[key])
+    override suspend fun set(key: String, value: String) = Unit
 }
 
 private object FakeSettingsRepo : AppSettingsRepo {
@@ -207,4 +304,18 @@ private object FakeSettingsRepo : AppSettingsRepo {
     override suspend fun updateCountry(country: String) = Unit
     override suspend fun getShowOnBoarding() = false
     override suspend fun updateShowOnBoarding(showOnBoarding: Boolean) = Unit
+}
+
+private object FakeGeoRepo : GeoRepo {
+    override fun cities(): Flow<List<BasicModel>> = flowOf(emptyList())
+    override fun districts(cityId: String?): Flow<List<BasicModel>> = flowOf(emptyList())
+    override fun districtsOf(repId: String): Flow<List<BasicModel>> = flowOf(emptyList())
+    override suspend fun save(cities: List<BasicModel>, districts: List<District>) = Unit
+    override suspend fun assign(repId: String, districtIds: List<String>) = Unit
+}
+
+private object FakeDoctorRepo : DoctorRepo {
+    override fun doctorsOf(accountId: String): Flow<List<Doctor>> = flowOf(emptyList())
+    override fun specialties(): Flow<List<BasicModel>> = flowOf(emptyList())
+    override suspend fun save(doctor: Doctor, accountIds: List<String>) = Unit
 }

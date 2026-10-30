@@ -21,12 +21,14 @@ import androidx.paging.compose.itemKey
 import com.appcore.core.ui.theme.dim
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
+import com.example.medicalrep.domain.models.ApprovalStatus
 import com.example.medicalrep.ui.components.chrome.AppHeader
 import com.example.medicalrep.ui.components.chrome.NexoraTabs
 import com.example.medicalrep.ui.components.primitives.NexoraButton
-import com.example.medicalrep.ui.components.widgets.FilterMenu
-import com.example.medicalrep.ui.components.widgets.ResultsFilterRow
-import com.example.medicalrep.ui.components.widgets.plannedVisitFilterOptions
+import com.example.medicalrep.ui.components.widgets.EmptyContent
+import com.example.medicalrep.ui.components.widgets.SearchFilterRow
+import com.example.medicalrep.ui.components.widgets.StatusChipRow
+import com.example.medicalrep.ui.components.widgets.filter.FilterComponent
 import com.example.medicalrep.ui.models.VisitUi
 import com.example.medicalrep.ui.preview.pagingItemsOf
 import com.example.medicalrep.ui.screens.visitplanning.main.VisitPlanningEvents
@@ -37,7 +39,10 @@ import com.example.medicalrep.ui.screens.visitplanning.utils.VisitPlanningFakes
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 import com.example.medicalrep.ui.ui.theme.Slate50
 
-/** Figma 57:11724: pending approvals and plannable visits, with a schedule sheet. */
+/** The answers the Pending chips offer, in the order of Figma 591:2917; the first one lists every request. */
+private val approvalChips = listOf<ApprovalStatus?>(null, ApprovalStatus.Pending, ApprovalStatus.Approved, ApprovalStatus.Rejected)
+
+/** Figma 591:2917 (pending approval) and 591:3150 (visits to plan): requests by answer, and visits with their days. */
 @Composable
 fun VisitPlanningUi(
     state: VisitPlanningState,
@@ -46,22 +51,18 @@ fun VisitPlanningUi(
     modifier: Modifier = Modifier,
 ) {
     Scaffold(bottomBar = {
-
         if (state.selectedTab == VisitPlanningTab.Visits && state.hasSelection) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(dim.screenPaddingHorizontal)
-                    .background(
-                        MaterialTheme.colorScheme.background
-                    )
+                    .background(MaterialTheme.colorScheme.background),
             ) {
                 NexoraButton(
                     text = stringResource(R.string.visit_planning_schedule_action),
-                    onClick = { onEvent(VisitPlanningEvents.OpenSchedule) },
+                    onClick = { onEvent(VisitPlanningEvents.ScheduleSelectedDays) },
                 )
             }
-
         }
     }) { paddingValues ->
         Column(
@@ -88,47 +89,102 @@ fun VisitPlanningUi(
             )
             // A new list per tab: the scroll position and item animations of one tab do not leak into the next.
             key(state.selectedTab) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(spacing.spaceSmallPlus),
-                    verticalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
-                ) {
-                    item(key = "results") {
-                        ResultsFilterRow(
-                            count = state.resultCount,
-                            onFilterClick = { onEvent(VisitPlanningEvents.OpenFilter) },
-                            isFiltered = state.isFiltered,
-                            filterMenu = {
-                                FilterMenu(
-                                    expanded = state.overlay == VisitPlanningOverlay.Filter,
-                                    options = plannedVisitFilterOptions,
-                                    selected = state.filter,
-                                    onSelect = { onEvent(VisitPlanningEvents.SelectFilter(it)) },
-                                    onDismiss = { onEvent(VisitPlanningEvents.DismissOverlay) },
-                                )
-                            },
-                        )
-                    }
-                    items(count = visits.itemCount, key = visits.itemKey { it.id }) { index ->
-                        visits[index]?.let { visit ->
-                            when (state.selectedTab) {
-                                VisitPlanningTab.Pending -> PendingVisitCard(visit = visit, modifier = Modifier.animateItem())
-                                VisitPlanningTab.Visits -> SelectableVisitCard(
-                                    visit = visit,
-                                    selected = visit.id in state.selectedIds,
-                                    onToggle = { onEvent(VisitPlanningEvents.ToggleSelect(visit.id)) },
-                                    modifier = Modifier.animateItem(),
-                                )
-                            }
-                        }
-                    }
-
+                when (state.selectedTab) {
+                    VisitPlanningTab.Pending -> PendingTabContent(state, visits, onEvent)
+                    VisitPlanningTab.Visits -> VisitsTabContent(state, visits, onEvent)
                 }
             }
         }
         ScheduleVisitSheetHost(state = state, onEvent = onEvent)
+        if (state.selectedTab == VisitPlanningTab.Visits && state.overlay == VisitPlanningOverlay.Filter) {
+            FilterComponent(
+                state = state.sheet,
+                onEvent = { onEvent(VisitPlanningEvents.OnFilterEvent(it)) },
+                onApplyFilter = { onEvent(VisitPlanningEvents.ApplyFilter) },
+                onDismissRequest = { onEvent(VisitPlanningEvents.DismissOverlay) },
+                title = stringResource(R.string.filter_visits_planning_title),
+                showAccountType = false,
+                showSyncStatus = false,
+                showVisitType = false,
+            )
+        }
     }
+}
 
+@Composable
+private fun PendingTabContent(
+    state: VisitPlanningState,
+    visits: LazyPagingItems<VisitUi>,
+    onEvent: (VisitPlanningEvents) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        StatusChipRow(
+            labels = approvalChips.map { stringResource(approvalChipLabel(it)) },
+            selectedIndex = approvalChips.indexOf(state.approval),
+            selectedCount = state.resultCount,
+            onSelect = { onEvent(VisitPlanningEvents.SelectApproval(approvalChips[it])) },
+            contentPadding = PaddingValues(horizontal = dim.screenPaddingHorizontal, vertical = spacing.spaceSmallPlus),
+        )
+        if (state.resultCount == 0) EmptyContent()
+        else LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = dim.screenPaddingHorizontal, vertical = spacing.spaceSmallPlus),
+            verticalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
+        ) {
+            items(count = visits.itemCount, key = visits.itemKey { it.id }) { index ->
+                visits[index]?.let { visit ->
+                    PendingVisitCard(
+                        visit = visit,
+                        onPickAnotherTime = { onEvent(VisitPlanningEvents.PickAnotherTime(visit)) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun VisitsTabContent(
+    state: VisitPlanningState,
+    visits: LazyPagingItems<VisitUi>,
+    onEvent: (VisitPlanningEvents) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        SearchFilterRow(
+            modifier = Modifier.padding(horizontal = dim.screenPaddingHorizontal, vertical = spacing.spaceSmallPlus),
+            query = state.query,
+            onQueryChange = { onEvent(VisitPlanningEvents.OnSearchChange(it)) },
+            onFilterClick = { onEvent(VisitPlanningEvents.OpenFilter) },
+            placeholder = stringResource(R.string.visit_planning_search_hint),
+            isFiltered = state.isFiltered,
+        )
+        if (state.resultCount == 0) EmptyContent()
+        else LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = dim.screenPaddingHorizontal, vertical = spacing.spaceSmallPlus),
+            verticalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
+        ) {
+            items(count = visits.itemCount, key = visits.itemKey { it.id }) { index ->
+                visits[index]?.let { visit ->
+                    PlanVisitCard(
+                        visit = visit,
+                        days = state.days,
+                        selectedDays = state.selectedDays[visit.id].orEmpty(),
+                        bookedDays = state.bookedDays[visit.accountId].orEmpty(),
+                        onToggleDay = { onEvent(VisitPlanningEvents.ToggleDay(visit.id, it)) },
+                        modifier = Modifier.animateItem(),
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun approvalChipLabel(approval: ApprovalStatus?): Int = when (approval) {
+    null -> R.string.filter_all
+    ApprovalStatus.Pending -> R.string.request_status_pending
+    ApprovalStatus.Approved -> R.string.request_status_approved
+    ApprovalStatus.Rejected -> R.string.request_status_rejected
 }
 
 @Preview(showBackground = true, locale = "ar", heightDp = 800)
@@ -148,8 +204,9 @@ private fun VisitPlanningUiPendingPreview() {
 private fun VisitPlanningUiVisitsPreview() {
     MedicalRepTheme {
         val visits = VisitPlanningFakes.visits()
+        val state = VisitPlanningFakes.state()
         VisitPlanningUi(
-            state = VisitPlanningFakes.state().copy(selectedIds = setOf(visits.last().id)),
+            state = state.copy(selectedDays = mapOf(visits.last().id to setOf(state.days[1].millis))),
             visits = pagingItemsOf(visits),
             onEvent = {},
         )

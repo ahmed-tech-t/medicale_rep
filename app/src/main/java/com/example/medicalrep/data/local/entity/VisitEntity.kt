@@ -55,6 +55,8 @@ data class VisitEntity(
     val executionStatus: ExecutionStatus,
     /** Why a cancelled visit was cancelled. */
     val cancelReason: String?,
+    /** Why the admin refused this plan request. */
+    val rejectionReason: String?,
     val textNote: String?,
     /** The plan request this visit came from. */
     val requestId: String?,

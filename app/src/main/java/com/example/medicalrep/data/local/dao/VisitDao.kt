@@ -10,11 +10,15 @@ import com.example.medicalrep.data.local.entity.VisitDoctorEntity
 import com.example.medicalrep.data.local.entity.VisitItemEntity
 import com.example.medicalrep.data.local.entity.VisitEntity
 import com.example.medicalrep.data.local.relation.VisitWithDetails
+import com.example.medicalrep.domain.models.ApprovalStatus
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.VisitMode
 import com.example.medicalrep.domain.models.VisitType
 import kotlinx.coroutines.flow.Flow
+
+/** A row of (accountId, dateTimeMillis) from [VisitDao.bookedDayRows]. */
+data class BookedDayRow(val accountId: String, val dateTimeMillis: Long)
 
 /** The accounts that have a doctor of the class `:classCategory`. */
 internal const val CLASS_ACCOUNTS_SQL =
@@ -180,6 +184,18 @@ abstract class VisitDao : BaseDao<VisitEntity> {
     }
 
     // ---- plan requests ----
+
+    /** The (accountId, dateTimeMillis) pairs of Pending or Approved plan requests; used to disable already-booked day tiles. */
+    @Query("SELECT accountId, dateTimeMillis FROM visits WHERE requestedAtMillis IS NOT NULL AND (approvalStatus = 'Pending' OR approvalStatus = 'Approved') AND dateTimeMillis IS NOT NULL")
+    abstract fun bookedDayRows(): Flow<List<BookedDayRow>>
+
+    /** Every plan request (a visit with a request time), newest first; [approval] null lists all answers. */
+    @Transaction
+    @Query("SELECT * FROM visits WHERE requestedAtMillis IS NOT NULL AND (:approval IS NULL OR approvalStatus = :approval) ORDER BY requestedAtMillis DESC")
+    abstract fun requestsPaged(approval: ApprovalStatus?): PagingSource<Int, VisitWithDetails>
+
+    @Query("SELECT COUNT(*) FROM visits WHERE requestedAtMillis IS NOT NULL AND (:approval IS NULL OR approvalStatus = :approval)")
+    abstract fun requestsCount(approval: ApprovalStatus?): Flow<Int>
 
     /** Requests the admin has not answered yet, newest first. */
     @Transaction

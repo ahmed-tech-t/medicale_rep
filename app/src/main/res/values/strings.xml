@@ -306,7 +306,7 @@
     <string name="products_confirm_order_action">Confirm order</string>
     <string name="products_pick_account_title">Choose the account for this order</string>
     <!-- Visit planning -->
-    <string name="visit_planning_title">Visit planning</string>
+    <string name="visit_planning_title">Periodic visit planning</string>
     <string name="visit_planning_tab_pending">Pending approval</string>
     <string name="visit_planning_tab_visits">Visits</string>
     <string name="visit_planning_out_of_plan">Visit outside the plan (planning)</string>
@@ -451,4 +451,18 @@
     <string name="unplanned_attach_count">%1$d / %2$d</string>
     <string name="unplanned_attach_remove">Remove photo</string>
     <string name="unplanned_summary_account_type_label">Account type</string>
+    <string name="request_status_pending">Under review</string>
+    <string name="request_status_approved">Approved</string>
+    <string name="request_status_rejected">Rejected</string>
+    <string name="request_note_pending">Waiting for review by the sector manager</string>
+    <string name="request_note_approved">The visit was approved by the supervisor</string>
+    <string name="request_rejection_reason">Rejection reason:</string>
+    <string name="request_pick_another_time">Pick another time</string>
+    <string name="filter_visits_planning_title">Filter Visits</string>
+    <string name="visit_planning_search_hint">Search by doctor, specialty or place...</string>
+    <string name="plan_class_format">Class %1$s</string>
+    <plurals name="plan_days_selected">
+        <item quantity="one">1 day selected</item>
+        <item quantity="other">%1$d days selected</item>
+    </plurals>
 </resources>

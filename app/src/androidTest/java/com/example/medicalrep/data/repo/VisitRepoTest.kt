@@ -9,6 +9,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
+import com.example.medicalrep.domain.models.ApprovalStatus
 import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.*
 
@@ -70,7 +71,7 @@ class VisitRepoTest : RepoTestBase() {
         assertTrue(repo.applyDecision("b2", false, 9))
         assertFalse(repo.applyDecision("none", true, 9))
         assertEquals(listOf("p1"), repo.startableVisits().asSnapshot().map { it.id })
-        assertTrue(repo.pendingRequests().asSnapshot().isEmpty())
+        assertTrue(repo.requests(ApprovalStatus.Pending).asSnapshot().isEmpty())
         assertEquals(listOf("p2"), repo.rejectedRequests().asSnapshot().map { it.id })
         assertTrue(repo.dismissRejected("p2"))
         assertFalse(repo.dismissRejected("p1"))

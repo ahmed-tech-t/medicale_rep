@@ -58,6 +58,8 @@ fun StatusBadge(
     modifier: Modifier = Modifier,
     tone: StatusTone = StatusTone.Neutral,
     showDot: Boolean = false,
+    /** The Figma request pill: white with a grey border, only the dot carries the tone. */
+    bordered: Boolean = false,
 ) {
     val (bg, fg) = when (tone) {
         StatusTone.Success -> OnSuccessContainer.copy(alpha = 0.15f) to OnSuccessContainer
@@ -65,34 +67,36 @@ fun StatusBadge(
         StatusTone.Danger -> Error.copy(alpha = 0.15f) to Error
         StatusTone.Neutral -> Slate100 to Slate500
     }
+    val hasBorder = bordered || tone == StatusTone.Neutral
     Row(
         modifier = modifier
-            .background(bg, RoundedCornerShape(radii.pill))
+            .background(if (bordered) Slate50 else bg, RoundedCornerShape(radii.pill))
             .border(
-                width = if (tone == StatusTone.Neutral) DividerDefaults.Thickness else 0.dp,
-                color = if (tone == StatusTone.Neutral) Slate200 else Color.Transparent,
+                width = if (hasBorder) DividerDefaults.Thickness else 0.dp,
+                color = if (hasBorder) Slate200 else Color.Transparent,
                 shape = RoundedCornerShape(radii.pill),
             )
-            .padding(horizontal = 8.dp, vertical = 2.dp),
+            .padding(horizontal = if (bordered) 12.dp else 8.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(if (bordered) 6.dp else 4.dp),
     ) {
         // Dot at start (right in RTL), then text
         if (showDot) {
             Box(
                 modifier = Modifier
-                    .size(6.dp)
+                    .size(if (bordered) 7.dp else 6.dp)
                     .background(fg, CircleShape),
             )
         }
         NexoraText(
             text = text,
-            style = MaterialTheme.typography.labelSmall.copy(
+            style = if (bordered) MaterialTheme.typography.bodyMedium
+            else MaterialTheme.typography.labelSmall.copy(
                 fontWeight = FontWeight.Bold,
                 fontSize = 9.sp,
                 lineHeight = 13.5.sp,
             ),
-            color = fg,
+            color = if (bordered) Ink else fg,
             textAlign = TextAlign.Start,
         )
     }

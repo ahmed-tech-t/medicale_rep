@@ -35,6 +35,10 @@ fun VisitUi.resolvedLocationLine(): String {
 fun VisitUi.resolvedSpecialtyAccountLine(): String =
     listOfNotNull(specialty?.name, account?.name).joinToString(" • ")
 
+/** "account • specialty" line shown under a doctor's name on the planning cards; blank parts are skipped. */
+fun VisitUi.resolvedAccountSpecialtyLine(): String =
+    listOfNotNull(account?.name, specialty?.name).joinToString(" • ")
+
 @Composable
 fun VisitUi.resolvedDisplayName(): String =
     when {

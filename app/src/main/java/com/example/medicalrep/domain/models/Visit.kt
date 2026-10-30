@@ -42,6 +42,8 @@ data class Visit(
     /** Where the visit stands; null for a form that is not saved yet. */
     val status: VisitStatus? = null,
     val cancelReason: String? = null,
+    /** Why the admin refused this plan request. */
+    val rejectionReason: String? = null,
     val textNote: String? = null,
     val requestId: String? = null,
     val requestedAtMillis: Long? = null,

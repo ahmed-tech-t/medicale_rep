@@ -2,6 +2,8 @@ package com.example.medicalrep.domain.repo
 
 import androidx.paging.PagingData
 import com.example.medicalrep.domain.models.GeoPoint
+import com.example.medicalrep.domain.models.ApprovalStatus
+import com.example.medicalrep.domain.models.approval
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.Visit
@@ -13,6 +15,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.asStateFlow
 
 /** In-memory visits for ViewModel tests; the list queries record the filters they were asked for. */
 class FakeVisitRepo(initial: List<Visit> = emptyList()) : VisitRepo {
@@ -27,8 +30,8 @@ class FakeVisitRepo(initial: List<Visit> = emptyList()) : VisitRepo {
     /** The (shift, class) of every `missedVisits` call, in order. */
     val missedRequests = mutableListOf<Pair<Shift?, String?>>()
 
-    /** The (shift, class) of every `pendingRequests` call, in order. */
-    val pendingRequestsAsked = mutableListOf<Pair<Shift?, String?>>()
+    /** The answer asked of every `requests` call, in order (null = every answer). */
+    val requestsAsked = mutableListOf<ApprovalStatus?>()
 
     /** The (shift, class) of every `rejectedRequests` call, in order. */
     val rejectedRequestsAsked = mutableListOf<Pair<Shift?, String?>>()
@@ -116,15 +119,21 @@ class FakeVisitRepo(initial: List<Visit> = emptyList()) : VisitRepo {
     override fun visitsFiltered(type: VisitType?, syncStatus: SyncStatus?, repId: String?, fromMillis: Long, toMillis: Long): Flow<PagingData<Visit>> =
         current.map { PagingData.from(it) }
 
-    override fun pendingRequests(shift: Shift?, classCategory: String?): Flow<PagingData<Visit>> {
-        pendingRequestsAsked += shift to classCategory
-        return withStatus(VisitStatus.PendingApproval, shift, classCategory).map { PagingData.from(it) }
+    private fun requestsOf(approval: ApprovalStatus?) = current.map { list ->
+        list.filter { it.type == VisitType.Planning && (approval == null || it.status?.approval == approval) }
     }
 
-    override fun pendingRequestCount(shift: Shift?, classCategory: String?): Flow<Int> =
-        withStatus(VisitStatus.PendingApproval, shift, classCategory).map { it.size }
+    override fun requests(approval: ApprovalStatus?): Flow<PagingData<Visit>> {
+        requestsAsked += approval
+        return requestsOf(approval).map { PagingData.from(it) }
+    }
+
+    override fun requestCount(approval: ApprovalStatus?): Flow<Int> = requestsOf(approval).map { it.size }
 
     override fun pendingCount(): Flow<Int> = current.map { list -> list.count { it.status == VisitStatus.PendingApproval } }
+
+    val bookedDaysFlow = MutableStateFlow<Map<String, Set<Long>>>(emptyMap())
+    override fun bookedDays(): Flow<Map<String, Set<Long>>> = bookedDaysFlow.asStateFlow()
 
     override fun rejectedRequests(shift: Shift?, classCategory: String?): Flow<PagingData<Visit>> {
         rejectedRequestsAsked += shift to classCategory

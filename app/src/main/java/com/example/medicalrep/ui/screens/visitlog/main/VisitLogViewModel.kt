@@ -44,21 +44,13 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /** The rep may type fast: the list waits this long after the last key. */
-private const val SEARCH_DEBOUNCE_MILLIS = 300L
+internal const val SEARCH_DEBOUNCE_MILLIS = 300L
 
 /** The visits to do go day by day, so Required shows today's until the rep picks a period. */
 private fun VisitListFilter.withTodayAsDefaultPeriod(): VisitListFilter {
     if (fromMillis != null || toMillis != null) return this
     val now = System.currentTimeMillis()
     return copy(fromMillis = startOfDay(now), toMillis = startOfNextDay(now))
-}
-
-/** Choosing another city drops the district, which belonged to the old one. */
-private fun FilterState.change(event: FilterEvents): FilterState {
-    val next = reduce(event)
-    if (event !is FilterEvents.OnCitySelect) return next
-    next.regionState.clearText()
-    return next.copy(selectedRegion = null)
 }
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
@@ -155,7 +147,7 @@ class VisitLogViewModel @Inject constructor(
             VisitLogEvents.ConfirmCancel -> confirmCancel()
             VisitLogEvents.OpenFilter -> _state.update { it.copy(overlay = VisitLogOverlay.Filter) }
             VisitLogEvents.DismissOverlay -> _state.update { it.copy(overlay = VisitLogOverlay.None) }
-            is VisitLogEvents.OnFilterEvent -> _state.update { it.copy(sheet = it.sheet.change(event.event)) }
+            is VisitLogEvents.OnFilterEvent -> _state.update { it.copy(sheet = it.sheet.reduce(event.event)) }
             is VisitLogEvents.OnSearchChange -> _state.update { it.copy(query = event.text) }
             VisitLogEvents.ApplyFilter -> _state.update {
                 it.copy(filter = it.sheet.toVisitListFilter(it.selectedTab), overlay = VisitLogOverlay.None)

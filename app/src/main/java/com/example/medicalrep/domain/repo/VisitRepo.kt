@@ -1,6 +1,7 @@
 package com.example.medicalrep.domain.repo
 
 import androidx.paging.PagingData
+import com.example.medicalrep.domain.models.ApprovalStatus
 import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
@@ -32,11 +33,14 @@ interface VisitRepo {
     /** Scheduled visits dated before [beforeMillis] (a day start) become Missed; returns how many. */
     suspend fun markMissed(beforeMillis: Long): Int
 
-    /** Plan requests the admin has not answered yet. */
-    fun pendingRequests(shift: Shift? = null, classCategory: String? = null): Flow<PagingData<Visit>>
+    /** The days already booked (Pending or Approved plan requests), grouped by accountId. Used to disable day tiles. */
+    fun bookedDays(): Flow<Map<String, Set<Long>>>
 
-    /** How many requests [pendingRequests] lists for the same filters. */
-    fun pendingRequestCount(shift: Shift? = null, classCategory: String? = null): Flow<Int>
+    /** Every plan request the rep sent, newest first; [approval] null lists all answers. */
+    fun requests(approval: ApprovalStatus?): Flow<PagingData<Visit>>
+
+    /** How many requests [requests] lists for the same filters. */
+    fun requestCount(approval: ApprovalStatus?): Flow<Int>
     fun pendingCount(): Flow<Int>
 
     /** Plan requests the admin refused. */

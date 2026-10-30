@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "23c6a4b91404a3fb07fd253ecd12b8ab",
+    "identityHash": "c876ba203c08c579c3f4a4046e208a76",
     "entities": [
       {
         "tableName": "reps",
@@ -662,7 +662,7 @@
       },
       {
         "tableName": "visits",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `backendId` TEXT, `repId` TEXT, `accompanyingRepId` TEXT, `accountId` TEXT, `dateTimeMillis` INTEGER NOT NULL, `shift` TEXT NOT NULL, `type` TEXT NOT NULL, `visitMode` TEXT NOT NULL, `visitLatitude` REAL NOT NULL, `visitLongitude` REAL NOT NULL, `travelSeconds` INTEGER NOT NULL, `imageNotes` TEXT NOT NULL, `voiceNotePath` TEXT, `syncStatus` TEXT NOT NULL, `durationLabel` TEXT NOT NULL, `approvalStatus` TEXT NOT NULL, `executionStatus` TEXT NOT NULL, `cancelReason` TEXT, `textNote` TEXT, `requestId` TEXT, `requestedAtMillis` INTEGER, `decidedAtMillis` INTEGER, `completedAtMillis` INTEGER, `searchText` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`accompanyingRepId`) REFERENCES `reps`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`accountId`) REFERENCES `accounts`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `backendId` TEXT, `repId` TEXT, `accompanyingRepId` TEXT, `accountId` TEXT, `dateTimeMillis` INTEGER NOT NULL, `shift` TEXT NOT NULL, `type` TEXT NOT NULL, `visitMode` TEXT NOT NULL, `visitLatitude` REAL NOT NULL, `visitLongitude` REAL NOT NULL, `travelSeconds` INTEGER NOT NULL, `imageNotes` TEXT NOT NULL, `voiceNotePath` TEXT, `syncStatus` TEXT NOT NULL, `durationLabel` TEXT NOT NULL, `approvalStatus` TEXT NOT NULL, `executionStatus` TEXT NOT NULL, `cancelReason` TEXT, `rejectionReason` TEXT, `textNote` TEXT, `requestId` TEXT, `requestedAtMillis` INTEGER, `decidedAtMillis` INTEGER, `completedAtMillis` INTEGER, `searchText` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`accompanyingRepId`) REFERENCES `reps`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`accountId`) REFERENCES `accounts`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
         "fields": [
           {
             "fieldPath": "id",
@@ -770,6 +770,11 @@
           {
             "fieldPath": "cancelReason",
             "columnName": "cancelReason",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "rejectionReason",
+            "columnName": "rejectionReason",
             "affinity": "TEXT"
           },
           {
@@ -1616,7 +1621,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '23c6a4b91404a3fb07fd253ecd12b8ab')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c876ba203c08c579c3f4a4046e208a76')"
     ]
   }
 }

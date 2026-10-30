@@ -2,6 +2,7 @@ package com.example.medicalrep.ui.models
 
 import android.net.Uri
 import androidx.compose.runtime.Immutable
+import com.example.medicalrep.domain.models.ApprovalStatus
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.VisitType
@@ -44,4 +45,11 @@ data class VisitUi(
     val imageNotes: List<Uri> = emptyList(),
     val syncStatus: SyncStatus = SyncStatus.NotSynced,
     val durationLabel: String = "",
+    /** Plan requests: what the admin answered, and why a refusal. */
+    val approval: ApprovalStatus = ApprovalStatus.Approved,
+    val rejectionReason: String = "",
+    /** When the request was sent, as shown on its card. */
+    val requestedAtLabel: String = "",
+    /** The visit's day for a chip: "Monday 02/11". */
+    val dayLabel: String = "",
 )

@@ -11,6 +11,9 @@ fun formatClockTime(millis: Long): String = SimpleDateFormat("h:mm a", Locale.ge
 /** Date like "17/10/2026". */
 fun formatDate(millis: Long): String = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(millis))
 
+/** Weekday and day like "Monday 02/11". */
+fun formatDayChip(millis: Long): String = SimpleDateFormat("EEEE dd/MM", Locale.getDefault()).format(Date(millis))
+
 /** The first millisecond of the local day [millis] falls on. */
 fun startOfDay(millis: Long): Long = Calendar.getInstance().apply {
     timeInMillis = millis

@@ -1,5 +1,6 @@
 package com.example.medicalrep.data.repo
 
+import com.example.medicalrep.domain.models.ApprovalStatus
 import com.example.medicalrep.domain.models.GeoPoint
 import kotlin.math.cos
 import kotlin.math.pow
@@ -59,15 +60,18 @@ class VisitRepoImpl @Inject constructor(
 
     override suspend fun markMissed(beforeMillis: Long) = dao.markMissed(beforeMillis)
 
-    override fun pendingRequests(shift: Shift?, classCategory: String?) =
-        pagedFlow({ dao.pendingPaged(shift, classCategory) }) { it.toDomain() }
-
     override fun rejectedRequests(shift: Shift?, classCategory: String?) =
         pagedFlow({ dao.rejectedPaged(shift, classCategory) }) { it.toDomain() }
 
     override fun rejectedRequestCount(shift: Shift?, classCategory: String?) = dao.rejectedFilteredCount(shift, classCategory)
 
-    override fun pendingRequestCount(shift: Shift?, classCategory: String?) = dao.pendingFilteredCount(shift, classCategory)
+    override fun bookedDays(): Flow<Map<String, Set<Long>>> =
+        dao.bookedDayRows().map { rows -> rows.groupBy({ it.accountId }, { it.dateTimeMillis }).mapValues { it.value.toSet() } }
+
+    override fun requests(approval: ApprovalStatus?) =
+        pagedFlow({ dao.requestsPaged(approval) }) { it.toDomain() }
+
+    override fun requestCount(approval: ApprovalStatus?) = dao.requestsCount(approval)
 
     override fun pendingCount(): Flow<Int> = dao.countPending()
 

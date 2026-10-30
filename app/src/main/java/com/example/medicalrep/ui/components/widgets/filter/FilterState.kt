@@ -81,7 +81,11 @@ sealed interface FilterEvents {
 fun FilterState.reduce(event: FilterEvents): FilterState {
     return when (event) {
         is FilterEvents.OnAccountSelect -> copy(selectedAccount = event.value)
-        is FilterEvents.OnCitySelect -> copy(selectedCity = event.value)
+        // Choosing another city drops the district, which belonged to the old one.
+        is FilterEvents.OnCitySelect -> {
+            regionState.clearText()
+            copy(selectedCity = event.value, selectedRegion = null)
+        }
         is FilterEvents.OnClassSelect -> copy(selectedClass = event.value)
         is FilterEvents.OnRegionSelect -> copy(selectedRegion = event.value)
         is FilterEvents.OnSpecialtySelect -> copy(selectedSpecialty = event.value)

@@ -313,8 +313,8 @@
     <string name="products_pick_account_title">اختر الحساب الخاص بهذا الطلب</string>
     <string name="products_action_order">طلب</string>
     <!-- Visit planning -->
-    <string name="visit_planning_title">تخطيط الزيارات</string>
-    <string name="visit_planning_tab_pending">بانتظار الاعتماد</string>
+    <string name="visit_planning_title">تخطيط زيارات دورية</string>
+    <string name="visit_planning_tab_pending">بانتظار الموافقة</string>
     <string name="visit_planning_tab_visits">الزيارات</string>
     <string name="visit_planning_out_of_plan">زيارة خارج الخطة (planning)</string>
     <string name="visit_planning_requested">تم حفظ طلبات الزيارة وهي بانتظار الموافقة.</string>
@@ -462,4 +462,21 @@
     <string name="unplanned_attach_count">%1$d من %2$d</string>
     <string name="unplanned_attach_remove">حذف الصورة</string>
     <string name="unplanned_summary_account_type_label">نوع الحساب</string>
+    <string name="request_status_pending">قيد المراجعة</string>
+    <string name="request_status_approved">تمت الموافقة</string>
+    <string name="request_status_rejected">مرفوضة</string>
+    <string name="request_note_pending">في انتظار مراجعة مدير القطاع</string>
+    <string name="request_note_approved">تم اعتماد الزيارة من المشرف</string>
+    <string name="request_rejection_reason">سبب الرفض:</string>
+    <string name="request_pick_another_time">اختيار موعد آخر</string>
+    <string name="filter_visits_planning_title">فلتر الزيارات</string>
+    <string name="visit_planning_search_hint">ابحث بالطبيب، التخصص أو المكان...</string>
+    <string name="plan_class_format">تصنيف %1$s</string>
+    <plurals name="plan_days_selected">
+        <item quantity="one">تم اختيار يوم واحد</item>
+        <item quantity="two">تم اختيار يومين</item>
+        <item quantity="few">تم اختيار %1$d أيام</item>
+        <item quantity="many">تم اختيار %1$d يومًا</item>
+        <item quantity="other">تم اختيار %1$d يوم</item>
+    </plurals>
 </resources>

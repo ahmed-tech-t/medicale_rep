@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
+import com.example.medicalrep.domain.models.ApprovalStatus
 import com.example.medicalrep.domain.models.RepRole
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -337,6 +338,20 @@ class VisitDaoTest : DaoTestBase() {
         assertEquals(0, dao.markMissed(5_000))
     }
 
+    @Test fun requestsListEveryAnswerNewestFirstFilteredByAnswerWithTheReason() = runBlocking {
+        db.accountDao().save(account("a1", "A"))
+        db.accountDao().save(account("a2", "B"))
+        dao.save(visit("waiting", accountId = "a1", type = VisitType.Planning, status = VisitStatus.PendingApproval, requestedAtMillis = 1), emptyList())
+        dao.save(visit("approved", accountId = "a2", type = VisitType.Planned, status = VisitStatus.Scheduled, requestedAtMillis = 2), emptyList())
+        dao.save(visit("refused", accountId = "a2", type = VisitType.Planning, status = VisitStatus.Rejected, requestedAtMillis = 3).copy(rejectionReason = "Too many visits"), emptyList())
+        dao.save(visit("own-planned", accountId = "a1", type = VisitType.Planned, status = VisitStatus.Scheduled), emptyList())
+        assertEquals(listOf("refused", "approved", "waiting"), dao.requestsPaged(null).allRows().map { it.visit.id })
+        assertEquals(3, dao.requestsCount(null).first())
+        assertEquals(listOf("approved"), dao.requestsPaged(ApprovalStatus.Approved).allRows().map { it.visit.id })
+        assertEquals(1, dao.requestsCount(ApprovalStatus.Pending).first())
+        assertEquals("Too many visits", dao.requestsPaged(ApprovalStatus.Rejected).allRows().single().visit.rejectionReason)
+    }
+
     @Test fun pendingRequestsAreFilteredByShiftAndClass() = runBlocking {
         db.accountDao().save(account("a1", "A"))
         db.accountDao().save(account("a2", "B"))
@@ -361,6 +376,24 @@ class VisitDaoTest : DaoTestBase() {
         dao.save(visit("day-before", repId = "r1", status = VisitStatus.Completed, dateTimeMillis = 999, completedAtMillis = 999), emptyList())
         assertEquals(listOf("early", "late"), dao.doneBetween("r1", 1_000, 2_000).first().map { it.visit.id })
         assertTrue(dao.doneBetween("nobody", 1_000, 2_000).first().isEmpty())
+    }
+
+    @Test fun bookedDayRowsReturnsPendingAndApprovedDatesButNotRejected() = runBlocking {
+        db.accountDao().save(account("a1"))
+        db.accountDao().save(account("a2"))
+        val D1 = 1_800_000_000_000L
+        val D2 = D1 + 86_400_000L
+        val D3 = D1 + 2 * 86_400_000L
+        dao.save(visit("pending", accountId = "a1", type = VisitType.Planning, status = VisitStatus.PendingApproval, requestedAtMillis = 1, dateTimeMillis = D1), emptyList())
+        dao.save(visit("approved", accountId = "a1", type = VisitType.Planning, status = VisitStatus.PendingApproval, requestedAtMillis = 2, dateTimeMillis = D2, backendId = "b2"), emptyList())
+        dao.applyDecision("b2", true, 9)
+        dao.save(visit("rejected", accountId = "a2", type = VisitType.Planning, status = VisitStatus.PendingApproval, requestedAtMillis = 3, dateTimeMillis = D3, backendId = "b3"), emptyList())
+        dao.applyDecision("b3", false, 9)
+        val rows = dao.bookedDayRows().first()
+        assertEquals(2, rows.size)
+        assertTrue(rows.any { it.accountId == "a1" && it.dateTimeMillis == D1 })
+        assertTrue(rows.any { it.accountId == "a1" && it.dateTimeMillis == D2 })
+        assertFalse(rows.any { it.dateTimeMillis == D3 })
     }
 
     @Test fun clearEmptiesTable() = runBlocking {
