@@ -58,7 +58,7 @@ class VisitRepoTest : RepoTestBase() {
     @Test fun savingWithoutNewBytesKeepsTheOldVoiceNotePath() = runTest {
         repo.save(Visit(id = "v1", status = VisitStatus.Scheduled, voiceNote = byteArrayOf(1)))
         val path = repo.get("v1")!!.voiceNotePath
-        repo.save(repo.get("v1")!!.copy(noIssueFound = false))
+        repo.save(repo.get("v1")!!.copy(textNote = "changed"))
         assertEquals(path, repo.get("v1")!!.voiceNotePath)
     }
 

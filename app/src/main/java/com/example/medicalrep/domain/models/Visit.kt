@@ -34,7 +34,6 @@ data class Visit(
     val accountLongitude: Double = 0.0,
     /** How long the rep took to reach the visit; 0 when unknown. */
     val travelSeconds: Int = 0,
-    val noIssueFound: Boolean = true,
     val imageNotes: List<String> = emptyList(),
     /** The doctors seen in this visit. */
     val doctors: List<Doctor> = emptyList(),

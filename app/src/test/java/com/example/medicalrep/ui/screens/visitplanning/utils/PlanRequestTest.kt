@@ -30,12 +30,11 @@ class PlanRequestTest {
 
     @Test
     fun `request is a fresh single visit without supervisor, result or completion`() {
-        val source = Visit(id = "v1", accountId = "a1", supervisorId = "s1", visitMode = VisitMode.Double, completedAtMillis = 5L, backendId = "b1", noIssueFound = false)
+        val source = Visit(id = "v1", accountId = "a1", supervisorId = "s1", visitMode = VisitMode.Double, completedAtMillis = 5L, backendId = "b1")
         val request = source.asPlanRequest("req-1", 1L, 2L)
         assertEquals(VisitMode.Single, request.visitMode)
         assertNull(request.supervisorId)
         assertNull(request.completedAtMillis)
         assertNull(request.backendId)
-        assertEquals(true, request.noIssueFound)
     }
 }

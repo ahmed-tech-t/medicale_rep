@@ -1,6 +1,7 @@
 package com.example.medicalrep.domain.repo
 
 import androidx.paging.PagingData
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.Visit
@@ -13,7 +14,10 @@ interface VisitRepo {
     fun visits(query: String = ""): Flow<PagingData<Visit>>
     fun visitsFiltered(type: VisitType?, syncStatus: SyncStatus?, repId: String?, fromMillis: Long, toMillis: Long): Flow<PagingData<Visit>>
 
-    /** Planned visits still to do, by their date. Every part of [filter] is optional; it runs in the database. */
+    /**
+     * Planned visits still to do. Every part of [filter] is optional; it runs in the database.
+     * With [VisitListFilter.nearLatitude] the nearest account comes first, otherwise the earliest date.
+     */
     fun requiredVisits(filter: VisitListFilter = VisitListFilter()): Flow<PagingData<Visit>>
     fun requiredCount(filter: VisitListFilter = VisitListFilter()): Flow<Int>
 
@@ -39,8 +43,11 @@ interface VisitRepo {
     fun rejectedRequests(shift: Shift? = null, classCategory: String? = null): Flow<PagingData<Visit>>
     fun rejectedRequestCount(shift: Shift? = null, classCategory: String? = null): Flow<Int>
 
-    /** The visits still to do in the range (from included, to not included), soonest first, at most [limit]. */
-    fun todayVisits(fromMillis: Long, toMillis: Long, limit: Int): Flow<List<Visit>>
+    /**
+     * The next [limit] visits still to do from [fromMillis] on (a day start): today's first, then the next days;
+     * inside a day the account nearest to [near] first (time order when [near] is null).
+     */
+    fun scheduledFrom(fromMillis: Long, near: GeoPoint?, limit: Int): Flow<List<Visit>>
 
     /** The visits the rep finished in the range (from included, to not included), in time order. */
     fun doneOnDay(repId: String, fromMillis: Long, toMillis: Long): Flow<List<Visit>>

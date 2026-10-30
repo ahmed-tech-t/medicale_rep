@@ -9,10 +9,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -24,12 +25,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.appcore.core.ui.theme.dim
 import com.appcore.core.ui.theme.radii
 import com.appcore.core.ui.theme.spacing
@@ -45,6 +46,7 @@ import com.example.medicalrep.ui.ui.theme.Slate200
 import com.example.medicalrep.ui.ui.theme.Slate25
 import com.example.medicalrep.ui.ui.theme.Slate400
 import com.example.medicalrep.ui.ui.theme.Slate50
+import com.example.medicalrep.ui.ui.theme.Slate600
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -118,28 +120,48 @@ internal fun AttachPhotoCard(
             verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
         ) {
             images.forEachIndexed { index, image ->
-                Box(
-                    modifier = Modifier
-                        .size(dim.thumbnailSize)
-                        .clip(RoundedCornerShape(radii.medium))
-                        .background(Slate25)
-                        .border(DividerDefaults.Thickness, Slate200, RoundedCornerShape(radii.medium)),
-                ) {
-                    NexoraImage(bitmap = image, contentDescription = null, modifier = Modifier.size(dim.thumbnailSize))
-                    NexoraIcon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = stringResource(R.string.unplanned_attach_remove),
-                        tint = Slate50,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(spacing.spaceExtraSmall)
-                            .size(dim.smallIconSize)
-                            .clip(CircleShape)
-                            .background(Ink)
-                            .clickable(role = Role.Button) { onRemove(index) },
-                    )
-                }
+                ImagePreview(image = image, index = index, onRemove = onRemove)
             }
+        }
+    }
+}
+
+/** A rounded thumbnail with a round remove badge that sits over its top corner. */
+@Composable
+private fun ImagePreview(
+    modifier: Modifier = Modifier,
+    image: ImageBitmap,
+    index: Int,
+    onRemove: (Int) -> Unit
+) {
+    val shape = RoundedCornerShape(radii.large)
+    Box(modifier = modifier.size(dim.thumbnailSize)) {
+        NexoraImage(
+            bitmap = image,
+            contentDescription = null,
+            modifier = Modifier
+                .size(dim.thumbnailSize)
+                .clip(shape)
+                .background(Slate25)
+                .border(DividerDefaults.Thickness, Slate200, shape),
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(x = -spacing.spaceSmall, y = -spacing.spaceSmall)
+                .size(dim.smallIconSize)
+                .clip(CircleShape)
+                .background(Slate600)
+                .border(spacing.spaceExtraExtraSmall, Slate50, CircleShape)
+                .clickable(role = Role.Button) { onRemove(index) },
+            contentAlignment = Alignment.Center,
+        ) {
+            NexoraIcon(
+                imageVector = Icons.Default.Close,
+                contentDescription = stringResource(R.string.unplanned_attach_remove),
+                tint = Slate50,
+                modifier = Modifier.size(dim.miniIconSize),
+            )
         }
     }
 }
@@ -147,13 +169,37 @@ internal fun AttachPhotoCard(
 @Preview(showBackground = true, locale = "ar")
 @Composable
 private fun AttachPhotoCardArabicPreview() {
-    MedicalRepTheme { AttachPhotoCard(images = emptyList(), required = 2, onAttach = {}, onRemove = {}) }
+    MedicalRepTheme {
+        AttachPhotoCard(
+            images = emptyList(),
+            required = 2,
+            onAttach = {},
+            onRemove = {})
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun AttachPhotoCardEnglishPreview() {
-    MedicalRepTheme { AttachPhotoCard(images = emptyList(), required = 2, onAttach = {}, onRemove = {}) }
+    MedicalRepTheme {
+        AttachPhotoCard(
+            images = emptyList(),
+            required = 2,
+            onAttach = {},
+            onRemove = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ImagePreviewPreview() {
+    MedicalRepTheme {
+        ImagePreview(
+            image = ImageBitmap(100, 100),
+            index = 0,
+            onRemove = {}
+        )
+    }
 }
 
 

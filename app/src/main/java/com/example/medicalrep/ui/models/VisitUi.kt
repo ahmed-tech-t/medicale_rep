@@ -42,7 +42,6 @@ data class VisitUi(
     val voiceNote: ByteArray? = null,
     /** One photo per picked doctor (at least one) proves the visit. */
     val imageNotes: List<Uri> = emptyList(),
-    val noIssueFound: Boolean = true,
     val syncStatus: SyncStatus = SyncStatus.NotSynced,
     val durationLabel: String = "",
 )

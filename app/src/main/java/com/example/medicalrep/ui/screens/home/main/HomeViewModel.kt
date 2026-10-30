@@ -8,6 +8,7 @@ import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
 import com.appcore.core.domain.utils.UiEvent.*
 import com.appcore.core.ui.utils.BaseViewModel
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.models.Visit
 import com.example.medicalrep.domain.repo.DraftVisitRepo
 import com.example.medicalrep.domain.repo.NotificationRepo
@@ -19,6 +20,7 @@ import com.example.medicalrep.ui.navigation.model.MainGraph
 import com.example.medicalrep.ui.navigation.model.MainGraph.*
 import com.example.medicalrep.ui.screens.home.components.nav_drawer.NavDrawerItem
 import com.example.medicalrep.ui.screens.home.components.nav_drawer.nav
+import com.example.medicalrep.domain.models.lastLocation
 import com.example.medicalrep.ui.utils.startOfDay
 import com.example.medicalrep.ui.utils.startOfNextDay
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,8 +36,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/** Home lists the next few visits of the day; the rest are under View all. */
+/** Home lists the next few visits (today's first, the nearest first); the rest are under View all. */
 private const val TODAY_VISITS_LIMIT = 3
+
+private fun GeoPoint.rounded() = GeoPoint(Math.round(latitude * 1000) / 1000.0, Math.round(longitude * 1000) / 1000.0)
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -93,11 +97,10 @@ class HomeViewModel @Inject constructor(
                 .collect { progress -> _state.update { it.copy(progress = progress) } }
         }
         viewModelScope.launch {
-            visitRepo.todayVisits(
-                startOfDay(openedAtMillis),
-                startOfNextDay(openedAtMillis),
-                TODAY_VISITS_LIMIT
-            )
+            // Room orders them (today first, nearest first); the point is rounded to about 100 m so only a real move asks again.
+            session.user.map { it.lastLocation?.rounded() }
+                .distinctUntilChanged()
+                .flatMapLatest { location -> visitRepo.scheduledFrom(startOfDay(openedAtMillis), location, TODAY_VISITS_LIMIT) }
                 .collect { visits -> _state.update { it.copy(todayVisits = visits.map(Visit::toUi)) } }
         }
         viewModelScope.launch {

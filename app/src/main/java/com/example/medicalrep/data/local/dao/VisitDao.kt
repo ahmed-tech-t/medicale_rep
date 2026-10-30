@@ -40,6 +40,11 @@ private const val DONE_FILTER = VISIT_LIST_FILTER +
     " AND (:fromMillis IS NULL OR completedAtMillis >= :fromMillis) AND (:toMillis IS NULL OR completedAtMillis < :toMillis)" +
     " AND (:visitMode IS NULL OR visitMode = :visitMode) AND (:syncStatus IS NULL OR syncStatus = :syncStatus)"
 
+/** The ORDER BY part that puts the account nearest to (:nearLatitude, :nearLongitude) first; 0 for everyone when no point is given. */
+private const val NEAREST_FIRST = "CASE WHEN :nearLatitude IS NULL THEN 0 ELSE (SELECT CASE WHEN a.latitude = 0 AND a.longitude = 0 THEN 1e18" +
+    " ELSE (a.latitude - :nearLatitude) * (a.latitude - :nearLatitude) + (a.longitude - :nearLongitude) * (a.longitude - :nearLongitude) * :lngScale END" +
+    " FROM accounts a WHERE a.id = visits.accountId) END"
+
 @Dao
 abstract class VisitDao : BaseDao<VisitEntity> {
 
@@ -216,12 +221,15 @@ abstract class VisitDao : BaseDao<VisitEntity> {
 
     // ---- lists by status ----
 
-    /** Visits still to do. Every filter is optional (null = ignore). */
+    /**
+     * Visits still to do. Every filter is optional (null = ignore). With [nearLatitude] set, the nearest account comes first
+     * (squared equirectangular distance; [lngScale] is cos² of the latitude); accounts with no coordinates come last, then time order.
+     */
     @Transaction
-    @Query("SELECT * FROM visits WHERE approvalStatus = 'Approved' AND executionStatus = 'Scheduled' AND $REQUIRED_FILTER ORDER BY dateTimeMillis")
+    @Query("SELECT * FROM visits WHERE approvalStatus = 'Approved' AND executionStatus = 'Scheduled' AND $REQUIRED_FILTER ORDER BY " + NEAREST_FIRST + ", dateTimeMillis")
     abstract fun requiredPaged(
         shift: Shift?, classCategory: String?, cityId: String?, districtId: String?, specialty: String?, fromMillis: Long?, toMillis: Long?,
-        query: String,
+        query: String, nearLatitude: Double?, nearLongitude: Double?, lngScale: Double,
     ): PagingSource<Int, VisitWithDetails>
 
     @Query("SELECT COUNT(*) FROM visits WHERE approvalStatus = 'Approved' AND executionStatus = 'Scheduled' AND $REQUIRED_FILTER")
@@ -256,10 +264,10 @@ abstract class VisitDao : BaseDao<VisitEntity> {
         cityId: String?, districtId: String?, specialty: String?, fromMillis: Long?, toMillis: Long?, query: String,
     ): Flow<Int>
 
-    /** The visits still to do in a day (from included, to not included): soonest first, at most [limit]. */
+    /** The visits still to do from [fromMillis] on, today first then the next days, nearest account first inside a day (see [requiredPaged]), at most [limit]. */
     @Transaction
-    @Query("SELECT * FROM visits WHERE approvalStatus = 'Approved' AND executionStatus = 'Scheduled' AND dateTimeMillis >= :fromMillis AND dateTimeMillis < :toMillis ORDER BY dateTimeMillis LIMIT :limit")
-    abstract fun scheduledBetween(fromMillis: Long, toMillis: Long, limit: Int): Flow<List<VisitWithDetails>>
+    @Query("SELECT * FROM visits WHERE approvalStatus = 'Approved' AND executionStatus = 'Scheduled' AND dateTimeMillis >= :fromMillis ORDER BY strftime('%Y-%m-%d', dateTimeMillis / 1000, 'unixepoch', 'localtime'), " + NEAREST_FIRST + ", dateTimeMillis LIMIT :limit")
+    abstract fun scheduledFrom(fromMillis: Long, nearLatitude: Double?, nearLongitude: Double?, lngScale: Double, limit: Int): Flow<List<VisitWithDetails>>
 
     /** The visits one rep finished in a range (from included, to not included), in time order. */
     @Transaction

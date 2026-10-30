@@ -203,7 +203,7 @@
     <string name="unplanned_voice_permission_denied">Microphone permission is required to record a voice note</string>
     <string name="unplanned_voice_prompt">Record the result with voice (Voice Note)</string>
     <string name="unplanned_attach_title">Attach a photo</string>
-    <string name="unplanned_attach_hint">Please attach a photo of the clinic door</string>
+    <string name="unplanned_attach_hint">Please attach a photo of the visit result</string>
     <string name="unplanned_summary_gifts_format">Gifts: %1$d pcs</string>
     <string name="unplanned_summary_products_format">Products: %1$d boxes</string>
     <string name="unplanned_class_format">Class %1$s</string>
@@ -212,7 +212,6 @@
     <string name="unplanned_no_items">No items added yet</string>
     <string name="unplanned_summary_place_format">%1$s - %2$s</string>
     <string name="unplanned_double_with_format">Double (%1$s)</string>
-    <string name="unplanned_clinic_open">The clinic is open with no obstacles</string>
     <string name="unplanned_remaining_after_gift_format">Left in your custody after handing out: %1$d pcs</string>
     <string name="unplanned_remaining_after_product_format">Left in your custody after handing out: %1$d boxes</string>
     <string name="unplanned_available_gift_format">Available in your custody now: %1$d pcs</string>

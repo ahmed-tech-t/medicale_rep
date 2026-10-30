@@ -172,9 +172,9 @@ class VisitDaoTest : DaoTestBase() {
         dao.save(visit("todo-pm", accountId = "a2", type = VisitType.Planned, shift = Shift.Pm, dateTimeMillis = 200), emptyList())
         dao.save(visit("done-planned", accountId = "a1", type = VisitType.Planned, status = VisitStatus.Completed, completedAtMillis = 300), emptyList())
         dao.save(visit("done-double", type = VisitType.Unplanned, double = true, syncStatus = SyncStatus.NotSynced, status = VisitStatus.Completed, completedAtMillis = 400), emptyList())
-        assertEquals(listOf("todo-am", "todo-pm"), dao.requiredPaged(null, null, null, null, null, null, null, "").allRows().map { it.visit.id })
-        assertEquals(listOf("todo-pm"), dao.requiredPaged(Shift.Pm, null, null, null, null, null, null, "").allRows().map { it.visit.id })
-        assertEquals(listOf("todo-am"), dao.requiredPaged(null, "A", null, null, null, null, null, "").allRows().map { it.visit.id })
+        assertEquals(listOf("todo-am", "todo-pm"), dao.requiredPaged(null, null, null, null, null, null, null, "", null, null, 1.0).allRows().map { it.visit.id })
+        assertEquals(listOf("todo-pm"), dao.requiredPaged(Shift.Pm, null, null, null, null, null, null, "", null, null, 1.0).allRows().map { it.visit.id })
+        assertEquals(listOf("todo-am"), dao.requiredPaged(null, "A", null, null, null, null, null, "", null, null, 1.0).allRows().map { it.visit.id })
         assertEquals(2, dao.requiredCount(null, null, null, null, null, null, null, "").first())
         assertEquals(listOf("done-double", "done-planned"), dao.donePaged(null, null, null, null, null, null, null, null, null, "").allRows().map { it.visit.id })
         assertEquals(listOf("done-double"), dao.donePaged(null, VisitMode.Double, null, null, null, null, null, null, null, "").allRows().map { it.visit.id })
@@ -195,7 +195,7 @@ class VisitDaoTest : DaoTestBase() {
         dao.save(visit("done-cairo", accountId = "a1", status = VisitStatus.Completed, completedAtMillis = 1_500), emptyList())
         dao.save(visit("done-giza", accountId = "a2", status = VisitStatus.Completed, completedAtMillis = 2_500), emptyList())
         fun required(city: String? = null, district: String? = null, specialty: String? = null, from: Long? = null, to: Long? = null) =
-            dao.requiredPaged(null, null, city, district, specialty, from, to, "")
+            dao.requiredPaged(null, null, city, district, specialty, from, to, "", null, null, 1.0)
         assertEquals(listOf("cairo"), required(city = "c1").allRows().map { it.visit.id })
         assertEquals(listOf("giza"), required(district = "d2").allRows().map { it.visit.id })
         assertEquals(listOf("cairo"), required(specialty = "Cardiology").allRows().map { it.visit.id })
@@ -229,6 +229,44 @@ class VisitDaoTest : DaoTestBase() {
         assertEquals(listOf("done"), done(SyncStatus.Synced).allRows().map { it.visit.id })
         dao.markSynced("fail", "b1")
         assertEquals(SyncStatus.Synced, dao.getById("fail")!!.syncStatus)
+    }
+
+    @Test fun scheduledFromGivesTodayFirstThenNearestOfEachDayWithTheLimitAppliedAfterOrdering() = runBlocking {
+        val day = 86_400_000L * 40
+        suspend fun place(id: String, km: Int) = db.accountDao().save(account(id).copy(latitude = 30.0 + km * 0.009, longitude = 31.0))
+        place("near", 1)
+        place("far", 20)
+        dao.save(visit("today-far", accountId = "far", type = VisitType.Planned, dateTimeMillis = day + 1_000), emptyList())
+        dao.save(visit("today-near-late", accountId = "near", type = VisitType.Planned, dateTimeMillis = day + 9_000_000), emptyList())
+        dao.save(visit("tomorrow-near", accountId = "near", type = VisitType.Planned, dateTimeMillis = day + 86_400_000 + 1_000), emptyList())
+        dao.save(visit("yesterday", accountId = "near", type = VisitType.Planned, dateTimeMillis = day - 1_000), emptyList())
+        suspend fun next(limit: Int) = dao.scheduledFrom(day, 30.0, 31.0, 1.0, limit).first().map { it.visit.id }
+        assertEquals(listOf("today-near-late", "today-far", "tomorrow-near"), next(10))
+        assertEquals(listOf("today-near-late"), next(1))
+    }
+
+    @Test fun requiredVisitsComeNearestToTheRepFirstAcrossDaysAndUnknownPlacesLast() = runBlocking {
+        suspend fun place(id: String, km: Int?) = db.accountDao().save(
+            account(id).copy(latitude = if (km == null) 0.0 else 30.0 + km * 0.009, longitude = if (km == null) 0.0 else 31.0),
+        )
+        place("near", 1)
+        place("middle", 5)
+        place("far", 20)
+        place("unknown", null)
+        dao.save(visit("far-early", accountId = "far", type = VisitType.Planned, dateTimeMillis = 1_000), emptyList())
+        dao.save(visit("near-next-day", accountId = "near", type = VisitType.Planned, dateTimeMillis = 100_000_000), emptyList())
+        dao.save(visit("unknown-early", accountId = "unknown", type = VisitType.Planned, dateTimeMillis = 500), emptyList())
+        dao.save(visit("middle-late", accountId = "middle", type = VisitType.Planned, dateTimeMillis = 9_000), emptyList())
+        dao.save(visit("no-account", type = VisitType.Planned, dateTimeMillis = 100), emptyList())
+        fun required(lat: Double?) = dao.requiredPaged(null, null, null, null, null, null, null, "", lat, 31.0, 1.0)
+        assertEquals(
+            listOf("near-next-day", "middle-late", "far-early", "no-account", "unknown-early"),
+            required(30.0).allRows().map { it.visit.id },
+        )
+        assertEquals(
+            listOf("no-account", "unknown-early", "far-early", "middle-late", "near-next-day"),
+            required(null).allRows().map { it.visit.id },
+        )
     }
 
     @Test fun searchMatchesTheClinicTheDoctorNameAndTheSpecialtyAndKeepsTheOtherFilters() = runBlocking {
@@ -266,20 +304,19 @@ class VisitDaoTest : DaoTestBase() {
         assertEquals(0, dao.cancelVisit("request", "late"))
         assertEquals(0, dao.cancelVisit("nope", "late"))
         assertEquals(VisitStatus.Completed, dao.getById("done")!!.status)
-        assertEquals(emptyList<String>(), dao.requiredPaged(null, null, null, null, null, null, null, "").allRows().map { it.visit.id })
+        assertEquals(emptyList<String>(), dao.requiredPaged(null, null, null, null, null, null, null, "", null, null, 1.0).allRows().map { it.visit.id })
         assertEquals(listOf("todo"), dao.missedPaged(null, null).allRows().map { it.visit.id })
     }
 
-    @Test fun scheduledBetweenGivesTheRangesToDoVisitsSoonestFirstUpToTheLimit() = runBlocking {
+    @Test fun scheduledFromGivesToDoVisitsFromThatTimeOnSoonestFirst() = runBlocking {
         dao.save(visit("late", dateTimeMillis = 1_900), emptyList())
         dao.save(visit("early", dateTimeMillis = 1_100), emptyList())
         dao.save(visit("middle", dateTimeMillis = 1_500), emptyList())
-        dao.save(visit("end-excluded", dateTimeMillis = 2_000), emptyList())
+        dao.save(visit("next-day", dateTimeMillis = 5_000), emptyList())
         dao.save(visit("before", dateTimeMillis = 999), emptyList())
         dao.save(visit("done", status = VisitStatus.Completed, dateTimeMillis = 1_200, completedAtMillis = 1_300), emptyList())
         dao.save(visit("missed", status = VisitStatus.Missed, dateTimeMillis = 1_200), emptyList())
-        assertEquals(listOf("early", "middle", "late"), dao.scheduledBetween(1_000, 2_000, 10).first().map { it.visit.id })
-        assertEquals(listOf("early", "middle"), dao.scheduledBetween(1_000, 2_000, 2).first().map { it.visit.id })
+        assertEquals(listOf("early", "middle", "late", "next-day"), dao.scheduledFrom(1_000, null, null, 1.0, 10).first().map { it.visit.id })
     }
 
     @Test fun markMissedOnlyMovesScheduledVisitsOfEarlierDays() = runBlocking {
@@ -296,7 +333,7 @@ class VisitDaoTest : DaoTestBase() {
         assertEquals(VisitStatus.PendingApproval, dao.getById("request")!!.status)
         assertEquals(listOf("old"), dao.missedPaged(null, null).allRows().map { it.visit.id })
         assertEquals(1, dao.missedCount(null, null).first())
-        assertEquals(listOf("today", "undated"), dao.requiredPaged(null, null, null, null, null, null, null, "").allRows().map { it.visit.id }.sorted())
+        assertEquals(listOf("today", "undated"), dao.requiredPaged(null, null, null, null, null, null, null, "", null, null, 1.0).allRows().map { it.visit.id }.sorted())
         assertEquals(0, dao.markMissed(5_000))
     }
 

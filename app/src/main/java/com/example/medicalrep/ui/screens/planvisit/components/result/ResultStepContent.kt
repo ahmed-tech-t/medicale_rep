@@ -71,10 +71,6 @@ fun ResultStepContent(
             },
             onRemove = { onEvent(PlanVisitEvents.RemoveImage(it)) },
         )
-        ClinicOpenRow(
-            checked = state.visit.noIssueFound,
-            onCheckedChange = { onEvent(PlanVisitEvents.ToggleClinicOpen(it)) },
-        )
     }
 }
 

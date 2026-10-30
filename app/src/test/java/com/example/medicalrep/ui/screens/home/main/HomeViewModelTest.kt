@@ -28,6 +28,7 @@ import com.example.medicalrep.domain.models.VisitProgress
 import com.example.medicalrep.domain.models.VisitStatus
 import com.example.medicalrep.domain.repo.FakeStatisticsRepo
 import com.appcore.core.data.local.datastore.model.UserDS
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.ui.utils.startOfNextDay
 import com.example.medicalrep.domain.repo.FakeDraftVisitRepo
 import com.example.medicalrep.domain.repo.FakeNotificationRepo
@@ -231,7 +232,7 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `today's visits are the scheduled ones of today, soonest first, at most three`() {
+    fun `home lists the scheduled visits from today on, today first, at most three`() {
         val today = startOfDay(System.currentTimeMillis())
         fun visit(id: String, atHour: Int, status: VisitStatus = VisitStatus.Scheduled, dayOffset: Long = 0) =
             Visit(id = id, status = status, dateTimeMillis = today + dayOffset * 24 * HOUR + atHour * HOUR)
@@ -240,10 +241,44 @@ class HomeViewModelTest {
             visit("done", 8, VisitStatus.Completed), visit("tomorrow", 9, dayOffset = 1), visit("yesterday", 9, dayOffset = -1),
         )
         assertEquals(listOf("a", "b", "c"), state.todayVisits.map { it.id })
-        val (from, to, limit) = visitRepo.todayRequests.single()
-        assertEquals(today, from)
-        assertEquals(startOfNextDay(today), to)
-        assertEquals(3, limit)
+        assertEquals(listOf(Triple(today, null, 3)), visitRepo.scheduledRequests)
+    }
+
+    @Test
+    fun `when today has fewer than three the next day fills the rest`() {
+        val today = startOfDay(System.currentTimeMillis())
+        visitRepo.current.value = listOf(
+            Visit(id = "t2", status = VisitStatus.Scheduled, dateTimeMillis = today + 24 * HOUR + 11 * HOUR),
+            Visit(id = "a", status = VisitStatus.Scheduled, dateTimeMillis = today + 9 * HOUR),
+            Visit(id = "t1", status = VisitStatus.Scheduled, dateTimeMillis = today + 24 * HOUR + 9 * HOUR),
+            Visit(id = "t3", status = VisitStatus.Scheduled, dateTimeMillis = today + 48 * HOUR + 9 * HOUR),
+        )
+        assertEquals(listOf("a", "t1", "t2"), state.todayVisits.map { it.id })
+    }
+
+    @Test
+    fun `home asks Room for the visits nearest to the rep and asks again only after a real move`() {
+        val today = startOfDay(System.currentTimeMillis())
+        session.setLocation(GeoPoint(30.00012, 31.00049))
+        assertEquals(Triple(today, GeoPoint(30.0, 31.0), 3), visitRepo.scheduledRequests.last())
+        val asked = visitRepo.scheduledRequests.size
+        session.setLocation(GeoPoint(30.00031, 31.00033)) // a few metres: same rounded point
+        assertEquals(asked, visitRepo.scheduledRequests.size)
+        session.setLocation(GeoPoint(30.6, 31.0))
+        assertEquals(Triple(today, GeoPoint(30.6, 31.0), 3), visitRepo.scheduledRequests.last())
+    }
+
+    @Test
+    fun `finishing a visit brings the next planned one in order`() {
+        val today = startOfDay(System.currentTimeMillis())
+        fun visit(id: String, hour: Long, dayOffset: Long = 0) =
+            Visit(id = id, status = VisitStatus.Scheduled, dateTimeMillis = today + dayOffset * 24 * HOUR + hour * HOUR)
+        visitRepo.current.value = listOf(visit("a", 9), visit("b", 11), visit("c", 13), visit("d", 15), visit("tomorrow", 9, 1))
+        assertEquals(listOf("a", "b", "c"), state.todayVisits.map { it.id })
+        visitRepo.current.value = visitRepo.current.value.map { if (it.id == "a") it.copy(status = VisitStatus.Completed, completedAtMillis = today + 10 * HOUR) else it }
+        assertEquals(listOf("b", "c", "d"), state.todayVisits.map { it.id })
+        visitRepo.current.value = visitRepo.current.value.map { if (it.id == "b") it.copy(status = VisitStatus.Completed, completedAtMillis = today + 12 * HOUR) else it }
+        assertEquals(listOf("c", "d", "tomorrow"), state.todayVisits.map { it.id })
     }
 
     @Test

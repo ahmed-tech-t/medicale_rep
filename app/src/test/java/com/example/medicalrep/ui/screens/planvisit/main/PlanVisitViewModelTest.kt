@@ -863,14 +863,6 @@ class PlanVisitViewModelTest {
     }
 
     @Test
-    fun `clinic open checkbox follows toggle`() {
-        viewModel.onEvent(PlanVisitEvents.ToggleClinicOpen(false))
-        assertEquals(false, state.visit.noIssueFound)
-        viewModel.onEvent(PlanVisitEvents.ToggleClinicOpen(true))
-        assertEquals(true, state.visit.noIssueFound)
-    }
-
-    @Test
     fun `back navigates up and end visit shows snackbar then navigates up`() = runTest(dispatcher) {
         val events = collectEvents()
         viewModel.onEvent(PlanVisitEvents.Back)

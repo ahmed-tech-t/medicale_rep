@@ -1,6 +1,7 @@
 package com.example.medicalrep.domain.repo
 
 import androidx.paging.PagingData
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.Visit
@@ -89,15 +90,13 @@ class FakeVisitRepo(initial: List<Visit> = emptyList()) : VisitRepo {
         return late.size
     }
 
-    /** The (from, to, limit) of every `todayVisits` call, in order. */
-    val todayRequests = mutableListOf<Triple<Long, Long, Int>>()
+    /** The (from, near, limit) of every `scheduledFrom` call, in order. The order by distance is Room's job; this one is time order. */
+    val scheduledRequests = mutableListOf<Triple<Long, GeoPoint?, Int>>()
 
-    override fun todayVisits(fromMillis: Long, toMillis: Long, limit: Int): Flow<List<Visit>> {
-        todayRequests += Triple(fromMillis, toMillis, limit)
+    override fun scheduledFrom(fromMillis: Long, near: GeoPoint?, limit: Int): Flow<List<Visit>> {
+        scheduledRequests += Triple(fromMillis, near, limit)
         return current.map { list ->
-            list.filter { it.status == VisitStatus.Scheduled && (it.dateTimeMillis ?: 0L) in fromMillis until toMillis }
-                .sortedBy { it.dateTimeMillis }
-                .take(limit)
+            list.filter { it.status == VisitStatus.Scheduled && (it.dateTimeMillis ?: 0L) >= fromMillis }.sortedBy { it.dateTimeMillis }.take(limit)
         }
     }
 

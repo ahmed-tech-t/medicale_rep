@@ -6,12 +6,17 @@ import com.appcore.core.domain.repo.AuthSessionLocalRepo
 import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.models.LocationFix
 import com.example.medicalrep.domain.models.withLocation
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 
 /** A session for tests, already initialized with [user]; sign in or out through [manager]. */
 class FakeSession(user: UserDS = UserDS()) {
     val users = FakeUserLocalRepo(user)
-    val manager = AuthSessionManager(NoTokensRepo, users, emptySet()).also { runBlocking { it.initialize() } }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val manager = AuthSessionManager(NoTokensRepo, users, emptySet(), CoroutineScope(UnconfinedTestDispatcher()))
+        .also { runBlocking { it.initialize() } }
 
     /** Puts [point] (or no location) into the signed-in user, as the GPS tracking does. */
     fun setLocation(point: GeoPoint?, accuracyMeters: Float = 5f) = runBlocking {

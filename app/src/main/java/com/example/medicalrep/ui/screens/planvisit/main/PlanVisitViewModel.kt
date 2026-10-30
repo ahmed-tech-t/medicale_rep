@@ -2,7 +2,6 @@ package com.example.medicalrep.ui.screens.planvisit.main
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.toRoute
 import com.appcore.core.data.local.session.AuthSessionManager
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
@@ -71,9 +70,10 @@ class PlanVisitViewModel @Inject constructor(
 ) : BaseViewModel(appSettingsRepo) {
 
     /** Null means an unplanned visit: every field stays editable. */
-    private val visitId: String? = savedStateHandle.toRoute<MainGraph.PlanVisit>().visitId
-    private val isNewVisit: Boolean = savedStateHandle.toRoute<MainGraph.PlanVisit>().isNew
-    private val resumeDraft: Boolean = savedStateHandle.toRoute<MainGraph.PlanVisit>().resumeDraft
+    // The route's own argument keys: toRoute needs a real Bundle, which plain JVM tests do not have.
+    private val visitId: String? = savedStateHandle.get<String>("visitId")
+    private val isNewVisit: Boolean = savedStateHandle.get<Boolean>("isNew") ?: true
+    private val resumeDraft: Boolean = savedStateHandle.get<Boolean>("resumeDraft") ?: false
 
     private val _state = MutableStateFlow(initialState())
     val state: StateFlow<PlanVisitState> = _state.asStateFlow()
@@ -196,7 +196,6 @@ class PlanVisitViewModel @Inject constructor(
                 event.delta
             )
 
-            is PlanVisitEvents.ToggleClinicOpen -> updateVisit { it.copy(noIssueFound = event.confirmed) }
             PlanVisitEvents.EndVisit -> endVisit()
 
             PlanVisitEvents.VoiceNoteRecordingStarted -> _state.update { it.copy(isRecordingVoice = true) }

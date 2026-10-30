@@ -47,7 +47,6 @@ data class VisitEntity(
     val visitLatitude: Double,
     val visitLongitude: Double,
     val travelSeconds: Int,
-    val noIssueFound: Boolean,
     val imageNotes: List<String>,
     val voiceNotePath: String?,
     val syncStatus: SyncStatus,

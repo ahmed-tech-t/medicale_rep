@@ -21,7 +21,7 @@ class VisitUiMapperTest {
         val ui = VisitUi(
             id = "v1", city = BasicModelUi("c1", "Cairo"), region = BasicModelUi("r1", "Nasr"), account = BasicModelUi("t1", "عيادة"), placeName = "د. أحمد",
             specialty = BasicModelUi("sp1", "باطنة"),
-            shift = Shift.Pm, type = VisitType.Planned, isDoubleVisit = true, supervisor = BasicModelUi("s1", "Boss"), noIssueFound = false,
+            shift = Shift.Pm, type = VisitType.Planned, isDoubleVisit = true, supervisor = BasicModelUi("s1", "Boss"),
             visitLatitude = 1.0, visitLongitude = 2.0, travelSeconds = 30,
             gifts = listOf(ProductUi("g1", "Pen", 2, ProductType.Gift, 8, "")),
             products = listOf(ProductUi("p1", "Drug", 1, ProductType.Sample, 4, "", 50, 10)),
@@ -33,7 +33,6 @@ class VisitUiMapperTest {
         assertEquals("د. أحمد", visit.placeName)
         assertEquals(Shift.Pm, visit.shift)
         assertEquals(com.example.medicalrep.domain.models.VisitMode.Double, visit.visitMode)
-        assertEquals(false, visit.noIssueFound)
         assertEquals(30, visit.travelSeconds)
         assertEquals(listOf(Product("g1", "Pen", 2, ProductType.Gift, "", 8, 0, 0)), visit.gifts)
         assertEquals(50, visit.products?.single()?.price)

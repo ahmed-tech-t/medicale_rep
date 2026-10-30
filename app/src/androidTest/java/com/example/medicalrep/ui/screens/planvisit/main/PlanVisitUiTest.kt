@@ -76,18 +76,11 @@ class PlanVisitUiTest {
     }
 
     @Test
-    fun resultStep_endVisitAndClinicToggle() {
+    fun resultStep_endVisitSendsEndVisit() {
         setUi(PlanVisitFakes.state().copy(currentStep = PlanVisitStep.Result))
-        val clinicOpen = text(R.string.unplanned_clinic_open)
         composeRule.onNodeWithTag(PlanVisitTestTags.Next).assertDoesNotExist()
-        composeRule.onNodeWithTag(PlanVisitTestTags.Content).performScrollToNode(hasText(clinicOpen))
-        // Only the checkbox toggles, not the label.
-        composeRule.onNode(isToggleable()).performClick()
         composeRule.onNodeWithTag(PlanVisitTestTags.EndVisit).performClick()
-        assertEquals(
-            listOf(PlanVisitEvents.ToggleClinicOpen(false), PlanVisitEvents.EndVisit),
-            events,
-        )
+        assertEquals(listOf(PlanVisitEvents.EndVisit), events)
     }
 
     @Test

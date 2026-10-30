@@ -24,11 +24,20 @@ private const val TAG = "AuthSessionManager"
 
 /** The session: an in-memory copy of the stored tokens for OkHttp interceptors, and the signed-in user. */
 @Singleton
-class AuthSessionManager @Inject constructor(
+class AuthSessionManager(
     private val authSessionLocalRepo: AuthSessionLocalRepo,
     private val userLocalRepo: UserLocalRepo<UserDS>,
     private val clearListeners: Set<@JvmSuppressWildcards SessionClearListener>,
+    /** Where [user] is shared from; tests pass a test scope so the user changes at once. */
+    private val scope: CoroutineScope,
 ) {
+    @Inject
+    constructor(
+        authSessionLocalRepo: AuthSessionLocalRepo,
+        userLocalRepo: UserLocalRepo<UserDS>,
+        clearListeners: Set<@JvmSuppressWildcards SessionClearListener>,
+    ) : this(authSessionLocalRepo, userLocalRepo, clearListeners, CoroutineScope(SupervisorJob() + Dispatchers.IO))
+
     @Volatile
     private var cachedAccess = ""
 
@@ -36,8 +45,6 @@ class AuthSessionManager @Inject constructor(
     private var cachedRefresh = ""
 
     private val _sessionExpired = MutableSharedFlow<String?>(extraBufferCapacity = 1)
-
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /** Emits (with an optional server message) when the
      * session ends without the user logging out. */

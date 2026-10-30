@@ -43,7 +43,6 @@ fun Visit.toUi(): VisitUi {
         accountLatitude = accountLatitude,
         accountLongitude = accountLongitude,
         travelSeconds = travelSeconds,
-        noIssueFound = noIssueFound,
         imageNotes = imageNotes.map(Uri::parse),
         doctors = doctors.map { it.toUi() },
         isDoubleVisit = visitMode == VisitMode.Double,

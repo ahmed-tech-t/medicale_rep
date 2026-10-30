@@ -29,7 +29,6 @@ fun VisitUi.toDomain() = Visit(
     doctors = doctors.map { it.toDomain() },
     voiceNote = voiceNote,
     imageNotes = imageNotes.map { it.toString() },
-    noIssueFound = noIssueFound,
     visitLatitude = visitLatitude,
     visitLongitude = visitLongitude,
     accountLatitude = accountLatitude,

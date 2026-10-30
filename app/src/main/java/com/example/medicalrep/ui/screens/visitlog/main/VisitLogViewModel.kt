@@ -1,6 +1,8 @@
 package com.example.medicalrep.ui.screens.visitlog.main
 
 import androidx.lifecycle.viewModelScope
+import com.appcore.core.data.local.session.AuthSessionManager
+import com.example.medicalrep.domain.models.lastLocation
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
@@ -19,6 +21,8 @@ import com.example.medicalrep.ui.components.widgets.filter.FilterState
 import com.example.medicalrep.ui.components.widgets.filter.clearAll
 import com.example.medicalrep.ui.components.widgets.filter.reduce
 import com.example.medicalrep.ui.screens.visitlog.utils.toVisitListFilter
+import com.example.medicalrep.ui.utils.startOfDay
+import com.example.medicalrep.ui.utils.startOfNextDay
 import androidx.compose.foundation.text.input.clearText
 import kotlinx.coroutines.flow.flowOf
 import com.example.medicalrep.ui.models.VisitUi
@@ -42,6 +46,13 @@ import javax.inject.Inject
 /** The rep may type fast: the list waits this long after the last key. */
 private const val SEARCH_DEBOUNCE_MILLIS = 300L
 
+/** The visits to do go day by day, so Required shows today's until the rep picks a period. */
+private fun VisitListFilter.withTodayAsDefaultPeriod(): VisitListFilter {
+    if (fromMillis != null || toMillis != null) return this
+    val now = System.currentTimeMillis()
+    return copy(fromMillis = startOfDay(now), toMillis = startOfNextDay(now))
+}
+
 /** Choosing another city drops the district, which belonged to the old one. */
 private fun FilterState.change(event: FilterEvents): FilterState {
     val next = reduce(event)
@@ -58,7 +69,11 @@ class VisitLogViewModel @Inject constructor(
     private val visitRepo: VisitRepo,
     private val geoRepo: GeoRepo,
     private val doctorRepo: DoctorRepo,
+    session: AuthSessionManager,
 ) : BaseViewModel(appSettingsRepo) {
+
+    /** Where the rep was when the screen opened: Required lists the nearest account first. Not live, so the list does not reload as the rep moves. */
+    private val repLocation = session.user.value.lastLocation
 
     private val _state = MutableStateFlow(VisitLogState())
     val state: StateFlow<VisitLogState> = _state.asStateFlow()
@@ -86,7 +101,10 @@ class VisitLogViewModel @Inject constructor(
         val query = _state.map { if (it.selectedTab == tab) it.query.trim() else "" }
             .distinctUntilChanged()
             .debounce { if (it.isEmpty()) 0L else SEARCH_DEBOUNCE_MILLIS }
-        return combine(filter, query) { filter, query -> filter.copy(query = query) }.distinctUntilChanged()
+        return combine(filter, query) { filter, query ->
+            val withQuery = filter.copy(query = query)
+            if (tab == VisitLogTab.Required) withQuery.withTodayAsDefaultPeriod().copy(nearLatitude = repLocation?.latitude, nearLongitude = repLocation?.longitude) else withQuery
+        }.distinctUntilChanged()
     }
 
     init {

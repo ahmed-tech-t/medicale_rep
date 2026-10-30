@@ -17,6 +17,8 @@ import com.example.medicalrep.domain.models.VisitType
 import com.example.medicalrep.domain.repo.FakeDoctorRepo
 import com.example.medicalrep.domain.repo.FakeDraftVisitRepo
 import com.example.medicalrep.domain.repo.FakeGeoRepo
+import com.example.medicalrep.domain.repo.FakeSession
+import com.example.medicalrep.domain.models.GeoPoint
 import com.example.medicalrep.domain.repo.FakeVisitRepo
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import com.example.medicalrep.ui.components.widgets.filter.ClassFilter
@@ -62,7 +64,8 @@ import org.junit.Test
  * 10. Switching tab resets the filter and the form and closes the sheet; the filter icon is on only while filtered.
  * 11. Cancel visit opens the reason sheet; a blank reason cannot be confirmed; a reason cancels the visit once, closes the sheet and
  *     the visit leaves the Required list; back closes it without cancelling; switching tab closes it.
- * 12. Search: asked after a 300 ms pause, trimmed, one ask for fast typing, clearing is instant, kept by Apply, cleared by a tab switch.
+ * 12. Required asks to be nearest to the rep's location taken when the screen opened (kept by filters and search; Done never gets it).
+ * 12b. Search: asked after a 300 ms pause, trimmed, one ask for fast typing, clearing is instant, kept by Apply, cleared by a tab switch.
  * 13. When Start visit, Then it navigates to the plan-visit screen with that visit id; with a pending visit it asks first.
  * 14. Confirming cancels the pending visit and starts the chosen one. Open visit opens the details. Back navigates up.
  */
@@ -93,8 +96,12 @@ class VisitLogViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
-        viewModel = VisitLogViewModel(FakeSettingsRepo, draftRepo, repo, geoRepo, doctorRepo)
+        viewModel = newViewModel()
     }
+
+    private val session = FakeSession()
+
+    private fun newViewModel() = VisitLogViewModel(FakeSettingsRepo, draftRepo, repo, geoRepo, doctorRepo, session.manager)
 
     @After
     fun tearDown() = Dispatchers.resetMain()
@@ -108,6 +115,10 @@ class VisitLogViewModelTest {
         }
         runCurrent()
     }
+
+    /** Required shows today's visits only (visits go day by day) until the rep picks a period. */
+    private val todayOnly: VisitListFilter
+        get() = System.currentTimeMillis().let { VisitListFilter(fromMillis = startOfDay(it), toMillis = startOfNextDay(it)) }
 
     private fun filter(event: FilterEvents) = viewModel.onEvent(VisitLogEvents.OnFilterEvent(event))
 
@@ -124,7 +135,7 @@ class VisitLogViewModelTest {
     fun `starts on the required tab asking for every required visit`() = runTest(dispatcher) {
         collectVisits()
         assertEquals(VisitLogTab.Required, state.selectedTab)
-        assertEquals(listOf(VisitListFilter()), repo.requiredRequests)
+        assertEquals(listOf(todayOnly), repo.requiredRequests)
         assertEquals(3, state.resultCount)
     }
 
@@ -180,11 +191,11 @@ class VisitLogViewModelTest {
         viewModel.onEvent(VisitLogEvents.OpenFilter)
         filter(FilterEvents.OnClassSelect(ClassFilter.B))
         runCurrent()
-        assertEquals(VisitListFilter(), repo.requiredRequests.last())
+        assertEquals(todayOnly, repo.requiredRequests.last())
         assertFalse(state.isFiltered)
         apply()
         runCurrent()
-        assertEquals(VisitListFilter(classCategory = "B"), repo.requiredRequests.last())
+        assertEquals(todayOnly.copy(classCategory = "B"), repo.requiredRequests.last())
         assertEquals(1, state.resultCount)
         assertEquals(VisitLogOverlay.None, state.overlay)
         assertTrue(state.isFiltered)
@@ -213,6 +224,16 @@ class VisitLogViewModelTest {
             ),
             repo.requiredRequests.last(),
         )
+    }
+
+    @Test
+    fun `required asks for today only, done is not limited to a day and the filter icon stays off`() = runTest(dispatcher) {
+        collectVisits()
+        assertEquals(todayOnly, repo.requiredRequests.last())
+        assertFalse(state.isFiltered)
+        viewModel.onEvent(VisitLogEvents.SelectTab(VisitLogTab.Done))
+        runCurrent()
+        assertEquals(VisitListFilter(), repo.doneRequests.last())
     }
 
     @Test
@@ -270,7 +291,7 @@ class VisitLogViewModelTest {
         filter(FilterEvents.OnReset)
         apply()
         runCurrent()
-        assertEquals(VisitListFilter(), repo.requiredRequests.last())
+        assertEquals(todayOnly, repo.requiredRequests.last())
         assertFalse(state.isFiltered)
         assertEquals(3, state.resultCount)
     }
@@ -288,7 +309,7 @@ class VisitLogViewModelTest {
         apply()
         apply()
         runCurrent()
-        assertEquals(listOf(VisitListFilter(), VisitListFilter(classCategory = "A")), repo.requiredRequests)
+        assertEquals(listOf(todayOnly, todayOnly.copy(classCategory = "A")), repo.requiredRequests)
     }
 
     @Test
@@ -400,6 +421,42 @@ class VisitLogViewModelTest {
         assertTrue(repo.cancelCalls.isEmpty())
     }
 
+    @Test
+    fun `required asks to be nearest to the rep location from when the screen opened`() = runTest(dispatcher) {
+        session.setLocation(GeoPoint(30.0, 31.0))
+        viewModel = newViewModel()
+        collectVisits()
+        assertEquals(todayOnly.copy(nearLatitude = 30.0, nearLongitude = 31.0), repo.requiredRequests.last())
+        assertFalse(state.isFiltered)
+        session.setLocation(GeoPoint(31.0, 32.0))
+        runCurrent()
+        assertEquals(todayOnly.copy(nearLatitude = 30.0, nearLongitude = 31.0), repo.requiredRequests.last())
+    }
+
+    @Test
+    fun `the location is kept by a filter and a search and is never asked for done`() = runTest(dispatcher) {
+        session.setLocation(GeoPoint(30.0, 31.0))
+        viewModel = newViewModel()
+        collectVisits()
+        filter(FilterEvents.OnClassSelect(ClassFilter.A))
+        apply()
+        advanceTimeBy(300)
+        runCurrent()
+        assertEquals(todayOnly.copy(classCategory = "A", nearLatitude = 30.0, nearLongitude = 31.0), repo.requiredRequests.last())
+        viewModel.onEvent(VisitLogEvents.SelectTab(VisitLogTab.Done))
+        runCurrent()
+        assertEquals(VisitListFilter(), repo.doneRequests.last())
+        viewModel.onEvent(VisitLogEvents.SelectTab(VisitLogTab.Required))
+        runCurrent()
+        assertEquals(todayOnly.copy(nearLatitude = 30.0, nearLongitude = 31.0), repo.requiredRequests.last())
+    }
+
+    @Test
+    fun `without a gps fix required asks without a location`() = runTest(dispatcher) {
+        collectVisits()
+        assertEquals(todayOnly, repo.requiredRequests.last())
+    }
+
     private fun search(text: String) = viewModel.onEvent(VisitLogEvents.OnSearchChange(text))
 
     @Test
@@ -456,7 +513,7 @@ class VisitLogViewModelTest {
         apply()
         advanceTimeBy(300)
         runCurrent()
-        assertEquals(VisitListFilter(classCategory = "A", query = "Mona"), repo.requiredRequests.last())
+        assertEquals(todayOnly.copy(classCategory = "A", query = "Mona"), repo.requiredRequests.last())
         assertTrue(state.isFiltered)
     }
 

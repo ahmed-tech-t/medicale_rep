@@ -1,7 +1,6 @@
 package com.example.medicalrep.ui.screens.visitdetails.main
 
 import androidx.lifecycle.SavedStateHandle
-import androidx.navigation.toRoute
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
 import com.appcore.core.domain.utils.UiText
@@ -28,7 +27,8 @@ class VisitDetailsViewModel @Inject constructor(
     visitRepo: VisitRepo,
 ) : BaseViewModel(appSettingsRepo) {
 
-    private val visitId: String = savedStateHandle.toRoute<MainGraph.VisitDetails>().visitId
+    // The route's own argument key: toRoute needs a real Bundle, which plain JVM tests do not have.
+    private val visitId: String = savedStateHandle.get<String>("visitId").orEmpty()
 
     private val _state = MutableStateFlow(VisitDetailsState(visit = VisitUi(id = visitId)))
     val state: StateFlow<VisitDetailsState> = _state.asStateFlow()

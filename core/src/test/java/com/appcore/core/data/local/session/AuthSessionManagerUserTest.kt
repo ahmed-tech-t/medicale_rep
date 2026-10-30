@@ -2,7 +2,10 @@ package com.appcore.core.data.local.session
 
 import com.appcore.core.data.local.datastore.model.UserDS
 import com.appcore.core.domain.repo.AuthSessionLocalRepo
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -12,10 +15,11 @@ import org.junit.Test
  * 3. signIn saves tokens and user together and the copy follows. 4. A token refresh keeps the user.
  * 5. updateUser changes the stored user and the copy. 6. clearSession clears tokens, the stored user and the copy.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class AuthSessionManagerUserTest {
     private val users = FakeUserLocalRepo(UserDS())
     private val tokens = InMemoryTokens()
-    private val session = AuthSessionManager(tokens, users, emptySet())
+    private val session = AuthSessionManager(tokens, users, emptySet(), CoroutineScope(UnconfinedTestDispatcher()))
 
     @Test
     fun `nothing signed in gives an empty user`() {

@@ -203,7 +203,7 @@
     <string name="unplanned_voice_permission_denied">يلزم السماح باستخدام الميكروفون لتسجيل ملاحظة صوتية</string>
     <string name="unplanned_voice_prompt">سجل النتيجة بالصوت (Voice Note)</string>
     <string name="unplanned_attach_title">إرفاق صورة</string>
-    <string name="unplanned_attach_hint">برجاء ارفاق صوره من امام باب العياده</string>
+    <string name="unplanned_attach_hint">برجاء ارفاق صور بنتائج الزيارة</string>
     <string name="unplanned_summary_gifts_format">هدايا: %1$d قطعة</string>
     <string name="unplanned_summary_products_format">منتجات: %1$d علب</string>
     <string name="unplanned_class_format">تصنيف %1$s</string>
@@ -212,7 +212,6 @@
     <string name="unplanned_no_items">لم تتم إضافة أصناف بعد</string>
     <string name="unplanned_summary_place_format">%1$s - %2$s</string>
     <string name="unplanned_double_with_format">Double (%1$s)</string>
-    <string name="unplanned_clinic_open">العيادة مفتوحة ولا توجد عوائق</string>
     <string name="unplanned_remaining_after_gift_format">المتبقي بعهدتك بعد الصرف: %1$d قطعة</string>
     <string name="unplanned_remaining_after_product_format">المتبقي بعهدتك بعد الصرف: %1$d علبة</string>
     <string name="unplanned_available_gift_format">الرصيد المتاح في عهدتك الآن: %1$d قطعة</string>

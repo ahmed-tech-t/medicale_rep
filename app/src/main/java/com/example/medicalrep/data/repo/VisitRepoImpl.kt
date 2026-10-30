@@ -1,5 +1,8 @@
 package com.example.medicalrep.data.repo
 
+import com.example.medicalrep.domain.models.GeoPoint
+import kotlin.math.cos
+import kotlin.math.pow
 import com.example.medicalrep.data.local.dao.VisitDao
 import com.example.medicalrep.data.local.mapper.toDomain
 import com.example.medicalrep.data.local.mapper.toEntity
@@ -28,7 +31,10 @@ class VisitRepoImpl @Inject constructor(
         pagedFlow({ dao.pagedFiltered(type, syncStatus, repId, fromMillis, toMillis) }) { it.toDomain() }
 
     override fun requiredVisits(filter: VisitListFilter) = pagedFlow({
-        dao.requiredPaged(filter.shift, filter.classCategory, filter.cityId, filter.districtId, filter.specialty, filter.fromMillis, filter.toMillis, filter.query.trim())
+        dao.requiredPaged(
+            filter.shift, filter.classCategory, filter.cityId, filter.districtId, filter.specialty, filter.fromMillis, filter.toMillis,
+            filter.query.trim(), filter.nearLatitude, filter.nearLongitude, longitudeScale(filter.nearLatitude),
+        )
     }) { it.toDomain() }
 
     override fun requiredCount(filter: VisitListFilter) =
@@ -65,8 +71,8 @@ class VisitRepoImpl @Inject constructor(
 
     override fun pendingCount(): Flow<Int> = dao.countPending()
 
-    override fun todayVisits(fromMillis: Long, toMillis: Long, limit: Int): Flow<List<Visit>> =
-        dao.scheduledBetween(fromMillis, toMillis, limit).map { list -> list.map { it.toDomain() } }
+    override fun scheduledFrom(fromMillis: Long, near: GeoPoint?, limit: Int): Flow<List<Visit>> =
+        dao.scheduledFrom(fromMillis, near?.latitude, near?.longitude, longitudeScale(near?.latitude), limit).map { list -> list.map { it.toDomain() } }
 
     override fun doneOnDay(repId: String, fromMillis: Long, toMillis: Long): Flow<List<Visit>> =
         dao.doneBetween(repId, fromMillis, toMillis).map { list -> list.map { it.toDomain() } }
@@ -109,3 +115,6 @@ class VisitRepoImpl @Inject constructor(
         dao.markFailed(id)
     }
 }
+
+/** How much a degree of longitude weighs next to a degree of latitude at [latitude]: cos squared (1 when there is no point). */
+private fun longitudeScale(latitude: Double?): Double = latitude?.let { cos(Math.toRadians(it)).pow(2) } ?: 1.0

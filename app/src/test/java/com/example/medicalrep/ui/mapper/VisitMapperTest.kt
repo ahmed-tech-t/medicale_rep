@@ -29,7 +29,6 @@ class VisitMapperTest {
             accountLatitude = 30.3,
             accountLongitude = 31.4,
             travelSeconds = 900,
-            noIssueFound = false,
             type = VisitType.Planned,
         ).toUi()
         assertEquals("432423", ui.backendId)
@@ -38,7 +37,6 @@ class VisitMapperTest {
         assertEquals(30.3, ui.accountLatitude, 0.0)
         assertEquals(31.4, ui.accountLongitude, 0.0)
         assertEquals(900, ui.travelSeconds)
-        assertEquals(false, ui.noIssueFound)
     }
 
     @Test
@@ -47,7 +45,6 @@ class VisitMapperTest {
         assertEquals("", ui.backendId)
         assertEquals(0.0, ui.visitLatitude, 0.0)
         assertEquals(0, ui.travelSeconds)
-        assertTrue(ui.noIssueFound)
     }
 
     @Test
@@ -70,7 +67,7 @@ class VisitMapperTest {
     fun `an ended visit becomes a completed visit that is not uploaded yet`() {
         val form = VisitUi(
             id = "v1", accountId = "a1", type = VisitType.Planned, shift = Shift.Pm, isDoubleVisit = true, supervisor = BasicModelUi("s1", "Boss"),
-            noIssueFound = false, voiceNote = byteArrayOf(1), imageNotes = listOf(android.net.FakeUri()),
+            voiceNote = byteArrayOf(1), imageNotes = listOf(android.net.FakeUri()),
         )
         val visit = form.toCompletedVisit(stored = null, repId = "r1", supervisorId = "s1", startedAtMillis = 1_000L, completedAtMillis = 276_000L)
         assertEquals("v1", visit.id)
@@ -84,7 +81,6 @@ class VisitMapperTest {
         assertEquals(276_000L, visit.completedAtMillis)
         assertEquals("04:35 د", visit.durationLabel)
         assertEquals(Shift.Pm, visit.shift)
-        assertEquals(false, visit.noIssueFound)
     }
 
     @Test

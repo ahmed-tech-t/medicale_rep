@@ -31,7 +31,6 @@ sealed interface PlanVisitEvents {
     data class ChangeQuantity(val kind: ProductType, val id: String, val delta: Int) : PlanVisitEvents
     data class AttachImageResult(val document: PickedDocument) : PlanVisitEvents
     data class RemoveImage(val index: Int) : PlanVisitEvents
-    data class ToggleClinicOpen(val confirmed: Boolean) : PlanVisitEvents
     data object EndVisit : PlanVisitEvents
     data object VoiceNoteRecordingStarted : PlanVisitEvents
 
