@@ -109,8 +109,6 @@ class FakeVisitRepo(initial: List<Visit> = emptyList()) : VisitRepo {
         }
     }
 
-    override fun notSyncedCount(): Flow<Int> = current.map { list -> list.count { it.syncStatus == SyncStatus.NotSynced } }
-
     override fun visits(query: String): Flow<PagingData<Visit>> = current.map { PagingData.from(it) }
 
     override fun visitsFiltered(type: VisitType?, syncStatus: SyncStatus?, repId: String?, fromMillis: Long, toMillis: Long): Flow<PagingData<Visit>> =

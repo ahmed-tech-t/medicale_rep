@@ -8,7 +8,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.espresso.Espresso
 import com.example.medicalrep.MainActivity
-import com.example.medicalrep.ui.screens.home.main.HomeTestTags
+import com.example.medicalrep.ui.screens.home.model.HomeTestTags
 import com.example.medicalrep.ui.screens.planvisit.components.PlanVisitTestTags
 import org.junit.Rule
 import org.junit.Test

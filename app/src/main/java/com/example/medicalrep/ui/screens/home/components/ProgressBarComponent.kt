@@ -72,7 +72,7 @@ fun ProgressBarComponent(
 
 @PreviewRtlLtr
 @Composable
-private fun HorzTimerComponentPreview() {
+private fun ProgressBarComponentPreview() {
     MedicalRepTheme {
         ProgressBarComponent(
             percentage = 0.75f,

@@ -192,13 +192,6 @@ class VisitDaoTest : DaoTestBase() {
         assertEquals(listOf("early", "middle"), dao.scheduledBetween(1_000, 2_000, 2).first().map { it.visit.id })
     }
 
-    @Test fun countNotSyncedCountsEveryVisitWaitingForUpload() = runBlocking {
-        dao.save(visit("a", syncStatus = SyncStatus.NotSynced), emptyList())
-        dao.save(visit("b", syncStatus = SyncStatus.NotSynced, status = VisitStatus.Completed, completedAtMillis = 1), emptyList())
-        dao.save(visit("c", syncStatus = SyncStatus.Synced), emptyList())
-        assertEquals(2, dao.countNotSynced().first())
-    }
-
     @Test fun markMissedOnlyMovesScheduledVisitsOfEarlierDays() = runBlocking {
         dao.save(visit("old", type = VisitType.Planned, dateTimeMillis = 1_000), emptyList())
         dao.save(visit("today", type = VisitType.Planned, dateTimeMillis = 5_000), emptyList())

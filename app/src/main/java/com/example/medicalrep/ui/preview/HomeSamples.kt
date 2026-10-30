@@ -40,7 +40,7 @@ object HomeSamples {
         progress = VisitProgress(completed = 10, planned = 26),
         activeVisit = activeVisit().toUi(),
         todayVisits = todayVisits().map { it.toUi() },
-        toSyncCount = 2,
+        unreadCount = 3,
         language = language,
     )
 }

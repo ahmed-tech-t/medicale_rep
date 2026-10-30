@@ -6,7 +6,7 @@ import com.example.medicalrep.domain.models.VisitProgress
 import com.example.medicalrep.ui.models.UserUi
 import com.example.medicalrep.ui.models.VisitUi
 
-/** A question over Home: starting a visit while one is pending, or cancelling the pending one. */
+/** A question over Home (starting a visit while one is pending, or cancelling the pending one). */
 sealed interface HomeOverlay {
     data object None : HomeOverlay
 
@@ -27,12 +27,8 @@ data class HomeState(
     val progress: VisitProgress = VisitProgress(),
     val activeVisit: VisitUi? = null,
     val todayVisits: List<VisitUi> = listOf(),
-    /** How many visits wait for upload. */
-    val toSyncCount: Int = 0,
+    /** The bell's number: notifications the rep has not read. */
+    val unreadCount: Int = 0,
     val language: String = "ar",
-    val isDrawerOpen: Boolean = false,
     val overlay: HomeOverlay = HomeOverlay.None,
-) {
-
-    val shouldSync: Boolean get() = connection == ConnectionState.Online && toSyncCount > 0
-}
+)

@@ -260,14 +260,11 @@
     <string name="drawer_id_format">ID: %1$s</string>
     <string name="statics_metric_clinics">عدد العيادات</string>
     <string name="home_add_visit">اضافة زيارة</string>
-    <string name="home_add_visit_hint">سجّل زيارة جديدة</string>
     <string name="home_plan_visits">تخطيط الزيارات</string>
-    <string name="home_plan_visits_hint">خطّط ليومك</string>
-    <string name="home_samples_gifts">العينات والهدايا</string>
-    <string name="home_samples_gifts_hint">إدارة المخزون</string>
+    <string name="home_office_work">العمل المكتبي</string>
+    <string name="cd_notifications">الإشعارات</string>
     <string name="home_accounts">الأطباء والحسابات</string>
-    <string name="home_accounts_hint">عرض التفاصيل</string>
-    <string name="home_week_progress">تقدّم الأسبوع</string>
+    <string name="home_today_progress">تقدّم اليوم</string>
     <string name="home_completed_visits">زيارات مكتملة</string>
 
     <!-- Visit log -->

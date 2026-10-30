@@ -1,7 +1,5 @@
 package com.example.medicalrep.ui.screens.home.components
 
-import com.appcore.core.ui.theme.spacing
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -17,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -25,12 +21,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.primitives.NexoraButton
 import com.example.medicalrep.ui.components.primitives.NexoraButtonVariant
-import com.example.medicalrep.ui.components.primitives.NexoraIcon
 import com.example.medicalrep.ui.components.primitives.NexoraText
-import com.example.medicalrep.ui.components.widgets.visit.VisitDurationChip
 import com.example.medicalrep.ui.components.widgets.visit.VisitSpecialtyClassLine
 import com.example.medicalrep.ui.components.widgets.visit.VisitStatusDot
 import com.example.medicalrep.ui.components.widgets.visit.visitCardSurface
@@ -39,12 +34,10 @@ import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.StatusTone
 import com.example.medicalrep.ui.models.VisitUi
 import com.example.medicalrep.ui.preview.VisitSamples
-import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
-import com.example.medicalrep.ui.ui.theme.Info
-import com.example.medicalrep.ui.ui.theme.Success
 import com.example.medicalrep.ui.ui.theme.Ink
+import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 import com.example.medicalrep.ui.ui.theme.OnSuccessContainer
-import com.example.medicalrep.ui.ui.theme.Slate600
+import com.example.medicalrep.ui.ui.theme.Slate400
 
 /** Child order is RTL start→end (first = right on screen). */
 @Composable
@@ -87,7 +80,16 @@ fun UnCompletedVisitCard(
                 }
 
                 if (model.durationLabel.isNotBlank()) {
-                    VisitDurationChip(label = model.durationLabel)
+                    NexoraText(
+                        text = model.durationLabel,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp,
+                            lineHeight = 16.5.sp,
+                        ),
+                        color = Slate400,
+                        textAlign = TextAlign.Start,
+                    )
                 } else {
                     Spacer(Modifier.width(1.dp))
                 }
@@ -120,8 +122,7 @@ fun UnCompletedVisitCard(
 
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(spacing.spaceLargePlus + 2.dp),
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -130,24 +131,14 @@ fun UnCompletedVisitCard(
                 onClick = onPrimaryAction,
                 modifier = Modifier.weight(1f),
                 fillMaxWidth = false,
-                compact = true,
             )
             if (onCancel != null) {
                 NexoraButton(
                     text = stringResource(R.string.action_cancel),
                     onClick = onCancel,
-                    modifier = Modifier.weight(0.4f),
+                    modifier = Modifier.weight(1f),
                     variant = NexoraButtonVariant.Muted,
                     fillMaxWidth = false,
-                    compact = true,
-                    leadingIcon = {
-                        NexoraIcon(
-                            painter = painterResource(R.drawable.ic_close),
-                            contentDescription = null,
-                            modifier = Modifier.size(11.dp),
-                            tint = Slate600,
-                        )
-                    },
                 )
             }
         }

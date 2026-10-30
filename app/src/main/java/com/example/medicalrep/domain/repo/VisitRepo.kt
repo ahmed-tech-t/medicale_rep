@@ -54,9 +54,6 @@ interface VisitRepo {
     /** The visits the rep finished in the range (from included, to not included), in time order. */
     fun doneOnDay(repId: String, fromMillis: Long, toMillis: Long): Flow<List<Visit>>
 
-    /** How many visits wait for upload. */
-    fun notSyncedCount(): Flow<Int>
-
     /** Only planned visits can be started. */
     fun startableVisits(): Flow<PagingData<Visit>>
 

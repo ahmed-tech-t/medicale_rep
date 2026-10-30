@@ -28,7 +28,7 @@ import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.components.widgets.DateField
 import com.example.medicalrep.ui.components.widgets.SearchFieldComponent
 import com.example.medicalrep.ui.screens.home.components.StaticsMetricCard
-import com.example.medicalrep.ui.screens.home.components.WeekProgressCard
+import com.example.medicalrep.ui.screens.home.components.ProgressCard
 import com.example.medicalrep.ui.screens.reptracking.main.RepTrackingEvents
 import com.example.medicalrep.ui.screens.reptracking.main.RepTrackingState
 import com.example.medicalrep.ui.screens.reptracking.utils.RepTrackingFakes
@@ -77,7 +77,7 @@ fun RepTrackingUi(
                 onDateChange = { onEvent(RepTrackingEvents.DateChanged(it)) },
             )
 
-            WeekProgressCard(progress = state.progress, title = stringResource(R.string.rep_tracking_day_progress))
+            ProgressCard(progress = state.progress, title = stringResource(R.string.rep_tracking_day_progress))
 
             SectionLabel(stringResource(R.string.rep_tracking_period_summary))
             Row(horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmall)) {

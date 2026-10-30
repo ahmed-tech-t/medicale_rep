@@ -4,7 +4,9 @@ import androidx.activity.ComponentActivity
 import androidx.annotation.StringRes
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import com.example.medicalrep.R
+import com.example.medicalrep.ui.screens.home.model.HomeTestTags
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -52,10 +54,10 @@ class HomeUiTest {
         composeRule.onNodeWithTag(HomeTestTags.Header)
             .assertIsDisplayed()
             .assert(hasAnyDescendant(hasText("أحمد محمد")))
-        composeRule.onNodeWithText(text(R.string.home_week_progress)).assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.home_today_progress)).assertIsDisplayed()
         composeRule.onNodeWithText("10 / 26").assertIsDisplayed()
         composeRule.onNodeWithText("38%").assertIsDisplayed()
-        listOf(R.string.home_add_visit, R.string.home_plan_visits, R.string.home_samples_gifts, R.string.home_accounts)
+        listOf(R.string.home_add_visit, R.string.home_plan_visits, R.string.home_office_work, R.string.home_accounts)
             .forEach { composeRule.onNodeWithText(text(it)).assertIsDisplayed() }
         composeRule.onNodeWithTag(HomeTestTags.List).performScrollToNode(hasText(text(R.string.home_today_visits)))
         composeRule.onAllNodesWithTag(HomeTestTags.TodayVisit).assertCountEquals(2)
@@ -66,10 +68,9 @@ class HomeUiTest {
         setHome()
         composeRule.onNodeWithTag(HomeTestTags.AddVisit).performClick()
         composeRule.onNodeWithText(text(R.string.home_plan_visits)).performClick()
-        composeRule.onNodeWithText(text(R.string.home_samples_gifts)).performClick()
         composeRule.onNodeWithText(text(R.string.home_accounts)).performClick()
         assertEquals(
-            listOf(HomeEvents.OnAddVisitClick, HomeEvents.OnPlanVisitsClick, HomeEvents.OnSamplesAndGiftsClick, HomeEvents.OnAccountsClick),
+            listOf(HomeEvents.OnAddVisitClick, HomeEvents.OnPlanVisitsClick, HomeEvents.OnAccountsClick),
             events,
         )
     }
@@ -84,14 +85,16 @@ class HomeUiTest {
 
     @Test
     fun openDrawer_rowSendsItem() {
-        setHome(HomeSamples.homeState(language = "en").copy(isDrawerOpen = true))
+        setHome(HomeSamples.homeState(language = "en"))
+        composeRule.onNodeWithContentDescription(text(R.string.cd_menu)).performClick()
         composeRule.onNodeWithText(text(R.string.products)).assertIsDisplayed().performClick()
         assertTrue(events.contains(HomeEvents.OnDrawerItem(NavDrawerItem.Products)))
     }
 
     @Test
     fun openDrawer_accountsRowSendsItem() {
-        setHome(HomeSamples.homeState(language = "en").copy(isDrawerOpen = true))
+        setHome(HomeSamples.homeState(language = "en"))
+        composeRule.onNodeWithContentDescription(text(R.string.cd_menu)).performClick()
         composeRule.onNodeWithText(text(R.string.accounts)).assertIsDisplayed().performClick()
         assertTrue(events.contains(HomeEvents.OnDrawerItem(NavDrawerItem.Accounts)))
     }

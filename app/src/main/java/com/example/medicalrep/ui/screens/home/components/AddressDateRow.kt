@@ -8,48 +8,70 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Wifi
+import androidx.compose.material.icons.outlined.WifiOff
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.appcore.core.ui.theme.dim
 import com.appcore.core.ui.theme.spacing
+import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.primitives.NexoraIcon
 import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.ui.theme.Brand
 import com.example.medicalrep.ui.ui.theme.Ink
 import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 import com.example.medicalrep.ui.ui.theme.Slate400
+import com.example.medicalrep.ui.ui.theme.SuccessBright
 import com.example.medicalrep.ui.utils.formatWeekdayDate
 
-/** The street the rep is on (when known) and today's date. */
+/** The street the rep is on (when known) with the connection icon, and today's date. */
 @Composable
-fun AddressDateRow(address: String?, dateMillis: Long, modifier: Modifier = Modifier) {
+fun AddressDateRow(
+    address: String?,
+    dateMillis: Long,
+    isOnline: Boolean,
+    modifier: Modifier = Modifier
+) {
     val date = remember(dateMillis) { formatWeekdayDate(dateMillis) }
     Column(modifier = modifier.fillMaxWidth()) {
-        if (!address.isNullOrBlank()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(spacing.spaceExtraSmall)
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.Top,
             ) {
-                NexoraIcon(
-                    imageVector = Icons.Outlined.LocationOn,
-                    contentDescription = null,
-                    tint = Brand,
-                    modifier = Modifier.size(dim.smallIconSize)
-                )
-                NexoraText(
-                    text = address,
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    color = Ink,
-                    maxLines = 1,
-                )
+                if (!address.isNullOrBlank()) {
+                    NexoraIcon(
+                        imageVector = Icons.Outlined.LocationOn,
+                        contentDescription = null,
+                        tint = Brand,
+                        modifier = Modifier.size(dim.smallIconSize),
+                    )
+                    NexoraText(
+                        text = address,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        color = Ink,
+                        maxLines = 1,
+                    )
+                }
             }
+            NexoraIcon(
+                imageVector = if (isOnline) Icons.Outlined.Wifi else Icons.Outlined.WifiOff,
+                contentDescription = stringResource(if (isOnline) R.string.connection_online else R.string.connection_offline),
+                tint = if (isOnline) SuccessBright else Slate400,
+                modifier = Modifier.size(dim.smallIconSize),
+            )
         }
-        NexoraText(text = date, style = MaterialTheme.typography.labelLarge, color = Slate400)
+        NexoraText(text = date, color = Slate400)
     }
 }
 
@@ -60,19 +82,21 @@ private fun AddressDateRowPreview() {
         AddressDateRow(
             address = "Stockton St, Union Square",
             dateMillis = 1_792_000_000_000L,
-            modifier = Modifier.padding(spacing.spaceMedium)
+            isOnline = true,
+            modifier = Modifier.padding(spacing.spaceMedium),
         )
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-private fun AddressDateRowNoAddressPreview() {
+private fun AddressDateRowOfflineNoAddressPreview() {
     MedicalRepTheme {
         AddressDateRow(
             address = null,
             dateMillis = 1_792_000_000_000L,
-            modifier = Modifier.padding(spacing.spaceMedium)
+            isOnline = false,
+            modifier = Modifier.padding(spacing.spaceMedium),
         )
     }
 }

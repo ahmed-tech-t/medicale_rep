@@ -260,14 +260,11 @@
     <string name="drawer_id_format">ID: %1$s</string>
     <string name="statics_metric_clinics">Clinics</string>
     <string name="home_add_visit">Add visit</string>
-    <string name="home_add_visit_hint">Record a new visit</string>
     <string name="home_plan_visits">Plan visits</string>
-    <string name="home_plan_visits_hint">Plan your day</string>
-    <string name="home_samples_gifts">Samples and gifts</string>
-    <string name="home_samples_gifts_hint">Manage your stock</string>
+    <string name="home_office_work">Office work</string>
+    <string name="cd_notifications">Notifications</string>
     <string name="home_accounts">Doctors and accounts</string>
-    <string name="home_accounts_hint">View details</string>
-    <string name="home_week_progress">Week\'s progress</string>
+    <string name="home_today_progress">Today\'s progress</string>
     <string name="home_completed_visits">Completed visits</string>
 
 

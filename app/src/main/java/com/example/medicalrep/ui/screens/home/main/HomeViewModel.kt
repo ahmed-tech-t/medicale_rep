@@ -1,35 +1,43 @@
 package com.example.medicalrep.ui.screens.home.main
 
 import androidx.lifecycle.viewModelScope
+import com.appcore.core.data.local.session.AuthSessionManager
 import com.appcore.core.data.local.settings.AppSettingsManager
 import com.appcore.core.data.local.settings.LocaleHelper
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
+import com.appcore.core.domain.utils.UiEvent.*
 import com.appcore.core.ui.utils.BaseViewModel
-import com.example.medicalrep.domain.repo.DraftVisitRepo
 import com.example.medicalrep.domain.models.Visit
+import com.example.medicalrep.domain.repo.DraftVisitRepo
+import com.example.medicalrep.domain.repo.NotificationRepo
 import com.example.medicalrep.domain.repo.StatisticsRepo
 import com.example.medicalrep.domain.repo.VisitRepo
+import com.example.medicalrep.ui.common.connectivity.ConnectivityObserver
+import com.example.medicalrep.ui.mapper.toUi
+import com.example.medicalrep.ui.navigation.model.MainGraph
+import com.example.medicalrep.ui.navigation.model.MainGraph.*
+import com.example.medicalrep.ui.screens.home.components.nav_drawer.NavDrawerItem
+import com.example.medicalrep.ui.screens.home.components.nav_drawer.nav
 import com.example.medicalrep.ui.utils.startOfDay
 import com.example.medicalrep.ui.utils.startOfNextDay
-import com.example.medicalrep.ui.utils.startOfNextWeek
-import com.example.medicalrep.ui.utils.startOfWeek
-import com.appcore.core.data.local.session.AuthSessionManager
-import com.example.medicalrep.ui.mapper.toUi
-import com.example.medicalrep.ui.common.connectivity.ConnectivityObserver
-import com.example.medicalrep.ui.navigation.model.MainGraph
-import com.example.medicalrep.ui.screens.home.components.nav_drawer.NavDrawerItem
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /** Home lists the next few visits of the day; the rest are under View all. */
 private const val TODAY_VISITS_LIMIT = 3
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     appSettingsRepo: AppSettingsRepo,
@@ -39,6 +47,7 @@ class HomeViewModel @Inject constructor(
     private val draftVisitRepo: DraftVisitRepo,
     private val visitRepo: VisitRepo,
     statisticsRepo: StatisticsRepo,
+    notificationRepo: NotificationRepo,
     private val session: AuthSessionManager,
 ) : BaseViewModel(appSettingsRepo) {
 
@@ -46,30 +55,61 @@ class HomeViewModel @Inject constructor(
     private val openedAtMillis = System.currentTimeMillis()
 
     // Offline until the observer reports the real network state.
-    private val _state = MutableStateFlow(HomeState(language = appSettingsManager.getLanguageSync(), dateMillis = openedAtMillis))
+    private val _state = MutableStateFlow(
+        HomeState(
+            language = appSettingsManager.getLanguageSync(),
+            dateMillis = openedAtMillis
+        )
+    )
     val state: StateFlow<HomeState> = _state.asStateFlow()
 
     init {
         viewModelScope.launch { markMissedOncePerDay() }
         viewModelScope.launch {
-            draftVisitRepo.draft().collect { draft -> _state.update { it.copy(activeVisit = draft?.visit?.toUi()) } }
+            draftVisitRepo.draft()
+                .collect { draft -> _state.update { it.copy(activeVisit = draft?.visit?.toUi()) } }
         }
         viewModelScope.launch {
-            connectivityObserver.connection.collect { connection -> _state.update { it.copy(connection = connection) } }
+            connectivityObserver.connection.collect { connection ->
+                _state.update {
+                    it.copy(
+                        connection = connection
+                    )
+                }
+            }
         }
         viewModelScope.launch {
-            session.user.collect { user -> _state.update { it.copy(user = user.toUi(), address = user.lastAddress) } }
+            session.user.collect { user ->
+                _state.update {
+                    it.copy(
+                        user = user.toUi(),
+                        address = user.lastAddress,
+                    )
+                }
+            }
         }
         viewModelScope.launch {
-            statisticsRepo.progress(startOfWeek(openedAtMillis), startOfNextWeek(openedAtMillis))
+            statisticsRepo.progress(startOfDay(openedAtMillis), startOfNextDay(openedAtMillis))
                 .collect { progress -> _state.update { it.copy(progress = progress) } }
         }
         viewModelScope.launch {
-            visitRepo.todayVisits(startOfDay(openedAtMillis), startOfNextDay(openedAtMillis), TODAY_VISITS_LIMIT)
+            visitRepo.todayVisits(
+                startOfDay(openedAtMillis),
+                startOfNextDay(openedAtMillis),
+                TODAY_VISITS_LIMIT
+            )
                 .collect { visits -> _state.update { it.copy(todayVisits = visits.map(Visit::toUi)) } }
         }
         viewModelScope.launch {
-            visitRepo.notSyncedCount().collect { count -> _state.update { it.copy(toSyncCount = count) } }
+            session.user
+                .map { it.id?.toString() }
+                .distinctUntilChanged()
+                .flatMapLatest { repId ->
+                    if (repId == null) flowOf(0) else notificationRepo.unreadCount(
+                        repId
+                    )
+                }
+                .collect { count -> _state.update { it.copy(unreadCount = count) } }
         }
     }
 
@@ -83,46 +123,47 @@ class HomeViewModel @Inject constructor(
 
     fun onEvent(event: HomeEvents) {
         when (event) {
-            HomeEvents.OnMenuClick -> _state.update { it.copy(isDrawerOpen = true) }
-            HomeEvents.OnDrawerDismiss -> _state.update { it.copy(isDrawerOpen = false) }
+            HomeEvents.OnOverlayDismiss -> _state.update { it.copy(overlay = HomeOverlay.None) }
             is HomeEvents.OnDrawerItem -> {
-                _state.update { it.copy(isDrawerOpen = false) }
                 when (event.item) {
                     NavDrawerItem.Language -> switchLanguage()
                     NavDrawerItem.AddVisit -> requestStart(HomeEvents.OnAddVisitClick)
-                    NavDrawerItem.Products -> sendEvent(UiEvent.Navigate(MainGraph.Products))
-                    NavDrawerItem.Orders -> sendEvent(UiEvent.Navigate(MainGraph.Orders))
-                    NavDrawerItem.Statistics -> sendEvent(UiEvent.Navigate(MainGraph.Statistics))
-                    NavDrawerItem.Accounts -> sendEvent(UiEvent.Navigate(MainGraph.Accounts))
-                    NavDrawerItem.PlanVisit -> sendEvent(UiEvent.Navigate(MainGraph.VisitPlanning))
-                    NavDrawerItem.TrackReps -> sendEvent(UiEvent.Navigate(MainGraph.RepTracking))
-                    NavDrawerItem.MyVisits -> sendEvent(UiEvent.Navigate(MainGraph.VisitLog))
-                    NavDrawerItem.Custody -> sendEvent(UiEvent.Navigate(MainGraph.SampleAndGifts))
-                    NavDrawerItem.AddAccount -> sendEvent(UiEvent.Navigate(MainGraph.AddAccount))
-                    NavDrawerItem.Terms -> sendEvent(UiEvent.Navigate(MainGraph.Terms))
-                    NavDrawerItem.InfoCenter -> sendEvent(UiEvent.Navigate(MainGraph.DataCenter))
+                    else -> event.item.nav(::sendEvent)
                 }
             }
-            HomeEvents.OnAddVisitClick, is HomeEvents.OnStartVisit -> requestStart(event)
-            HomeEvents.OnActiveContinue -> sendEvent(UiEvent.Navigate(MainGraph.PlanVisit(resumeDraft = true)))
+
+            HomeEvents.OnAddVisitClick,
+            is HomeEvents.OnStartVisit -> requestStart(event)
+            HomeEvents.OnActiveContinue -> sendEvent(
+                Navigate(
+                    PlanVisit(
+                        resumeDraft = true
+                    )
+                )
+            )
+
             HomeEvents.OnActiveCancel -> _state.update { it.copy(overlay = HomeOverlay.DiscardPending) }
             HomeEvents.OnPendingVisitConfirm -> confirmPending()
             HomeEvents.OnDiscardPendingConfirm -> viewModelScope.launch {
                 draftVisitRepo.discard()
                 _state.update { it.copy(overlay = HomeOverlay.None) }
             }
-            HomeEvents.OnOverlayDismiss -> _state.update { it.copy(overlay = HomeOverlay.None) }
-            HomeEvents.OnSyncClick -> Unit
-            HomeEvents.OnPlanVisitsClick -> sendEvent(UiEvent.Navigate(MainGraph.VisitPlanning))
-            HomeEvents.OnSamplesAndGiftsClick -> sendEvent(UiEvent.Navigate(MainGraph.SampleAndGifts))
-            HomeEvents.OnAccountsClick -> sendEvent(UiEvent.Navigate(MainGraph.Accounts))
-            HomeEvents.OnTodayMoreClick -> sendEvent(UiEvent.Navigate(MainGraph.VisitLog))
+
+            HomeEvents.OnPlanVisitsClick -> sendEvent(Navigate(MainGraph.VisitPlanning))
+            HomeEvents.OnAccountsClick -> sendEvent(Navigate(MainGraph.Accounts))
+            HomeEvents.OnTodayMoreClick -> sendEvent(Navigate(MainGraph.VisitLog))
         }
     }
 
     /** Starting a visit while one is pending asks first; otherwise it starts at once. */
     private fun requestStart(event: HomeEvents) {
-        if (_state.value.activeVisit != null) _state.update { it.copy(overlay = HomeOverlay.PendingVisit(event)) }
+        if (_state.value.activeVisit != null) _state.update {
+            it.copy(
+                overlay = HomeOverlay.PendingVisit(
+                    event
+                )
+            )
+        }
         else startVisit(event)
     }
 
