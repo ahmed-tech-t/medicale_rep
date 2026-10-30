@@ -35,7 +35,7 @@ fun ResultsFilterRow(
     ) {
         NexoraText(
             text = stringResource(R.string.visit_log_results_format, count),
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelLarge,
             color = Ink,
         )
         // The menu sits in the same Box so it opens right under the icon.

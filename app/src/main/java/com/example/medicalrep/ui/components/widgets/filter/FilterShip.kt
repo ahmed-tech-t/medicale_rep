@@ -57,7 +57,7 @@ fun FilterShip(
         NexoraText(
             modifier = Modifier.padding(contentPadding),
             text = text,
-            style = MaterialTheme.typography.bodySmall.copy(
+            style = MaterialTheme.typography.bodyLarge.copy(
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
             ),
             color = if (isSelected) Brand else Ink,

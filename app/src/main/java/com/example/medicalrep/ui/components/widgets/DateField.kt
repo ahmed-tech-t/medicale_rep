@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,12 +54,15 @@ fun DateField(
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit,
     prefix: String? = null,
+    /** True while no date is chosen: [placeholder] is a hint and shows greyed. */
+    isEmpty: Boolean = false,
 ) {
     val shape = RoundedCornerShape(radii.large)
 
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .clip(shape)
             .background(Slate25, shape)
             .border(DividerDefaults.Thickness, CardBorderCool, shape)
             .clickable { onShowPicker() }
@@ -77,7 +81,11 @@ fun DateField(
                     color = Slate500
                 )
             }
-            NexoraText(text = placeholder, style = MaterialTheme.typography.bodyLarge, color = Ink)
+            NexoraText(
+                text = placeholder,
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (isEmpty) Slate500 else Ink,
+            )
         }
         NexoraIcon(
             painter = painterResource(R.drawable.ic_calendar),

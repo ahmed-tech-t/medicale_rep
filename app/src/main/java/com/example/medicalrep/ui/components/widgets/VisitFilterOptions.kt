@@ -12,13 +12,3 @@ val plannedVisitFilterOptions = listOf(
     FilterOption(VisitFilter.ClassB, R.string.filter_class_b),
     FilterOption(VisitFilter.ClassC, R.string.filter_class_c),
 )
-
-/** For visits already done: when, with whom, and whether they were uploaded. */
-val doneVisitFilterOptions = listOf(
-    FilterOption(VisitFilter.All, R.string.filter_all),
-    FilterOption(VisitFilter.Morning, R.string.filter_morning),
-    FilterOption(VisitFilter.Evening, R.string.filter_evening),
-    FilterOption(VisitFilter.DoubleVisits, R.string.filter_double_visits),
-    FilterOption(VisitFilter.Synced, R.string.filter_synced),
-    FilterOption(VisitFilter.NotSynced, R.string.filter_not_synced),
-)

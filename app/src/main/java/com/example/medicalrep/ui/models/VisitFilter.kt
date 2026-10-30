@@ -1,9 +1,8 @@
 package com.example.medicalrep.ui.models
 
 import com.example.medicalrep.domain.models.Shift
-import com.example.medicalrep.domain.models.SyncStatus
 
-/** Every filter a visit list can offer, as the database parameters it stands for (null / false = ignore). */
+/** Every filter the planning list can offer, as the database parameters it stands for (null / false = ignore). */
 enum class VisitFilter {
     All,
     Morning,
@@ -11,9 +10,6 @@ enum class VisitFilter {
     ClassA,
     ClassB,
     ClassC,
-    DoubleVisits,
-    Synced,
-    NotSynced,
     ;
 
     val shift: Shift?
@@ -27,13 +23,6 @@ enum class VisitFilter {
             ClassA -> "A"
             ClassB -> "B"
             ClassC -> "C"
-            else -> null
-        }
-    val doubleOnly: Boolean get() = this == DoubleVisits
-    val syncStatus: SyncStatus?
-        get() = when (this) {
-            Synced -> SyncStatus.Synced
-            NotSynced -> SyncStatus.NotSynced
             else -> null
         }
 }

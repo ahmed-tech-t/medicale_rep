@@ -3,6 +3,7 @@ package com.example.medicalrep.data.repo
 import com.example.medicalrep.data.local.dao.DoctorDao
 import com.example.medicalrep.data.local.mapper.toDomain
 import com.example.medicalrep.data.local.mapper.toEntity
+import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.Doctor
 import com.example.medicalrep.domain.repo.DoctorRepo
 import kotlinx.coroutines.flow.Flow
@@ -13,6 +14,9 @@ class DoctorRepoImpl @Inject constructor(private val dao: DoctorDao) : DoctorRep
 
     override fun doctorsOf(accountId: String): Flow<List<Doctor>> =
         dao.doctorsOf(accountId).map { list -> list.map { it.toDomain() } }
+
+    override fun specialties(): Flow<List<BasicModel>> =
+        dao.specialties().map { names -> names.map { BasicModel(id = it, name = it) } }
 
     override suspend fun save(doctor: Doctor, accountIds: List<String>) = dao.save(doctor.toEntity(), accountIds)
 }

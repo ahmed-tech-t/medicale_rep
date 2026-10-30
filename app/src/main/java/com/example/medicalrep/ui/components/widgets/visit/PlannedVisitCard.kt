@@ -5,13 +5,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -22,17 +19,15 @@ import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.primitives.NexoraButton
 import com.example.medicalrep.ui.components.primitives.NexoraButtonVariant
-import com.example.medicalrep.ui.components.primitives.NexoraIcon
 import com.example.medicalrep.ui.components.primitives.NexoraText
 import com.example.medicalrep.ui.mapper.resolvedDisplayName
 import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.models.VisitUi
 import com.example.medicalrep.ui.preview.VisitSamples
-import com.example.medicalrep.ui.ui.theme.ErrorContainer
-import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
-import com.example.medicalrep.ui.ui.theme.Slate500
 import com.example.medicalrep.ui.ui.theme.Ink
+import com.example.medicalrep.ui.ui.theme.MedicalRepTheme
 import com.example.medicalrep.ui.ui.theme.OnErrorContainer
+import com.example.medicalrep.ui.ui.theme.Slate500
 
 @Composable
 fun PlannedVisitCard(
@@ -56,24 +51,28 @@ fun PlannedVisitCard(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.Start,
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.Start),
-            ) {
+
+            NexoraText(
+                text = model.resolvedDisplayName(),
+                style = MaterialTheme.typography.labelMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp,
+                ),
+                color = Ink,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (model.specialty != null) {
                 NexoraText(
-                    text = model.resolvedDisplayName(),
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp,
-                        lineHeight = 16.sp,
+                    text = model.specialty.name,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.SemiBold,
                     ),
-                    color = Ink,
+                    color = Slate500,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                if (model.specialty != null) {
-                    VisitTagChip(text = model.specialty.name)
-                }
             }
             if (model.address.isNotBlank()) {
                 NexoraText(
@@ -97,15 +96,15 @@ fun PlannedVisitCard(
                 fillMaxWidth = false,
                 compact = true,
             )
-            if(onCancel != null)
-            NexoraButton(
-                text = stringResource(R.string.cancel_visit),
-                onClick = onCancel,
-                fillMaxWidth = false,
-                compact = true,
-                variant = NexoraButtonVariant.Secondary,
-                outLineColor = OnErrorContainer
-            )
+            if (onCancel != null)
+                NexoraButton(
+                    text = stringResource(R.string.cancel_visit),
+                    onClick = onCancel,
+                    fillMaxWidth = false,
+                    compact = true,
+                    variant = NexoraButtonVariant.OutlIned,
+                    outLineColor = OnErrorContainer
+                )
         }
 
     }

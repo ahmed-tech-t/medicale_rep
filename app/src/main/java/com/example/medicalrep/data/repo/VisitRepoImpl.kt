@@ -10,6 +10,7 @@ import com.example.medicalrep.data.local.search.normalizeSearch
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.Visit
+import com.example.medicalrep.domain.models.VisitListFilter
 import com.example.medicalrep.domain.models.VisitType
 import com.example.medicalrep.domain.repo.VisitRepo
 import kotlinx.coroutines.flow.Flow
@@ -26,16 +27,24 @@ class VisitRepoImpl @Inject constructor(
     override fun visitsFiltered(type: VisitType?, syncStatus: SyncStatus?, repId: String?, fromMillis: Long, toMillis: Long) =
         pagedFlow({ dao.pagedFiltered(type, syncStatus, repId, fromMillis, toMillis) }) { it.toDomain() }
 
-    override fun requiredVisits(shift: Shift?, classCategory: String?) =
-        pagedFlow({ dao.requiredPaged(shift, classCategory) }) { it.toDomain() }
+    override fun requiredVisits(filter: VisitListFilter) = pagedFlow({
+        dao.requiredPaged(filter.shift, filter.classCategory, filter.cityId, filter.districtId, filter.specialty, filter.fromMillis, filter.toMillis, filter.query.trim())
+    }) { it.toDomain() }
 
-    override fun requiredCount(shift: Shift?, classCategory: String?) = dao.requiredCount(shift, classCategory)
+    override fun requiredCount(filter: VisitListFilter) =
+        dao.requiredCount(filter.shift, filter.classCategory, filter.cityId, filter.districtId, filter.specialty, filter.fromMillis, filter.toMillis, filter.query.trim())
 
-    override fun doneVisits(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?, classCategory: String?) =
-        pagedFlow({ dao.donePaged(shift, doubleOnly, syncStatus, classCategory) }) { it.toDomain() }
+    override fun doneVisits(filter: VisitListFilter) = pagedFlow({
+        dao.donePaged(
+            filter.shift, filter.visitMode, filter.syncStatus, filter.classCategory,
+            filter.cityId, filter.districtId, filter.specialty, filter.fromMillis, filter.toMillis, filter.query.trim(),
+        )
+    }) { it.toDomain() }
 
-    override fun doneCount(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?, classCategory: String?) =
-        dao.doneCount(shift, doubleOnly, syncStatus, classCategory)
+    override fun doneCount(filter: VisitListFilter) = dao.doneCount(
+        filter.shift, filter.visitMode, filter.syncStatus, filter.classCategory,
+        filter.cityId, filter.districtId, filter.specialty, filter.fromMillis, filter.toMillis, filter.query.trim(),
+    )
 
     override fun missedVisits(shift: Shift?, classCategory: String?) =
         pagedFlow({ dao.missedPaged(shift, classCategory) }) { it.toDomain() }
@@ -88,9 +97,15 @@ class VisitRepoImpl @Inject constructor(
 
     override suspend fun cancelRequest(id: String) = dao.cancelRequest(id) > 0
 
+    override suspend fun cancelVisit(id: String, reason: String) = dao.cancelVisit(id, reason) > 0
+
     override suspend fun notSynced(): List<Visit> = dao.getNotSynced().mapNotNull { dao.getWithDetails(it.id)?.toDomain() }
 
     override suspend fun markSynced(id: String, backendId: String?) {
         dao.markSynced(id, backendId)
+    }
+
+    override suspend fun markFailed(id: String) {
+        dao.markFailed(id)
     }
 }

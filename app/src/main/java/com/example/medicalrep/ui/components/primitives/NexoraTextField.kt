@@ -66,7 +66,10 @@ fun NexoraTextField(
         textAlign = TextAlign.Start,
     ),
     singleLine: Boolean = true,
+    /** How many lines tall the field starts when it is not [singleLine]. */
+    minLines: Int = 1,
     trailing: (@Composable () -> Unit)? = null,
+    leading: (@Composable () -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
 ) {
     val shape = RoundedCornerShape(radii.large)
@@ -151,9 +154,10 @@ fun NexoraTextField(
                 textStyle = style,
                 placeholder = placeholderContent,
                 trailingIcon = trailing,
+                leadingIcon = leading,
                 isError = isError,
                 keyboardOptions = keyboardOptions,
-                lineLimits = if (singleLine) TextFieldLineLimits.SingleLine else TextFieldLineLimits.Default,
+                lineLimits = if (singleLine) TextFieldLineLimits.SingleLine else TextFieldLineLimits.MultiLine(minHeightInLines = minLines),
                 shape = shape,
                 colors = colors,
             )

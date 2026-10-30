@@ -10,6 +10,7 @@ import com.appcore.core.domain.utils.UiText
 import com.appcore.core.ui.utils.BaseViewModel
 import com.example.medicalrep.R
 import com.example.medicalrep.domain.repo.VisitRepo
+import com.example.medicalrep.domain.models.VisitListFilter
 import com.example.medicalrep.ui.mapper.toUi
 import com.example.medicalrep.ui.utils.toggle
 import com.example.medicalrep.ui.models.VisitFilter
@@ -59,7 +60,7 @@ class VisitPlanningViewModel @Inject constructor(
         .distinctUntilChanged()
         .flatMapLatest { filter ->
             when (tab) {
-                VisitPlanningTab.Visits -> visitRepo.doneVisits(shift = filter.shift, classCategory = filter.classCategory)
+                VisitPlanningTab.Visits -> visitRepo.doneVisits(VisitListFilter(shift = filter.shift, classCategory = filter.classCategory))
                 VisitPlanningTab.Pending -> visitRepo.pendingRequests(filter.shift, filter.classCategory)
             }
         }
@@ -70,7 +71,7 @@ class VisitPlanningViewModel @Inject constructor(
         viewModelScope.launch {
             query.flatMapLatest { (tab, filter) ->
                 when (tab) {
-                    VisitPlanningTab.Visits -> visitRepo.doneCount(shift = filter.shift, classCategory = filter.classCategory)
+                    VisitPlanningTab.Visits -> visitRepo.doneCount(VisitListFilter(shift = filter.shift, classCategory = filter.classCategory))
                     VisitPlanningTab.Pending -> visitRepo.pendingRequestCount(filter.shift, filter.classCategory)
                 }
             }.collect { count -> _state.update { it.copy(resultCount = count) } }

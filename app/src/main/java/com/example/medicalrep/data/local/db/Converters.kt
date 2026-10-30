@@ -26,11 +26,16 @@ class Converters {
     fun fromSyncStatus(status: SyncStatus): String = when (status) {
         SyncStatus.Synced -> "Synced"
         SyncStatus.NotSynced -> "NotSynced"
+        SyncStatus.Failed -> "Failed"
     }
 
     @TypeConverter
     fun toSyncStatus(value: String): SyncStatus =
-        if (value == "Synced") SyncStatus.Synced else SyncStatus.NotSynced
+        when (value) {
+            "Synced" -> SyncStatus.Synced
+            "Failed" -> SyncStatus.Failed
+            else -> SyncStatus.NotSynced
+        }
 
     @TypeConverter
     fun fromTexts(values: List<String>): String = values.joinToString("\n")

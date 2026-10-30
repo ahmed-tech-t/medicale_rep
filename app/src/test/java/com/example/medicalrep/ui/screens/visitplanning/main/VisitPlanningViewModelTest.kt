@@ -89,7 +89,7 @@ class VisitPlanningViewModelTest {
     fun `starts on visits asking for done visits with their count`() = runTest(dispatcher) {
         collectVisits()
         assertEquals(VisitPlanningTab.Visits, state.selectedTab)
-        assertEquals(listOf<Shift?>(null), repo.doneRequests.map { it.first })
+        assertEquals(listOf<Shift?>(null), repo.doneRequests.map { it.shift })
         assertEquals(3, state.resultCount)
         assertFalse(state.hasSelection)
     }
@@ -116,7 +116,7 @@ class VisitPlanningViewModelTest {
         viewModel.onEvent(VisitPlanningEvents.OpenFilter)
         viewModel.onEvent(VisitPlanningEvents.SelectFilter(VisitFilter.Morning))
         runCurrent()
-        assertEquals(Shift.Am, repo.doneRequests.last().first)
+        assertEquals(Shift.Am, repo.doneRequests.last().shift)
         assertEquals(2, state.resultCount)
         assertTrue(state.isFiltered)
         assertEquals(VisitPlanningOverlay.None, state.overlay)

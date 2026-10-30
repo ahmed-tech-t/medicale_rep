@@ -103,10 +103,10 @@ private fun HeaderIconButton(
     badge: Int = 0
 ) {
     val shape = RoundedCornerShape(radii.large)
-    Box {
+    Box (modifier = Modifier){
         Box(
             modifier = Modifier
-                .thenIf(showShadow) { Modifier.shadow(1.dp, RoundedCornerShape(radii.large)) }
+
                 .size(dim.iconButtonSize)
                 .clip(shape)
                 .background(Slate50.copy(alpha = 0.06f))

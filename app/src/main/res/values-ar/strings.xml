@@ -271,6 +271,34 @@
     <string name="visit_log_title">سجل الزيارات</string>
     <string name="visit_log_tab_required">المطلوبة</string>
     <string name="visit_log_tab_done">تم عملها</string>
+    <string name="visit_log_supervisor">المدير</string>
+    <string name="visit_log_visit_time">وقت الزيارة</string>
+    <string name="visit_log_samples_and_gifts">العينات والهدايا</string>
+    <string name="visit_log_double_visit">Double Visit</string>
+    <string name="visit_log_single_visit">Single Visit</string>
+    <string name="visit_log_sync_pending_hint">هتتم المزامنة عند الاتصال بالإنترنت</string>
+    <string name="visit_log_not_uploaded">لم يتم رفع الزيارة</string>
+    <plurals name="visit_log_samples">
+        <item quantity="zero">بدون عينات</item>
+        <item quantity="one">عينة واحدة</item>
+        <item quantity="two">عينتان</item>
+        <item quantity="few">%d عينات</item>
+        <item quantity="many">%d عينة</item>
+        <item quantity="other">%d عينة</item>
+    </plurals>
+    <plurals name="visit_log_gifts">
+        <item quantity="zero">بدون هدايا</item>
+        <item quantity="one">هدية واحدة</item>
+        <item quantity="two">هديتان</item>
+        <item quantity="few">%d هدايا</item>
+        <item quantity="many">%d هدية</item>
+        <item quantity="other">%d هدية</item>
+    </plurals>
+    <string name="visit_log_not_synced">لم تتم المزامنة</string>
+    <string name="visit_log_search_hint">ابحث بالطبيب، التخصص أو المنشأة...</string>
+    <string name="visit_log_view_report">عرض تقرير الزيارة</string>
+    <string name="visit_log_sync_failed_title">فشل رفع الزيارة:</string>
+    <string name="visit_log_sync_failed_body">حدثت مشكلة أثناء الرفع، والبيانات محفوظة على الجهاز.</string>
     <string name="visit_log_results_format">%1$d نتيجة</string>
     <string name="visit_log_id_format">ID:%1$s</string>
     <string name="visit_log_items_format">%1$d منتج + %2$d هدية</string>
@@ -341,6 +369,7 @@
     <string name="rep_tracking_gifts_format">%1$d هدايا دعائية</string>
     <string name="visit_status_completed">مكتملة</string>
     <string name="no_result">لا توجد نتائج</string>
+    <string name="thier_is_no_result">لا توجد نتائج</string>
     <string name="orders">الطلبات</string>
     <string name="orders_order_number">طلب رقم %1$d</string>
     <string name="orders_date_time">%1$s, %2$s</string>
@@ -403,9 +432,17 @@
         <item quantity="other">%1$d حساب</item>
     </plurals>
     <string name="cancel_visit">إلغاء الزيارة</string>
+    <string name="cancel_visit_title">إلغاء الزيارة اليومية</string>
+    <string name="cancel_visit_hint">يرجى تحديد سبب إلغاء خطة الزيارات للمتابعة مع المشرف المباشر.</string>
+    <string name="cancel_visit_notes">ملاحظات إضافية:</string>
+    <string name="cancel_visit_notes_hint">اكتب تفاصيل إضافية لتوضيح سبب الإلغاء...</string>
+    <string name="cancel_visit_confirm">تأكيد الإلغاء</string>
+    <string name="cancel_visit_back">تراجع</string>
     <string name="filter_apply">تطبيق الفلتر</string>
     <string name="filter_date_from">التاريخ من</string>
+    <string name="filter_date_hint">اختر التاريخ</string>
     <string name="filter_date_to">التاريخ إلى</string>
+    <string name="filter_done_visits_title">تصفية الزيارات المكتملة</string>
     <string name="filter_visits_title">تصفية الزيارات المطلوبة</string>
     <string name="filter_reset">إعادة ضبط</string>
     <string name="filter_period">الفترة الزمنية</string>

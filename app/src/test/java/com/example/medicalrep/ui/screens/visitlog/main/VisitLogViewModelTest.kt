@@ -4,16 +4,28 @@ import com.example.medicalrep.domain.models.BasicModel
 import com.appcore.core.domain.models.AppSettings
 import com.appcore.core.domain.repo.AppSettingsRepo
 import com.appcore.core.domain.utils.UiEvent
+import com.example.medicalrep.domain.models.District
+import com.example.medicalrep.domain.models.Doctor
 import com.example.medicalrep.domain.models.DraftVisit
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.Visit
+import com.example.medicalrep.domain.models.VisitListFilter
 import com.example.medicalrep.domain.models.VisitMode
 import com.example.medicalrep.domain.models.VisitStatus
 import com.example.medicalrep.domain.models.VisitType
+import com.example.medicalrep.domain.repo.FakeDoctorRepo
 import com.example.medicalrep.domain.repo.FakeDraftVisitRepo
+import com.example.medicalrep.domain.repo.FakeGeoRepo
 import com.example.medicalrep.domain.repo.FakeVisitRepo
-import com.example.medicalrep.ui.models.VisitFilter
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import com.example.medicalrep.ui.components.widgets.filter.ClassFilter
+import com.example.medicalrep.ui.components.widgets.filter.FilterEvents
+import com.example.medicalrep.ui.components.widgets.filter.SyncFilter
+import com.example.medicalrep.ui.components.widgets.filter.VisitTypeFilter
+import com.example.medicalrep.ui.models.BasicModelUi
+import com.example.medicalrep.ui.utils.startOfDay
+import com.example.medicalrep.ui.utils.startOfNextDay
 import com.example.medicalrep.ui.navigation.model.MainGraph
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -26,6 +38,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -40,10 +53,18 @@ import org.junit.Test
  * 1. Given the screen opens, Then Required is selected and the repo is asked for every required visit; the count is theirs.
  * 2. When the Done tab is selected, Then the repo is asked for done visits and the count follows; Required restores it.
  * 3. Given no visits, Then the count is 0 on both tabs.
- * 4. Required filters (shift, class) and Done filters (shift, double, sync status) reach the repo; the count follows.
- * 5. Switching tab resets the filter to All and closes the popup; the filter icon is on only while filtered.
- * 6. When Start visit, Then it navigates to the plan-visit screen with that visit id; with a pending visit it asks first.
- * 7. Confirming cancels the pending visit and starts the chosen one. Open visit opens the details. Back navigates up.
+ * 4. When the filter icon is tapped, Then the sheet opens with the cities and specialties of the repos.
+ * 5. Given a class is chosen, Then nothing is asked until Apply; Apply sends it to the repo, the count follows, the sheet closes.
+ * 6. Given city, district, specialty and a day, When Apply, Then all reach the repo (the day is [start, next start)).
+ * 7. Choosing another city reloads the districts and clears the chosen district; no city means no districts.
+ * 8. Done: sync status and visit type reach the repo; Reset then Apply asks for everything again.
+ * 9. Dismissing the sheet keeps the applied filter; applying the same filter twice asks the repo once.
+ * 10. Switching tab resets the filter and the form and closes the sheet; the filter icon is on only while filtered.
+ * 11. Cancel visit opens the reason sheet; a blank reason cannot be confirmed; a reason cancels the visit once, closes the sheet and
+ *     the visit leaves the Required list; back closes it without cancelling; switching tab closes it.
+ * 12. Search: asked after a 300 ms pause, trimmed, one ask for fast typing, clearing is instant, kept by Apply, cleared by a tab switch.
+ * 13. When Start visit, Then it navigates to the plan-visit screen with that visit id; with a pending visit it asks first.
+ * 14. Confirming cancels the pending visit and starts the chosen one. Open visit opens the details. Back navigates up.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class VisitLogViewModelTest {
@@ -59,13 +80,20 @@ class VisitLogViewModelTest {
             visit("d2", Shift.Pm, "B", done = true, syncStatus = SyncStatus.Synced),
         ),
     )
+    private val geoRepo = FakeGeoRepo(
+        cities = listOf(BasicModel("c1", "Cairo"), BasicModel("c2", "Giza")),
+        districts = listOf(District("d1", "Nasr City", "c1"), District("d2", "Dokki", "c2")),
+    )
+    private val doctorRepo = FakeDoctorRepo().apply {
+        setDoctors("a1", listOf(Doctor(id = "doc1", name = "Dr A", specialty = BasicModel("Cardiology", "Cardiology"))))
+    }
     private lateinit var viewModel: VisitLogViewModel
     private val state get() = viewModel.state.value
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
-        viewModel = VisitLogViewModel(FakeSettingsRepo, draftRepo, repo)
+        viewModel = VisitLogViewModel(FakeSettingsRepo, draftRepo, repo, geoRepo, doctorRepo)
     }
 
     @After
@@ -81,6 +109,10 @@ class VisitLogViewModelTest {
         runCurrent()
     }
 
+    private fun filter(event: FilterEvents) = viewModel.onEvent(VisitLogEvents.OnFilterEvent(event))
+
+    private fun apply() = viewModel.onEvent(VisitLogEvents.ApplyFilter)
+
     private fun TestScope.collectEvents(): List<UiEvent> {
         val events = mutableListOf<UiEvent>()
         backgroundScope.launch(dispatcher) { viewModel.uiEvent.toList(events) }
@@ -92,7 +124,7 @@ class VisitLogViewModelTest {
     fun `starts on the required tab asking for every required visit`() = runTest(dispatcher) {
         collectVisits()
         assertEquals(VisitLogTab.Required, state.selectedTab)
-        assertEquals(listOf<Pair<Shift?, String?>>(null to null), repo.requiredRequests)
+        assertEquals(listOf(VisitListFilter()), repo.requiredRequests)
         assertEquals(3, state.resultCount)
     }
 
@@ -101,7 +133,7 @@ class VisitLogViewModelTest {
         collectVisits()
         viewModel.onEvent(VisitLogEvents.SelectTab(VisitLogTab.Done))
         runCurrent()
-        assertEquals(listOf(Triple<Shift?, Boolean, SyncStatus?>(null, false, null)), repo.doneRequests)
+        assertEquals(listOf(VisitListFilter()), repo.doneRequests)
         assertEquals(2, state.resultCount)
         viewModel.onEvent(VisitLogEvents.SelectTab(VisitLogTab.Required))
         runCurrent()
@@ -132,19 +164,69 @@ class VisitLogViewModelTest {
     }
 
     @Test
-    fun `required filters reach the repo and the count follows`() = runTest(dispatcher) {
+    fun `the filter icon opens the sheet with the cities and specialties`() = runTest(dispatcher) {
         collectVisits()
         viewModel.onEvent(VisitLogEvents.OpenFilter)
-        viewModel.onEvent(VisitLogEvents.SelectFilter(VisitFilter.Morning))
         runCurrent()
-        assertEquals(Shift.Am to null, repo.requiredRequests.last())
-        assertEquals(2, state.resultCount)
+        assertEquals(VisitLogOverlay.Filter, state.overlay)
+        assertEquals(listOf("Cairo", "Giza"), state.sheet.cites.map { it.name })
+        assertEquals(listOf("Cardiology"), state.sheet.specialties.map { it.name })
+        assertTrue(state.sheet.regions.isEmpty())
+    }
+
+    @Test
+    fun `a chosen class reaches the repo only on apply and the count follows`() = runTest(dispatcher) {
+        collectVisits()
+        viewModel.onEvent(VisitLogEvents.OpenFilter)
+        filter(FilterEvents.OnClassSelect(ClassFilter.B))
+        runCurrent()
+        assertEquals(VisitListFilter(), repo.requiredRequests.last())
+        assertFalse(state.isFiltered)
+        apply()
+        runCurrent()
+        assertEquals(VisitListFilter(classCategory = "B"), repo.requiredRequests.last())
+        assertEquals(1, state.resultCount)
         assertEquals(VisitLogOverlay.None, state.overlay)
         assertTrue(state.isFiltered)
-        viewModel.onEvent(VisitLogEvents.SelectFilter(VisitFilter.ClassB))
+    }
+
+    @Test
+    fun `city district specialty and a day reach the repo`() = runTest(dispatcher) {
+        collectVisits()
+        viewModel.onEvent(VisitLogEvents.OpenFilter)
+        filter(FilterEvents.OnCitySelect(BasicModelUi("c1", "Cairo")))
         runCurrent()
-        assertEquals(null to "B", repo.requiredRequests.last())
-        assertEquals(1, state.resultCount)
+        filter(FilterEvents.OnRegionSelect(BasicModelUi("d1", "Nasr City")))
+        filter(FilterEvents.OnSpecialtySelect(BasicModelUi("Cardiology", "Cardiology")))
+        val day = startOfDay(System.currentTimeMillis() - 3 * DAY)
+        filter(FilterEvents.OnStartDateSelect(day))
+        filter(FilterEvents.OnEndDateSelect(day))
+        apply()
+        runCurrent()
+        assertEquals(
+            VisitListFilter(
+                cityId = "c1",
+                districtId = "d1",
+                specialty = "Cardiology",
+                fromMillis = startOfDay(day),
+                toMillis = startOfNextDay(day),
+            ),
+            repo.requiredRequests.last(),
+        )
+    }
+
+    @Test
+    fun `another city reloads the districts and clears the chosen one`() = runTest(dispatcher) {
+        collectVisits()
+        viewModel.onEvent(VisitLogEvents.OpenFilter)
+        filter(FilterEvents.OnCitySelect(BasicModelUi("c1", "Cairo")))
+        runCurrent()
+        assertEquals(listOf("Nasr City"), state.sheet.regions.map { it.name })
+        filter(FilterEvents.OnRegionSelect(BasicModelUi("d1", "Nasr City")))
+        filter(FilterEvents.OnCitySelect(BasicModelUi("c2", "Giza")))
+        runCurrent()
+        assertEquals(listOf("Dokki"), state.sheet.regions.map { it.name })
+        assertEquals(null, state.sheet.selectedRegion)
     }
 
     @Test
@@ -152,38 +234,243 @@ class VisitLogViewModelTest {
         collectVisits()
         viewModel.onEvent(VisitLogEvents.SelectTab(VisitLogTab.Done))
         runCurrent()
-        viewModel.onEvent(VisitLogEvents.SelectFilter(VisitFilter.DoubleVisits))
+        viewModel.onEvent(VisitLogEvents.OpenFilter)
+        filter(FilterEvents.OnVisitTypeSelect(VisitTypeFilter.Double))
+        apply()
         runCurrent()
-        assertEquals(Triple<Shift?, Boolean, SyncStatus?>(null, true, null), repo.doneRequests.last())
+        assertEquals(VisitListFilter(visitMode = VisitMode.Double), repo.doneRequests.last())
         assertEquals(1, state.resultCount)
-        viewModel.onEvent(VisitLogEvents.SelectFilter(VisitFilter.Synced))
+        filter(FilterEvents.OnVisitTypeSelect(VisitTypeFilter.All))
+        filter(FilterEvents.OnSyncFilterSelect(SyncFilter.Synced))
+        apply()
         runCurrent()
-        assertEquals(Triple<Shift?, Boolean, SyncStatus?>(null, false, SyncStatus.Synced), repo.doneRequests.last())
+        assertEquals(VisitListFilter(syncStatus = SyncStatus.Synced), repo.doneRequests.last())
         assertEquals(1, state.resultCount)
-        viewModel.onEvent(VisitLogEvents.SelectFilter(VisitFilter.Evening))
+        filter(FilterEvents.OnSyncFilterSelect(SyncFilter.Waiting))
+        filter(FilterEvents.OnVisitTypeSelect(VisitTypeFilter.Single))
+        apply()
         runCurrent()
-        assertEquals(Triple<Shift?, Boolean, SyncStatus?>(Shift.Pm, false, null), repo.doneRequests.last())
+        assertEquals(VisitListFilter(syncStatus = SyncStatus.NotSynced, visitMode = VisitMode.Single), repo.doneRequests.last())
+        filter(FilterEvents.OnSyncFilterSelect(SyncFilter.Failed))
+        filter(FilterEvents.OnVisitTypeSelect(VisitTypeFilter.All))
+        apply()
+        runCurrent()
+        assertEquals(VisitListFilter(syncStatus = SyncStatus.Failed), repo.doneRequests.last())
     }
 
     @Test
-    fun `switching tab resets the filter to All and closes the popup`() = runTest(dispatcher) {
+    fun `reset then apply asks for everything again`() = runTest(dispatcher) {
         collectVisits()
-        viewModel.onEvent(VisitLogEvents.SelectFilter(VisitFilter.Morning))
         viewModel.onEvent(VisitLogEvents.OpenFilter)
+        filter(FilterEvents.OnClassSelect(ClassFilter.A))
+        apply()
+        runCurrent()
+        assertTrue(state.isFiltered)
+        viewModel.onEvent(VisitLogEvents.OpenFilter)
+        filter(FilterEvents.OnReset)
+        apply()
+        runCurrent()
+        assertEquals(VisitListFilter(), repo.requiredRequests.last())
+        assertFalse(state.isFiltered)
+        assertEquals(3, state.resultCount)
+    }
+
+    @Test
+    fun `dismissing keeps the applied filter and applying the same one twice asks once`() = runTest(dispatcher) {
+        collectVisits()
+        viewModel.onEvent(VisitLogEvents.OpenFilter)
+        filter(FilterEvents.OnClassSelect(ClassFilter.A))
+        viewModel.onEvent(VisitLogEvents.DismissOverlay)
+        runCurrent()
+        assertEquals(VisitLogOverlay.None, state.overlay)
+        assertEquals(VisitListFilter(), state.filter)
+        viewModel.onEvent(VisitLogEvents.OpenFilter)
+        apply()
+        apply()
+        runCurrent()
+        assertEquals(listOf(VisitListFilter(), VisitListFilter(classCategory = "A")), repo.requiredRequests)
+    }
+
+    @Test
+    fun `no visit matching the filter counts zero`() = runTest(dispatcher) {
+        repo.current.value = emptyList()
+        collectVisits()
+        viewModel.onEvent(VisitLogEvents.OpenFilter)
+        filter(FilterEvents.OnClassSelect(ClassFilter.C))
+        apply()
+        runCurrent()
+        assertEquals(0, state.resultCount)
+        assertTrue(state.isFiltered)
+    }
+
+    @Test
+    fun `switching tab resets the filter and the form and closes the sheet`() = runTest(dispatcher) {
+        collectVisits()
+        viewModel.onEvent(VisitLogEvents.OpenFilter)
+        filter(FilterEvents.OnClassSelect(ClassFilter.A))
+        apply()
+        viewModel.onEvent(VisitLogEvents.OpenFilter)
+        filter(FilterEvents.OnClassSelect(ClassFilter.B))
         viewModel.onEvent(VisitLogEvents.SelectTab(VisitLogTab.Done))
         runCurrent()
-        assertEquals(VisitFilter.All, state.filter)
+        assertEquals(VisitListFilter(), state.filter)
+        assertEquals(ClassFilter.All, state.sheet.selectedClass)
         assertFalse(state.isFiltered)
+        assertEquals(VisitLogOverlay.None, state.overlay)
+        assertEquals(2, state.resultCount)
+        assertEquals(listOf("Cairo", "Giza"), state.sheet.cites.map { it.name })
+    }
+
+    @Test
+    fun `filter icon opens the sheet and dismiss closes it`() {
+        viewModel.onEvent(VisitLogEvents.OpenFilter)
+        assertEquals(VisitLogOverlay.Filter, state.overlay)
+        viewModel.onEvent(VisitLogEvents.DismissOverlay)
+        assertEquals(VisitLogOverlay.None, state.overlay)
+    }
+
+    private fun TestScope.openCancelSheet(id: String = "r1") {
+        collectVisits()
+        viewModel.onEvent(VisitLogEvents.CancelVisit(id))
+        runCurrent()
+    }
+
+    @Test
+    fun `cancel visit opens an empty reason sheet and does not cancel`() = runTest(dispatcher) {
+        openCancelSheet()
+        assertEquals(VisitLogOverlay.CancelVisit("r1"), state.overlay)
+        assertEquals("", state.cancelReason.text.toString())
+        assertTrue(repo.cancelCalls.isEmpty())
+    }
+
+    @Test
+    fun `a blank reason cannot be confirmed`() = runTest(dispatcher) {
+        openCancelSheet()
+        viewModel.onEvent(VisitLogEvents.ConfirmCancel)
+        state.cancelReason.setTextAndPlaceCursorAtEnd("   ")
+        viewModel.onEvent(VisitLogEvents.ConfirmCancel)
+        runCurrent()
+        assertTrue(repo.cancelCalls.isEmpty())
+        assertEquals(VisitLogOverlay.CancelVisit("r1"), state.overlay)
+    }
+
+    @Test
+    fun `a reason cancels the visit once, closes the sheet and the visit leaves the list`() = runTest(dispatcher) {
+        openCancelSheet()
+        assertEquals(3, state.resultCount)
+        state.cancelReason.setTextAndPlaceCursorAtEnd("  Doctor travelling  ")
+        viewModel.onEvent(VisitLogEvents.ConfirmCancel)
+        viewModel.onEvent(VisitLogEvents.ConfirmCancel)
+        runCurrent()
+        assertEquals(listOf("r1" to "Doctor travelling"), repo.cancelCalls)
         assertEquals(VisitLogOverlay.None, state.overlay)
         assertEquals(2, state.resultCount)
     }
 
     @Test
-    fun `filter icon opens the popup and dismiss closes it`() {
-        viewModel.onEvent(VisitLogEvents.OpenFilter)
-        assertEquals(VisitLogOverlay.Filter, state.overlay)
+    fun `a visit that is no longer to do closes the sheet and changes nothing`() = runTest(dispatcher) {
+        openCancelSheet("d1")
+        state.cancelReason.setTextAndPlaceCursorAtEnd("late")
+        viewModel.onEvent(VisitLogEvents.ConfirmCancel)
+        runCurrent()
+        assertEquals(VisitLogOverlay.None, state.overlay)
+        assertEquals(3, state.resultCount)
+    }
+
+    @Test
+    fun `back closes the cancel sheet without cancelling and the next one starts empty`() = runTest(dispatcher) {
+        openCancelSheet()
+        state.cancelReason.setTextAndPlaceCursorAtEnd("typed")
         viewModel.onEvent(VisitLogEvents.DismissOverlay)
         assertEquals(VisitLogOverlay.None, state.overlay)
+        assertTrue(repo.cancelCalls.isEmpty())
+        viewModel.onEvent(VisitLogEvents.CancelVisit("r2"))
+        assertEquals(VisitLogOverlay.CancelVisit("r2"), state.overlay)
+        assertEquals("", state.cancelReason.text.toString())
+    }
+
+    @Test
+    fun `switching tab closes the cancel sheet without cancelling`() = runTest(dispatcher) {
+        openCancelSheet()
+        state.cancelReason.setTextAndPlaceCursorAtEnd("typed")
+        viewModel.onEvent(VisitLogEvents.SelectTab(VisitLogTab.Done))
+        viewModel.onEvent(VisitLogEvents.ConfirmCancel)
+        runCurrent()
+        assertEquals(VisitLogOverlay.None, state.overlay)
+        assertTrue(repo.cancelCalls.isEmpty())
+    }
+
+    private fun search(text: String) = viewModel.onEvent(VisitLogEvents.OnSearchChange(text))
+
+    @Test
+    fun `search asks the repo only after typing pauses and trims the text`() = runTest(dispatcher) {
+        collectVisits()
+        viewModel.onEvent(VisitLogEvents.SelectTab(VisitLogTab.Done))
+        runCurrent()
+        search("  Mona ")
+        runCurrent()
+        assertEquals("", repo.doneRequests.last().query)
+        advanceTimeBy(300)
+        runCurrent()
+        assertEquals("Mona", repo.doneRequests.last().query)
+        assertEquals("  Mona ", state.query)
+    }
+
+    @Test
+    fun `typing fast asks the repo once for the last text`() = runTest(dispatcher) {
+        collectVisits()
+        val before = repo.requiredRequests.size
+        search("M")
+        advanceTimeBy(100)
+        search("Mo")
+        advanceTimeBy(100)
+        search("Mon")
+        advanceTimeBy(300)
+        runCurrent()
+        assertEquals(listOf("Mon"), repo.requiredRequests.drop(before).map { it.query })
+    }
+
+    @Test
+    fun `clearing the search restores the list at once and blank text asks for everything`() = runTest(dispatcher) {
+        collectVisits()
+        search("Mona")
+        advanceTimeBy(300)
+        runCurrent()
+        search("")
+        runCurrent()
+        assertEquals("", repo.requiredRequests.last().query)
+        search("   ")
+        advanceTimeBy(300)
+        runCurrent()
+        assertEquals("", repo.requiredRequests.last().query)
+    }
+
+    @Test
+    fun `applying the filter keeps the search and the search is not a filter`() = runTest(dispatcher) {
+        collectVisits()
+        search("Mona")
+        advanceTimeBy(300)
+        runCurrent()
+        assertFalse(state.isFiltered)
+        filter(FilterEvents.OnClassSelect(ClassFilter.A))
+        apply()
+        advanceTimeBy(300)
+        runCurrent()
+        assertEquals(VisitListFilter(classCategory = "A", query = "Mona"), repo.requiredRequests.last())
+        assertTrue(state.isFiltered)
+    }
+
+    @Test
+    fun `switching tab clears the search and asks the new tab for everything`() = runTest(dispatcher) {
+        collectVisits()
+        search("Mona")
+        advanceTimeBy(300)
+        runCurrent()
+        viewModel.onEvent(VisitLogEvents.SelectTab(VisitLogTab.Done))
+        advanceTimeBy(300)
+        runCurrent()
+        assertEquals("", state.query)
+        assertEquals("", repo.doneRequests.last().query)
     }
 
     @Test
@@ -238,6 +525,8 @@ class VisitLogViewModelTest {
     }
 
     private companion object {
+        const val DAY = 24L * 60 * 60 * 1000
+
         fun visit(
             id: String,
             shift: Shift,

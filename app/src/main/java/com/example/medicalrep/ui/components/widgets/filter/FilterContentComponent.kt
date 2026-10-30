@@ -1,9 +1,7 @@
 package com.example.medicalrep.ui.components.widgets.filter
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -16,8 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -27,7 +23,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -51,8 +46,10 @@ import com.example.medicalrep.ui.ui.theme.Slate300
 
 @Composable
 fun FilterContentComponent(
+    modifier: Modifier = Modifier,
     state: FilterState,
     onEvent: (FilterEvents) -> Unit,
+    title: String,
     showAreaPicker: Boolean,
     showDateFilter: Boolean,
     showClassFilter: Boolean,
@@ -60,9 +57,7 @@ fun FilterContentComponent(
     showAccountType: Boolean,
     showSyncStatus: Boolean,
     showVisitType: Boolean,
-
     onApplyFilter: () -> Unit,
-    modifier: Modifier = Modifier,
     onReset: () -> Unit = { onEvent(FilterEvents.OnReset) },
 ) {
     var showCityPopup by remember { mutableStateOf(false) }
@@ -72,321 +67,296 @@ fun FilterContentComponent(
     val startPickerState = state.rememberStartDatePickerState()
     val endPickerState = state.rememberEndDatePickerState()
 
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(
-            topStart = radii.sheet,
-            topEnd = radii.sheet,
-            bottomStart = radii.extraLarge,
-            bottomEnd = radii.extraLarge
-        ),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = spacing.spaceExtraSmall),
+
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(spacing.spaceMedium),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = spacing.spaceMediumPlus, vertical = spacing.spaceSmallPlus),
-            verticalArrangement = Arrangement.spacedBy(spacing.spaceMedium),
-        ) {
-            // Drag Handle Indicator
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = spacing.spaceExtraSmall),
-                contentAlignment = Alignment.Center,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(width = dim.thumbnailSize, height = spacing.spaceExtraSmall)
-                        .clip(RoundedCornerShape(radii.extraSmall))
-                        .background(Slate300.copy(alpha = 0.8f))
-                )
-            }
 
-            // Title: تصفية الزيارات المطلوبة
-            NexoraText(
-                text = stringResource(R.string.filter_visits_title),
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                ),
-                color = Ink,
+        // Title: تصفية الزيارات المطلوبة
+        NexoraText(
+            text = title,
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.Bold,
+            ),
+            color = Ink,
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        // Section 1: التصنيف (الكل، A، B، C)
+        if (showClassFilter) {
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-            )
-
-            // Section 1: التصنيف (الكل، A، B، C)
-            if (showClassFilter) {
-                Column(
+                verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
+            ) {
+                NexoraText(
+                    text = stringResource(R.string.filter_class_title),
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                    ),
+                    color = Ink,
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
-                ) {
-                    NexoraText(
-                        text = stringResource(R.string.filter_class_title),
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                        ),
-                        color = Ink,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                )
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        val allChipPadding = PaddingValues(
-                            horizontal = spacing.spaceMedium,
-                            vertical = spacing.spaceSmall
-                        )
-                        ClassFilter.entries.forEach { filter ->
-                            FilterShip(
-                                isSelected = state.selectedClass == filter,
-                                text = filter.label,
-                                modifier = if (filter == ClassFilter.All) Modifier else Modifier.size(
-                                    spacing.spaceLargePlus
-                                ),
-                                shape = if (filter == ClassFilter.All) RoundedCornerShape(radii.pill) else CircleShape,
-                                contentPadding = if (filter == ClassFilter.All) allChipPadding else PaddingValues(),
-                                onClick = { onEvent(FilterEvents.OnClassSelect(filter)) })
-                        }
-                    }
-                }
-            }
-            // Section: نوع الحساب
-            if (showAccountType) {
-                FilterChipsSection(title = stringResource(R.string.visit_details_account_type)) {
-                    AccountTypeFilter.entries.forEach { filter ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    val allChipPadding = PaddingValues(
+                        horizontal = spacing.spaceMedium,
+                        vertical = spacing.spaceSmall
+                    )
+                    ClassFilter.entries.forEach { filter ->
                         FilterShip(
-                            isSelected = state.accountTypeFilter == filter,
-                            text = stringResource(filter.valueRes),
-                            onClick = { onEvent(FilterEvents.OnAccountTypeSelect(filter)) },
-                        )
+                            isSelected = state.selectedClass == filter,
+                            text = filter.label,
+                            modifier = if (filter == ClassFilter.All) Modifier else Modifier.size(
+                                spacing.spaceLargePlus
+                            ),
+                            shape = if (filter == ClassFilter.All) RoundedCornerShape(radii.pill) else CircleShape,
+                            contentPadding = if (filter == ClassFilter.All) allChipPadding else PaddingValues(),
+                            onClick = { onEvent(FilterEvents.OnClassSelect(filter)) })
                     }
                 }
             }
+        }
+        // Section: نوع الحساب
+        if (showAccountType) {
+            FilterChipsSection(title = stringResource(R.string.visit_details_account_type)) {
+                AccountTypeFilter.entries.forEach { filter ->
+                    FilterShip(
+                        isSelected = state.accountTypeFilter == filter,
+                        text = stringResource(filter.valueRes),
+                        onClick = { onEvent(FilterEvents.OnAccountTypeSelect(filter)) },
+                    )
+                }
+            }
+        }
 
-            // Section 2: المنطقة (المدينة + الحي)
-            if (showAreaPicker) {
-                Column(
+        // Section 2: المنطقة (المدينة + الحي)
+        if (showAreaPicker) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
+            ) {
+                NexoraText(
+                    text = stringResource(R.string.filter_region_title),
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                    ),
+                    color = Ink,
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
-                ) {
-                    NexoraText(
-                        text = stringResource(R.string.filter_region_title),
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                        ),
-                        color = Ink,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                )
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
-                    ) {
-                        LabelWrapperComponent(
-                            title = stringResource(R.string.unplanned_label_city),
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            SearchFieldComponent(
-                                value = state.selectedCity?.name.orEmpty(),
-                                options = state.cites,
-                                onSelect = { item ->
-                                    state.cites.find { it.name == item.name }?.let {
-                                        onEvent(FilterEvents.OnCitySelect(it))
-                                    }
-                                    showCityPopup = false
-                                },
-                                showPopup = showCityPopup,
-                                placeholder = stringResource(R.string.enter_city),
-                                onClick = {
-                                    showCityPopup = !showCityPopup
-                                    showRegionPopup = false
-                                    showSpecialtyPopup = false
-                                },
-                            )
-                        }
-
-                        LabelWrapperComponent(
-                            title = stringResource(R.string.unplanned_label_district),
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            SearchFieldComponent(
-                                value = state.selectedRegion?.name.orEmpty(),
-                                options = state.regions,
-                                onSelect = { item ->
-                                    state.regions.find { it.name == item.name }?.let {
-                                        onEvent(FilterEvents.OnRegionSelect(it))
-                                    }
-                                    showRegionPopup = false
-                                },
-                                showPopup = showRegionPopup,
-                                placeholder = stringResource(R.string.enter_district),
-                                onClick = {
-                                    showRegionPopup = !showRegionPopup
-                                    showCityPopup = false
-                                    showSpecialtyPopup = false
-                                },
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Section 3: التخصص
-            if (showSpecialtyFilter) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
-                ) {
-                    NexoraText(
-                        text = stringResource(R.string.unplanned_label_specialty),
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                        ),
-                        color = Ink,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-
-                    SearchFieldComponent(
-                        value = state.selectedSpecialty?.name.orEmpty(),
-                        options = state.specialties,
-                        onSelect = { item ->
-                            state.specialties.find { it.name == item.name }?.let {
-                                onEvent(FilterEvents.OnSpecialtySelect(it))
-                            }
-                            showSpecialtyPopup = false
-                        },
-                        showPopup = showSpecialtyPopup,
-                        placeholder = stringResource(R.string.unplanned_specialty_select_hint),
-                        onClick = {
-                            showSpecialtyPopup = !showSpecialtyPopup
-                            showCityPopup = false
-                            showRegionPopup = false
-                        },
-                    )
-                }
-
-            }
-
-            // Section: حالة المزامنة
-            if (showSyncStatus) {
-                FilterChipsSection(title = stringResource(R.string.filter_sync_status_title)) {
-                    SyncFilter.entries.forEach { filter ->
-                        FilterShip(
-                            isSelected = state.syncFilter == filter,
-                            text = stringResource(filter.valueRes),
-                            onClick = { onEvent(FilterEvents.OnSyncFilterSelect(filter)) },
-                        )
-                    }
-                }
-            }
-
-            // Section: نوع الزيارة
-            if (showVisitType) {
-                FilterChipsSection(title = stringResource(R.string.visit_type_label)) {
-                    VisitTypeFilter.entries.forEach { filter ->
-                        FilterShip(
-                            isSelected = state.visitTypeFilter == filter,
-                            text = stringResource(filter.valueRes),
-                            onClick = { onEvent(FilterEvents.OnVisitTypeSelect(filter)) },
-                        )
-                    }
-                }
-            }
-
-            // Section 4: الفترة الزمنية (التاريخ من + التاريخ إلى)
-            if (showDateFilter) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
-                ) {
-                    NexoraText(
-                        text = stringResource(R.string.filter_period),
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                        ),
-                        color = Ink,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
-                    ) {
-                        LabelWrapperComponent(
-                            title = stringResource(R.string.filter_date_from),
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            DateField(
-                                state = startPickerState,
-                                showPicker = state.overLay == FilterOverLay.StartDateDialog,
-                                placeholder = state.selectedStartDate,
-                                onShowPicker = {
-                                    onEvent(FilterEvents.ToggleFilterOverlay(FilterOverLay.StartDateDialog))
-                                },
-                                onDateChange = { millis ->
-                                    onEvent(FilterEvents.OnStartDateSelect(millis))
-                                },
-                                onDismiss = {
-                                    onEvent(FilterEvents.ToggleFilterOverlay(FilterOverLay.None))
-                                }
-                            )
-                        }
-
-                        LabelWrapperComponent(
-                            title = stringResource(R.string.filter_date_to),
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            DateField(
-                                state = endPickerState,
-                                showPicker = state.overLay == FilterOverLay.EndDateDialog,
-                                placeholder = state.selectedEndDate,
-                                onShowPicker = {
-                                    onEvent(FilterEvents.ToggleFilterOverlay(FilterOverLay.EndDateDialog))
-                                },
-                                onDateChange = { millis ->
-                                    onEvent(FilterEvents.OnEndDateSelect(millis))
-                                },
-                                onDismiss = {
-                                    onEvent(FilterEvents.ToggleFilterOverlay(FilterOverLay.None))
-                                }
-                            )
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(spacing.spaceExtraSmall))
-
-                // Section 5: أزرار التحكم (إعادة ضبط + تطبيق الفلتر)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
-                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    NexoraButton(
-                        text = stringResource(R.string.filter_reset),
-                        onClick = onReset,
+                    LabelWrapperComponent(
+                        title = stringResource(R.string.unplanned_label_city),
                         modifier = Modifier.weight(1f),
-                        variant = NexoraButtonVariant.Secondary,
-                        outLineColor = Slate300,
-                        textStyle = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = Ink,
-                        ),
-                        border = BorderStroke(DividerDefaults.Thickness, Slate200),
-                    )
+                    ) {
+                        SearchFieldComponent(
+                            value = state.selectedCity?.name.orEmpty(),
+                            options = state.cites,
+                            onSelect = { item ->
+                                state.cites.find { it.name == item.name }?.let {
+                                    onEvent(FilterEvents.OnCitySelect(it))
+                                }
+                                showCityPopup = false
+                            },
+                            showPopup = showCityPopup,
+                            placeholder = stringResource(R.string.enter_city),
+                            onClick = {
+                                showCityPopup = !showCityPopup
+                                showRegionPopup = false
+                                showSpecialtyPopup = false
+                            },
+                        )
+                    }
 
-                    NexoraButton(
-                        text = stringResource(R.string.filter_apply),
-                        onClick = onApplyFilter,
-                        modifier = Modifier.weight(2f),
-                        variant = NexoraButtonVariant.Primary,
-                        textStyle = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                        ),
+                    LabelWrapperComponent(
+                        title = stringResource(R.string.unplanned_label_district),
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        SearchFieldComponent(
+                            value = state.selectedRegion?.name.orEmpty(),
+                            options = state.regions,
+                            onSelect = { item ->
+                                state.regions.find { it.name == item.name }?.let {
+                                    onEvent(FilterEvents.OnRegionSelect(it))
+                                }
+                                showRegionPopup = false
+                            },
+                            showPopup = showRegionPopup,
+                            placeholder = stringResource(R.string.enter_district),
+                            onClick = {
+                                showRegionPopup = !showRegionPopup
+                                showCityPopup = false
+                                showSpecialtyPopup = false
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
+        // Section 3: التخصص
+        if (showSpecialtyFilter) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
+            ) {
+                NexoraText(
+                    text = stringResource(R.string.unplanned_label_specialty),
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                    ),
+                    color = Ink,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                SearchFieldComponent(
+                    value = state.selectedSpecialty?.name.orEmpty(),
+                    options = state.specialties,
+                    onSelect = { item ->
+                        state.specialties.find { it.name == item.name }?.let {
+                            onEvent(FilterEvents.OnSpecialtySelect(it))
+                        }
+                        showSpecialtyPopup = false
+                    },
+                    showPopup = showSpecialtyPopup,
+                    placeholder = stringResource(R.string.unplanned_specialty_select_hint),
+                    onClick = {
+                        showSpecialtyPopup = !showSpecialtyPopup
+                        showCityPopup = false
+                        showRegionPopup = false
+                    },
+                )
+            }
+
+        }
+
+        // Section: حالة المزامنة
+        if (showSyncStatus) {
+            FilterChipsSection(title = stringResource(R.string.filter_sync_status_title)) {
+                SyncFilter.entries.forEach { filter ->
+                    FilterShip(
+                        isSelected = state.syncFilter == filter,
+                        text = stringResource(filter.valueRes),
+                        onClick = { onEvent(FilterEvents.OnSyncFilterSelect(filter)) },
                     )
                 }
+            }
+        }
+
+        // Section: نوع الزيارة
+        if (showVisitType) {
+            FilterChipsSection(title = stringResource(R.string.visit_type_label)) {
+                VisitTypeFilter.entries.forEach { filter ->
+                    FilterShip(
+                        isSelected = state.visitTypeFilter == filter,
+                        text = stringResource(filter.valueRes),
+                        onClick = { onEvent(FilterEvents.OnVisitTypeSelect(filter)) },
+                    )
+                }
+            }
+        }
+
+        // Section 4: الفترة الزمنية (التاريخ من + التاريخ إلى)
+        if (showDateFilter) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(spacing.spaceSmall),
+            ) {
+                NexoraText(
+                    text = stringResource(R.string.filter_period),
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                    ),
+                    color = Ink,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
+                ) {
+                    LabelWrapperComponent(
+                        title = stringResource(R.string.filter_date_from),
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        DateField(
+                            state = startPickerState,
+                            showPicker = state.overLay == FilterOverLay.StartDateDialog,
+                            placeholder = state.selectedStartDate.ifBlank { stringResource(R.string.filter_date_hint) },
+                            isEmpty = state.selectedStartDate.isBlank(),
+                            onShowPicker = {
+                                onEvent(FilterEvents.ToggleFilterOverlay(FilterOverLay.StartDateDialog))
+                            },
+                            onDateChange = { millis ->
+                                onEvent(FilterEvents.OnStartDateSelect(millis))
+                            },
+                            onDismiss = {
+                                onEvent(FilterEvents.ToggleFilterOverlay(FilterOverLay.None))
+                            }
+                        )
+                    }
+
+                    LabelWrapperComponent(
+                        title = stringResource(R.string.filter_date_to),
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        DateField(
+                            state = endPickerState,
+                            showPicker = state.overLay == FilterOverLay.EndDateDialog,
+                            placeholder = state.selectedEndDate.ifBlank { stringResource(R.string.filter_date_hint) },
+                            isEmpty = state.selectedEndDate.isBlank(),
+                            onShowPicker = {
+                                onEvent(FilterEvents.ToggleFilterOverlay(FilterOverLay.EndDateDialog))
+                            },
+                            onDateChange = { millis ->
+                                onEvent(FilterEvents.OnEndDateSelect(millis))
+                            },
+                            onDismiss = {
+                                onEvent(FilterEvents.ToggleFilterOverlay(FilterOverLay.None))
+                            }
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(spacing.spaceExtraSmall))
+
+            // Section 5: أزرار التحكم (إعادة ضبط + تطبيق الفلتر)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                NexoraButton(
+                    text = stringResource(R.string.filter_reset),
+                    onClick = onReset,
+                    modifier = Modifier.weight(1f),
+                    variant = NexoraButtonVariant.Secondary,
+                    outLineColor = Slate300,
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = Ink,
+                    ),
+                    border = BorderStroke(DividerDefaults.Thickness, Slate200),
+                )
+
+                NexoraButton(
+                    text = stringResource(R.string.filter_apply),
+                    onClick = onApplyFilter,
+                    modifier = Modifier.weight(2f),
+                    variant = NexoraButtonVariant.Primary,
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                    ),
+                )
             }
         }
     }
@@ -448,6 +418,7 @@ fun FilterContentComponentPreview() {
             onApplyFilter = {},
             onReset = { state = state.clearAll() },
             modifier = Modifier.padding(spacing.spaceMedium),
+            title = stringResource(R.string.filter_visits_title),
             showAreaPicker = true,
             showDateFilter = true,
             showClassFilter = true,

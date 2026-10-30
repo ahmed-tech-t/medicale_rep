@@ -39,6 +39,9 @@ enum class NexoraButtonVariant {
 
     /** Filled chip surface — cancel / low-emphasis actions. */
     Muted,
+
+    /** Filled red — confirms something destructive; faded while disabled. */
+    Danger,
     Text,
 }
 
@@ -119,6 +122,23 @@ fun NexoraButton(
                     containerColor = MaterialTheme.colorScheme.background,
                     contentColor = Ink,
                 ),
+            ) {
+                NexoraButtonLabel(text = text, style = labelStyle, leadingIcon = leadingIcon)
+            }
+
+            NexoraButtonVariant.Danger -> Button(
+                onClick = onClick,
+                enabled = enabled,
+                modifier = widthModifier.then(minSize),
+                shape = shape,
+                contentPadding = contentPadding,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = Color.White,
+                    disabledContainerColor = MaterialTheme.colorScheme.error.copy(alpha = .4f),
+                    disabledContentColor = Color.White,
+                ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
             ) {
                 NexoraButtonLabel(text = text, style = labelStyle, leadingIcon = leadingIcon)
             }

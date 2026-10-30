@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
@@ -13,15 +14,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
+import com.appcore.core.ui.theme.dim
 import com.appcore.core.ui.theme.spacing
 import com.example.medicalrep.R
 import com.example.medicalrep.ui.components.chrome.AppHeader
 import com.example.medicalrep.ui.components.chrome.NexoraTabs
-import com.example.medicalrep.ui.components.widgets.FilterMenu
+import com.example.medicalrep.ui.components.widgets.EmptyContent
 import com.example.medicalrep.ui.components.widgets.PendingVisitDialog
-import com.example.medicalrep.ui.components.widgets.ResultsFilterRow
-import com.example.medicalrep.ui.components.widgets.doneVisitFilterOptions
-import com.example.medicalrep.ui.components.widgets.plannedVisitFilterOptions
+import com.example.medicalrep.ui.components.widgets.SearchFilterRow
+import com.example.medicalrep.ui.components.widgets.filter.FilterComponent
+import com.example.medicalrep.ui.components.widgets.visit.CancelVisitSheet
 import com.example.medicalrep.ui.components.widgets.visit.CompletedVisitCard
 import com.example.medicalrep.ui.components.widgets.visit.PlannedVisitCard
 import com.example.medicalrep.ui.models.VisitUi
@@ -64,47 +66,69 @@ fun VisitLogUi(
             onSelect = { onEvent(VisitLogEvents.SelectTab(VisitLogTab.entries[it])) },
         )
 
-        // A new list per tab: the scroll position and item animations of one tab do not leak into the next.
         key(state.selectedTab) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(spacing.spaceSmallPlus),
-                verticalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
-            ) {
-                item(key = "results") {
-                    ResultsFilterRow(
-                        count = state.resultCount,
-                        onFilterClick = { onEvent(VisitLogEvents.OpenFilter) },
-                        isFiltered = state.isFiltered,
-                        filterMenu = {
-                            FilterMenu(
-                                expanded = state.overlay == VisitLogOverlay.Filter,
-                                options = when (state.selectedTab) {
-                                    VisitLogTab.Required -> plannedVisitFilterOptions
-                                    VisitLogTab.Done -> doneVisitFilterOptions
-                                },
-                                selected = state.filter,
-                                onSelect = { onEvent(VisitLogEvents.SelectFilter(it)) },
-                                onDismiss = { onEvent(VisitLogEvents.DismissOverlay) },
-                            )
-                        },
-                    )
-                }
+            SearchFilterRow(
+                modifier = Modifier.padding(
+                    horizontal = dim.screenPaddingHorizontal,
+                    vertical = spacing.spaceSmallPlus
+                ),
+                query = state.query,
+                onQueryChange = { onEvent(VisitLogEvents.OnSearchChange(it)) },
+                onFilterClick = { onEvent(VisitLogEvents.OpenFilter) },
+                placeholder = stringResource(R.string.visit_log_search_hint),
+                isFiltered = state.isFiltered,
+            )
+        }
+        if (state.resultCount == 0) EmptyContent()
+        else
+            key(state.selectedTab) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(bottom = dim.screenPaddingVertical),
+                    contentPadding = PaddingValues(
+                        horizontal = dim.screenPaddingHorizontal
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus),
+                ) {
+                    items(count = visits.itemCount, key = visits.itemKey { it.id }) { index ->
+                        visits[index]?.let {
+                            VisitLogItem(
+                                state.selectedTab,
+                                it,
+                                onEvent,
+                                modifier = Modifier.animateItem()
 
-                items(count = visits.itemCount, key = visits.itemKey { it.id }) { index ->
-                    visits[index]?.let {
-                        VisitLogItem(
-                            state.selectedTab,
-                            it,
-                            onEvent,
-                            modifier = Modifier.animateItem()
-                        )
+                            )
+                        }
                     }
                 }
             }
-        }
     }
 
+
+    if (state.overlay == VisitLogOverlay.Filter) {
+        val isDone = state.selectedTab == VisitLogTab.Done
+        FilterComponent(
+            state = state.sheet,
+            onEvent = { onEvent(VisitLogEvents.OnFilterEvent(it)) },
+            onApplyFilter = { onEvent(VisitLogEvents.ApplyFilter) },
+            onDismissRequest = { onEvent(VisitLogEvents.DismissOverlay) },
+            title = stringResource(if (isDone) R.string.filter_done_visits_title else R.string.filter_visits_title),
+            showClassFilter = !isDone,
+            showAreaPicker = !isDone,
+            showSpecialtyFilter = !isDone,
+            showAccountType = false,
+            showSyncStatus = isDone,
+            showVisitType = isDone,
+        )
+    }
+
+    if (state.overlay is VisitLogOverlay.CancelVisit) {
+        CancelVisitSheet(
+            reason = state.cancelReason,
+            onConfirm = { onEvent(VisitLogEvents.ConfirmCancel) },
+            onBack = { onEvent(VisitLogEvents.DismissOverlay) },
+        )
+    }
 
     if (state.overlay is VisitLogOverlay.PendingVisit) {
         PendingVisitDialog(
@@ -126,11 +150,12 @@ private fun VisitLogItem(
             model = visit,
             onAction = { onEvent(VisitLogEvents.StartVisit(visit.id)) },
             modifier = modifier,
+            onCancel = { onEvent(VisitLogEvents.CancelVisit(visit.id)) },
         )
 
         VisitLogTab.Done -> CompletedVisitCard(
             model = visit,
-            onClick = { onEvent(VisitLogEvents.OpenVisit(visit.id)) },
+            onViewReport = { onEvent(VisitLogEvents.OpenVisit(visit.id)) },
             modifier = modifier,
         )
     }
@@ -153,6 +178,31 @@ private fun VisitLogUiDonePreview() {
     MedicalRepTheme {
         VisitLogUi(
             state = VisitLogFakes.state().copy(selectedTab = VisitLogTab.Done),
+            visits = pagingItemsOf(VisitLogFakes.doneVisits()),
+            onEvent = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, locale = "ar", heightDp = 800)
+@Composable
+private fun VisitLogUiFilterSheetPreview() {
+    MedicalRepTheme {
+        VisitLogUi(
+            state = VisitLogFakes.state().copy(overlay = VisitLogOverlay.Filter),
+            visits = pagingItemsOf(VisitLogFakes.requiredVisits()),
+            onEvent = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, heightDp = 800)
+@Composable
+private fun VisitLogUiDoneFilterSheetPreview() {
+    MedicalRepTheme {
+        VisitLogUi(
+            state = VisitLogFakes.state()
+                .copy(selectedTab = VisitLogTab.Done, overlay = VisitLogOverlay.Filter),
             visits = pagingItemsOf(VisitLogFakes.doneVisits()),
             onEvent = {},
         )

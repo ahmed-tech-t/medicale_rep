@@ -145,7 +145,7 @@ class SeedDataTest {
         assertEquals(setOf(Shift.Am, Shift.Pm), planned.map { it.shift }.toSet())
         val done = data.visits.filter { it.status == VisitStatus.Completed }
         assertTrue(done.any { it.type == VisitType.Planned } && done.any { it.type == VisitType.Unplanned })
-        assertEquals(setOf(SyncStatus.Synced, SyncStatus.NotSynced), done.map { it.syncStatus }.toSet())
+        assertEquals(setOf(SyncStatus.Synced, SyncStatus.NotSynced, SyncStatus.Failed), done.map { it.syncStatus }.toSet())
         assertEquals(setOf(Shift.Am, Shift.Pm), done.map { it.shift }.toSet())
         val double = data.visits.filter { it.visitMode == VisitMode.Double }
         assertTrue(double.isNotEmpty() && double.all { it.supervisorId != null })

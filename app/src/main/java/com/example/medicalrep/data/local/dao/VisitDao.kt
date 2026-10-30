@@ -12,6 +12,7 @@ import com.example.medicalrep.data.local.entity.VisitEntity
 import com.example.medicalrep.data.local.relation.VisitWithDetails
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
+import com.example.medicalrep.domain.models.VisitMode
 import com.example.medicalrep.domain.models.VisitType
 import kotlinx.coroutines.flow.Flow
 
@@ -22,6 +23,22 @@ internal const val CLASS_ACCOUNTS_SQL =
 /** The optional shift and account class filters the visit lists share; pass null to ignore one. */
 private const val VISIT_SHIFT_AND_CLASS_FILTER =
     "(:shift IS NULL OR shift = :shift) AND (:classCategory IS NULL OR accountId IN ($CLASS_ACCOUNTS_SQL))"
+
+/** [VISIT_SHIFT_AND_CLASS_FILTER] plus the account's city, district and doctors' specialty, and the search text; the period is added per list. */
+private const val VISIT_LIST_FILTER = VISIT_SHIFT_AND_CLASS_FILTER +
+    " AND (:districtId IS NULL OR accountId IN (SELECT id FROM accounts WHERE districtId = :districtId))" +
+    " AND (:cityId IS NULL OR accountId IN (SELECT a.id FROM accounts a JOIN districts d ON d.id = a.districtId WHERE d.cityId = :cityId))" +
+    " AND (:specialty IS NULL OR accountId IN (SELECT ad.accountId FROM account_doctors ad JOIN doctors d ON d.id = ad.doctorId WHERE d.specialty = :specialty))" +
+    " AND (:query = '' OR searchText LIKE '%' || :query || '%' OR accountId IN" +
+    " (SELECT ad.accountId FROM account_doctors ad JOIN doctors d ON d.id = ad.doctorId" +
+    " WHERE d.name LIKE '%' || :query || '%' OR d.specialty LIKE '%' || :query || '%'))"
+
+private const val REQUIRED_FILTER = VISIT_LIST_FILTER +
+    " AND (:fromMillis IS NULL OR dateTimeMillis >= :fromMillis) AND (:toMillis IS NULL OR dateTimeMillis < :toMillis)"
+
+private const val DONE_FILTER = VISIT_LIST_FILTER +
+    " AND (:fromMillis IS NULL OR completedAtMillis >= :fromMillis) AND (:toMillis IS NULL OR completedAtMillis < :toMillis)" +
+    " AND (:visitMode IS NULL OR visitMode = :visitMode) AND (:syncStatus IS NULL OR syncStatus = :syncStatus)"
 
 @Dao
 abstract class VisitDao : BaseDao<VisitEntity> {
@@ -117,7 +134,7 @@ abstract class VisitDao : BaseDao<VisitEntity> {
      */
     @Transaction
     open suspend fun save(visit: VisitEntity, lines: List<VisitItemEntity>, doctors: List<VisitDoctorEntity> = emptyList()) {
-        if (visit.syncStatus == SyncStatus.NotSynced) {
+        if (visit.syncStatus != SyncStatus.Synced) {
             val before = linesOf(visit.id).associate { it.itemId to it.quantity }
             val after = lines.associate { it.itemId to it.quantity }
             (before.keys + after.keys).forEach { itemId ->
@@ -133,13 +150,18 @@ abstract class VisitDao : BaseDao<VisitEntity> {
 
     // ---- upload and download ----
 
-    @Query("SELECT * FROM visits WHERE syncStatus = 'NotSynced'")
+    /** Everything still to upload: waiting visits and the ones whose last upload failed. */
+    @Query("SELECT * FROM visits WHERE syncStatus IN ('NotSynced', 'Failed')")
     abstract suspend fun getNotSynced(): List<VisitEntity>
 
     @Query("UPDATE visits SET syncStatus = 'Synced', backendId = :backendId WHERE id = :localId")
     abstract suspend fun markSynced(localId: String, backendId: String?): Int
 
-    @Query("SELECT id FROM visits WHERE syncStatus = 'NotSynced' AND id IN (:ids)")
+    /** The upload of this visit was refused: it stays on the phone and is listed as Failed. */
+    @Query("UPDATE visits SET syncStatus = 'Failed' WHERE id = :id AND syncStatus != 'Synced'")
+    abstract suspend fun markFailed(id: String): Int
+
+    @Query("SELECT id FROM visits WHERE syncStatus IN ('NotSynced', 'Failed') AND id IN (:ids)")
     abstract suspend fun getNotSyncedIds(ids: List<String>): List<String>
 
     /** A download never overwrites a visit that has changes waiting to be uploaded. */
@@ -184,19 +206,29 @@ abstract class VisitDao : BaseDao<VisitEntity> {
     @Query("DELETE FROM visits WHERE id = :id AND approvalStatus = 'Rejected'")
     abstract suspend fun dismissRejected(id: String): Int
 
+    /** The rep drops a visit that is still to do: it is cancelled with the [reason] and waits to be uploaded. */
+    @Query("UPDATE visits SET executionStatus = 'Cancelled', cancelReason = :reason, syncStatus = 'NotSynced' WHERE id = :id AND approvalStatus = 'Approved' AND executionStatus = 'Scheduled'")
+    abstract suspend fun cancelVisit(id: String, reason: String): Int
+
     /** The rep cancels a request that was not uploaded yet. */
-    @Query("DELETE FROM visits WHERE id = :id AND approvalStatus = 'Pending' AND syncStatus = 'NotSynced'")
+    @Query("DELETE FROM visits WHERE id = :id AND approvalStatus = 'Pending' AND syncStatus IN ('NotSynced', 'Failed')")
     abstract suspend fun cancelRequest(id: String): Int
 
     // ---- lists by status ----
 
     /** Visits still to do. Every filter is optional (null = ignore). */
     @Transaction
-    @Query("SELECT * FROM visits WHERE approvalStatus = 'Approved' AND executionStatus = 'Scheduled' AND $VISIT_SHIFT_AND_CLASS_FILTER ORDER BY dateTimeMillis")
-    abstract fun requiredPaged(shift: Shift?, classCategory: String?): PagingSource<Int, VisitWithDetails>
+    @Query("SELECT * FROM visits WHERE approvalStatus = 'Approved' AND executionStatus = 'Scheduled' AND $REQUIRED_FILTER ORDER BY dateTimeMillis")
+    abstract fun requiredPaged(
+        shift: Shift?, classCategory: String?, cityId: String?, districtId: String?, specialty: String?, fromMillis: Long?, toMillis: Long?,
+        query: String,
+    ): PagingSource<Int, VisitWithDetails>
 
-    @Query("SELECT COUNT(*) FROM visits WHERE approvalStatus = 'Approved' AND executionStatus = 'Scheduled' AND $VISIT_SHIFT_AND_CLASS_FILTER")
-    abstract fun requiredCount(shift: Shift?, classCategory: String?): Flow<Int>
+    @Query("SELECT COUNT(*) FROM visits WHERE approvalStatus = 'Approved' AND executionStatus = 'Scheduled' AND $REQUIRED_FILTER")
+    abstract fun requiredCount(
+        shift: Shift?, classCategory: String?, cityId: String?, districtId: String?, specialty: String?, fromMillis: Long?, toMillis: Long?,
+        query: String,
+    ): Flow<Int>
 
     /** Visits whose day passed without the visit, most recent first. */
     @Transaction
@@ -212,11 +244,17 @@ abstract class VisitDao : BaseDao<VisitEntity> {
 
     /** Finished visits, newest first. [doubleOnly] keeps only double visits; the other filters are optional. */
     @Transaction
-    @Query("SELECT * FROM visits WHERE executionStatus = 'Completed' AND (:shift IS NULL OR shift = :shift) AND (:doubleOnly = 0 OR visitMode = 'Double') AND (:syncStatus IS NULL OR syncStatus = :syncStatus) AND (:classCategory IS NULL OR accountId IN ($CLASS_ACCOUNTS_SQL)) ORDER BY completedAtMillis DESC")
-    abstract fun donePaged(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?, classCategory: String?): PagingSource<Int, VisitWithDetails>
+    @Query("SELECT * FROM visits WHERE executionStatus = 'Completed' AND $DONE_FILTER ORDER BY completedAtMillis DESC")
+    abstract fun donePaged(
+        shift: Shift?, visitMode: VisitMode?, syncStatus: SyncStatus?, classCategory: String?,
+        cityId: String?, districtId: String?, specialty: String?, fromMillis: Long?, toMillis: Long?, query: String,
+    ): PagingSource<Int, VisitWithDetails>
 
-    @Query("SELECT COUNT(*) FROM visits WHERE executionStatus = 'Completed' AND (:shift IS NULL OR shift = :shift) AND (:doubleOnly = 0 OR visitMode = 'Double') AND (:syncStatus IS NULL OR syncStatus = :syncStatus) AND (:classCategory IS NULL OR accountId IN ($CLASS_ACCOUNTS_SQL))")
-    abstract fun doneCount(shift: Shift?, doubleOnly: Boolean, syncStatus: SyncStatus?, classCategory: String?): Flow<Int>
+    @Query("SELECT COUNT(*) FROM visits WHERE executionStatus = 'Completed' AND $DONE_FILTER")
+    abstract fun doneCount(
+        shift: Shift?, visitMode: VisitMode?, syncStatus: SyncStatus?, classCategory: String?,
+        cityId: String?, districtId: String?, specialty: String?, fromMillis: Long?, toMillis: Long?, query: String,
+    ): Flow<Int>
 
     /** The visits still to do in a day (from included, to not included): soonest first, at most [limit]. */
     @Transaction

@@ -132,8 +132,7 @@ class HomeViewModel @Inject constructor(
                 }
             }
 
-            HomeEvents.OnAddVisitClick,
-            is HomeEvents.OnStartVisit -> requestStart(event)
+            HomeEvents.OnAddVisitClick, is HomeEvents.OnStartVisit -> requestStart(event)
             HomeEvents.OnActiveContinue -> sendEvent(
                 Navigate(
                     PlanVisit(

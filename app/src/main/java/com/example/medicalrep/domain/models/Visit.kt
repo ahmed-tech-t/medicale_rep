@@ -66,7 +66,12 @@ sealed class VisitType {
 
 sealed class SyncStatus {
     data object Synced : SyncStatus()
+
+    /** Waiting for the upload (for example for the internet). */
     data object NotSynced : SyncStatus()
+
+    /** An upload was tried and refused; the data stays on the phone and is sent again. */
+    data object Failed : SyncStatus()
 }
 sealed class VisitMode() {
     data object Single : VisitMode()

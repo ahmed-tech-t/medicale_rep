@@ -80,9 +80,17 @@ class VisitRepoTest : RepoTestBase() {
         repo.save(Visit(id = "todo", type = VisitType.Planned, shift = Shift.Am, status = VisitStatus.Scheduled))
         repo.save(Visit(id = "done", type = VisitType.Planned, shift = Shift.Pm, status = VisitStatus.Completed, completedAtMillis = 5L))
         assertEquals(listOf("todo"), repo.requiredVisits().asSnapshot().map { it.id })
-        assertEquals(listOf("done"), repo.doneVisits(shift = Shift.Pm).asSnapshot().map { it.id })
-        assertEquals(0, repo.doneCount(shift = Shift.Am).first())
+        assertEquals(listOf("done"), repo.doneVisits(VisitListFilter(shift = Shift.Pm)).asSnapshot().map { it.id })
+        assertEquals(0, repo.doneCount(VisitListFilter(shift = Shift.Am)).first())
         assertEquals(1, repo.requiredCount().first())
+    }
+
+    @Test fun cancelVisitMovesAToDoVisitOutOfTheRequiredList() = runTest {
+        repo.save(Visit(id = "todo", type = VisitType.Planned, status = VisitStatus.Scheduled))
+        assertTrue(repo.cancelVisit("todo", "why"))
+        assertTrue(repo.requiredVisits().asSnapshot().isEmpty())
+        assertEquals(listOf("todo"), repo.missedVisits().asSnapshot().map { it.id })
+        assertFalse(repo.cancelVisit("todo", "again"))
     }
 
     @Test fun cancelOnlyBeforeUploadAndMarkSynced() = runTest {

@@ -432,7 +432,7 @@ object SeedDataFactory {
         )
         val done = listOf(
             visit("v-done-1", acc(1), VisitType.Unplanned, Shift.Am, now - 3 * HOUR, SyncStatus.NotSynced, double = true, durationLabel = "04:35 د", completedAtMillis = now - 3 * HOUR + 5 * MINUTE, status = VisitStatus.Completed, gifts = listOf(gift), samples = listOf(sample)),
-            visit("v-done-2", acc(4), VisitType.Unplanned, Shift.Pm, now - DAY, SyncStatus.NotSynced, durationLabel = "12:10 د", completedAtMillis = now - DAY + 12 * MINUTE, status = VisitStatus.Completed, gifts = listOf(gift)),
+            visit("v-done-2", acc(4), VisitType.Unplanned, Shift.Pm, now - DAY, SyncStatus.Failed, durationLabel = "12:10 د", completedAtMillis = now - DAY + 12 * MINUTE, status = VisitStatus.Completed, gifts = listOf(gift)),
             visit("v-done-3", acc(8), VisitType.Unplanned, Shift.Am, now - 2 * DAY, SyncStatus.Synced, durationLabel = "06:20 د", completedAtMillis = now - 2 * DAY + 6 * MINUTE, status = VisitStatus.Completed, samples = listOf(sample)),
             visit("v-done-4", acc(6), VisitType.Planned, Shift.Pm, now - 3 * DAY, SyncStatus.Synced, double = true, durationLabel = "15:00 د", completedAtMillis = now - 3 * DAY + 15 * MINUTE, status = VisitStatus.Completed),
             visit("v-done-5", acc(9), VisitType.Unplanned, Shift.Am, now - 4 * DAY, SyncStatus.Synced, durationLabel = "08:45 د", completedAtMillis = now - 4 * DAY + 9 * MINUTE, status = VisitStatus.Completed, gifts = listOf(gift)),

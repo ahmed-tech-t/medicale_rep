@@ -4,6 +4,7 @@ import androidx.paging.PagingData
 import com.example.medicalrep.domain.models.Shift
 import com.example.medicalrep.domain.models.SyncStatus
 import com.example.medicalrep.domain.models.Visit
+import com.example.medicalrep.domain.models.VisitListFilter
 import com.example.medicalrep.domain.models.VisitType
 import kotlinx.coroutines.flow.Flow
 
@@ -12,23 +13,13 @@ interface VisitRepo {
     fun visits(query: String = ""): Flow<PagingData<Visit>>
     fun visitsFiltered(type: VisitType?, syncStatus: SyncStatus?, repId: String?, fromMillis: Long, toMillis: Long): Flow<PagingData<Visit>>
 
-    /** Planned visits still to do. Every filter is optional (null = all); they run in the database. */
-    fun requiredVisits(shift: Shift? = null, classCategory: String? = null): Flow<PagingData<Visit>>
-    fun requiredCount(shift: Shift? = null, classCategory: String? = null): Flow<Int>
+    /** Planned visits still to do, by their date. Every part of [filter] is optional; it runs in the database. */
+    fun requiredVisits(filter: VisitListFilter = VisitListFilter()): Flow<PagingData<Visit>>
+    fun requiredCount(filter: VisitListFilter = VisitListFilter()): Flow<Int>
 
-    /** Finished visits, newest first; [doubleOnly] keeps only double visits. */
-    fun doneVisits(
-        shift: Shift? = null,
-        doubleOnly: Boolean = false,
-        syncStatus: SyncStatus? = null,
-        classCategory: String? = null,
-    ): Flow<PagingData<Visit>>
-    fun doneCount(
-        shift: Shift? = null,
-        doubleOnly: Boolean = false,
-        syncStatus: SyncStatus? = null,
-        classCategory: String? = null,
-    ): Flow<Int>
+    /** Finished visits, newest first, by the day they were finished; [VisitListFilter.visitMode] keeps one kind of visit. */
+    fun doneVisits(filter: VisitListFilter = VisitListFilter()): Flow<PagingData<Visit>>
+    fun doneCount(filter: VisitListFilter = VisitListFilter()): Flow<Int>
 
     /** Scheduled visits whose day passed without the visit. */
     fun missedVisits(shift: Shift? = null, classCategory: String? = null): Flow<PagingData<Visit>>
@@ -71,6 +62,12 @@ interface VisitRepo {
     suspend fun dismissRejected(id: String): Boolean
     suspend fun cancelRequest(id: String): Boolean
 
+    /** Cancels a visit that is still to do and keeps why; false when it is not (or no longer) to do. */
+    suspend fun cancelVisit(id: String, reason: String): Boolean
+
     suspend fun notSynced(): List<Visit>
     suspend fun markSynced(id: String, backendId: String?)
+
+    /** The upload of the visit was refused; it is listed as Failed and stays in [notSynced] to be sent again. */
+    suspend fun markFailed(id: String)
 }

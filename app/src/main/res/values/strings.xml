@@ -274,6 +274,26 @@
     <string name="visit_log_tab_done">Done</string>
     <string name="visit_log_results_format">%1$d results</string>
     <string name="visit_log_id_format">ID:%1$s</string>
+    <string name="visit_log_not_synced">Not synced</string>
+    <string name="visit_log_supervisor">Manager</string>
+    <string name="visit_log_visit_time">Visit time</string>
+    <string name="visit_log_samples_and_gifts">Samples and gifts</string>
+    <string name="visit_log_double_visit">Double Visit</string>
+    <string name="visit_log_single_visit">Single Visit</string>
+    <string name="visit_log_sync_pending_hint">Will sync when connected to the internet</string>
+    <string name="visit_log_not_uploaded">Visit not uploaded</string>
+    <plurals name="visit_log_samples">
+        <item quantity="one">%d sample</item>
+        <item quantity="other">%d samples</item>
+    </plurals>
+    <plurals name="visit_log_gifts">
+        <item quantity="one">%d gift</item>
+        <item quantity="other">%d gifts</item>
+    </plurals>
+    <string name="visit_log_search_hint">Search by doctor, specialty or clinic...</string>
+    <string name="visit_log_view_report">View visit report</string>
+    <string name="visit_log_sync_failed_title">Upload failed:</string>
+    <string name="visit_log_sync_failed_body">A problem happened while uploading, and the data is saved on the device.</string>
     <string name="visit_log_items_format">%1$d products + %2$d gifts</string>
     <string name="cd_filter">Filter</string>
     <!-- Products -->
@@ -342,6 +362,7 @@
     <string name="rep_tracking_gifts_format">%1$d promotional gifts</string>
     <string name="visit_status_completed">Completed</string>
     <string name="no_result">No results found</string>
+    <string name="thier_is_no_result">There is no result</string>
     <string name="orders">Orders</string>
     <string name="orders_order_number">Order #%1$d</string>
     <string name="orders_date_time">%1$s, %2$s</string>
@@ -400,10 +421,18 @@
         <item quantity="other">%1$d accounts</item>
     </plurals>
     <string name="cancel_visit">Cancel visit</string>
+    <string name="cancel_visit_title">Cancel today\'s visit</string>
+    <string name="cancel_visit_hint">Please say why the visit plan is cancelled so your direct supervisor can follow up.</string>
+    <string name="cancel_visit_notes">Additional notes:</string>
+    <string name="cancel_visit_notes_hint">Write extra details to explain the reason for cancelling...</string>
+    <string name="cancel_visit_confirm">Confirm cancellation</string>
+    <string name="cancel_visit_back">Go back</string>
     <string name="filter_apply">Apply Filter</string>
     <string name="filter_date_from">Date from</string>
     <string name="filter_date_to">Date to</string>
+    <string name="filter_date_hint">Select date</string>
     <string name="filter_visits_title">Filter Requested Visits</string>
+    <string name="filter_done_visits_title">Filter Completed Visits</string>
     <string name="filter_reset">Reset</string>
     <string name="filter_period">Time Period</string>
     <string name="filter_region_title">Region</string>

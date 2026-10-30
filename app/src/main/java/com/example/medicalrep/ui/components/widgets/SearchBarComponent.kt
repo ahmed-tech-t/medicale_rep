@@ -33,7 +33,7 @@ fun SearchBarComponent(
         modifier = modifier.fillMaxWidth(),
         state = state,
         placeholder = placeholder,
-        trailing = {
+        leading = {
             if (text.isNotBlank()) {
                 CloseIconComponent(
                     modifier = Modifier

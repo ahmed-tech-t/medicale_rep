@@ -1,5 +1,6 @@
 package com.example.medicalrep.domain.repo
 
+import com.example.medicalrep.domain.models.BasicModel
 import com.example.medicalrep.domain.models.Doctor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,6 +12,10 @@ class FakeDoctorRepo : DoctorRepo {
 
     fun setDoctors(accountId: String, doctors: List<Doctor>) {
         byAccount.value = byAccount.value + (accountId to doctors)
+    }
+
+    override fun specialties(): Flow<List<BasicModel>> = byAccount.map { map ->
+        map.values.flatten().mapNotNull { it.specialty?.name }.filter { it.isNotBlank() }.distinct().sorted().map { BasicModel(it, it) }
     }
 
     override fun doctorsOf(accountId: String): Flow<List<Doctor>> = byAccount.map { it[accountId].orEmpty() }
