@@ -37,7 +37,7 @@ fun TermsSectionCard(number: Int, section: TermsSectionUi, modifier: Modifier = 
         Row(horizontalArrangement = Arrangement.spacedBy(spacing.spaceSmallPlus)) {
             Box(
                 modifier = Modifier
-                    .size(28.dp)
+                    .size(spacing.spaceLarge)
                     .background(BrandTint, CircleShape)
                     .border(1.dp, BrandBorder, CircleShape),
                 contentAlignment = Alignment.Center,
