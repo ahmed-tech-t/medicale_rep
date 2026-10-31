@@ -6,5 +6,6 @@ data class Notification(
     val title: String,
     val message: String = "",
     val type: String = "",
+    val isRead: Boolean = false,
     val createdAtMillis: Long = 0L,
 )

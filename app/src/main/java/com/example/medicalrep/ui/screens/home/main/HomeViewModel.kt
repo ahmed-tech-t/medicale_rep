@@ -108,7 +108,7 @@ class HomeViewModel @Inject constructor(
                 .map { it.id?.toString() }
                 .distinctUntilChanged()
                 .flatMapLatest { repId ->
-                    if (repId == null) flowOf(0) else notificationRepo.count(
+                    if (repId == null) flowOf(0) else notificationRepo.unreadCount(
                         repId
                     )
                 }

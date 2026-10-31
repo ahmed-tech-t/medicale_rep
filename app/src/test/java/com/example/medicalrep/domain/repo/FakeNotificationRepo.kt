@@ -11,10 +11,14 @@ class FakeNotificationRepo(notifications: List<Notification> = emptyList()) : No
     override fun notificationsOf(repId: String): Flow<List<Notification>> =
         current.map { list -> list.filter { it.repId == repId }.sortedByDescending { it.createdAtMillis } }
 
-    override fun count(repId: String): Flow<Int> =
-        current.map { list -> list.count { it.repId == repId } }
+    override fun unreadCount(repId: String): Flow<Int> =
+        current.map { list -> list.count { it.repId == repId && !it.isRead } }
 
     override suspend fun save(notification: Notification) {
         current.value = current.value.filter { it.id != notification.id } + notification
+    }
+
+    override suspend fun markRead(id: String) {
+        current.value = current.value.map { if (it.id == id) it.copy(isRead = true) else it }
     }
 }

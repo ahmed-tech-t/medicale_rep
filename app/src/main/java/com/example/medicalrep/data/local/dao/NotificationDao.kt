@@ -10,6 +10,9 @@ interface NotificationDao : BaseDao<NotificationEntity> {
     @Query("SELECT * FROM notifications WHERE repId = :repId ORDER BY createdAtMillis DESC")
     fun ofRep(repId: String): Flow<List<NotificationEntity>>
 
-    @Query("SELECT COUNT(*) FROM notifications WHERE repId = :repId")
-    fun count(repId: String): Flow<Int>
+    @Query("SELECT COUNT(*) FROM notifications WHERE repId = :repId AND isRead = 0")
+    fun unreadCount(repId: String): Flow<Int>
+
+    @Query("UPDATE notifications SET isRead = 1 WHERE id = :id")
+    suspend fun markRead(id: String): Int
 }

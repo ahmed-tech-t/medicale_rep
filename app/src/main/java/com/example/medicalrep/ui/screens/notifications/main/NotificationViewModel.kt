@@ -38,7 +38,11 @@ class NotificationViewModel @Inject constructor(
                 .flatMapLatest { repId ->
                     if (repId == null) flowOf(emptyList()) else notificationRepo.notificationsOf(repId)
                 }
-                .collect { notifications -> _state.update { it.copy(notifications = notifications) } }
+                .collect { notifications ->
+                    _state.update { it.copy(notifications = notifications) }
+                    // Mark all unread as read so the Home badge drops to 0.
+                    notifications.filter { !it.isRead }.forEach { notificationRepo.markRead(it.id) }
+                }
         }
     }
 

@@ -157,6 +157,7 @@ erDiagram
         string title "العنوان"
         string message "نص الإشعار"
         string type "نوع الإشعار"
+        boolean isRead "تمت قراءته؟"
         long createdAtMillis "وقت الإشعار"
     }
     visit_draft {
