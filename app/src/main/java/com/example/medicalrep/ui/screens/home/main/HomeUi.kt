@@ -94,7 +94,7 @@ fun HomeUi(
                     user = state.user,
                     unreadCount = state.unreadCount,
                     onMenuClick = { scope.launch { drawerState.open() } },
-                    onBellClick = {},
+                    onBellClick = { onEvent(HomeEvents.OnNotificationsClick) },
                     modifier = Modifier.testTag(HomeTestTags.Header),
                 )
                 HomeList(state = state, onEvent = onEvent)

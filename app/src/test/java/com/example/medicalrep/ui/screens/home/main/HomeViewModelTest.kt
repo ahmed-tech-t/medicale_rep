@@ -202,14 +202,12 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `the bell counts the unread notifications of the signed in rep`() = runTest(dispatcher) {
+    fun `the bell counts the notifications of the signed in rep`() = runTest(dispatcher) {
         assertEquals(0, state.unreadCount)
         notificationRepo.save(Notification("n1", repId = "7", title = "a"))
         notificationRepo.save(Notification("n2", repId = "7", title = "b"))
         notificationRepo.save(Notification("other", repId = "8", title = "c"))
         assertEquals(2, state.unreadCount)
-        notificationRepo.markRead("n1")
-        assertEquals(1, state.unreadCount)
     }
 
     @Test

@@ -23,6 +23,8 @@ import com.example.medicalrep.ui.screens.planvisit.account_location.main.Account
 import com.example.medicalrep.ui.screens.visit_location_map.main.VisitLocationMapScreen
 import com.example.medicalrep.ui.screens.visitdetails.main.VisitDetailsScreen
 import com.example.medicalrep.ui.screens.visitlog.main.VisitLogScreen
+import com.example.medicalrep.ui.screens.notifications.main.NotificationScreen
+import com.example.medicalrep.ui.screens.officework.main.OfficeWorkScreen
 import com.example.medicalrep.ui.screens.visitplanning.main.VisitPlanningScreen
 
 fun NavGraphBuilder.mainNavGraph(
@@ -138,6 +140,20 @@ fun NavGraphBuilder.mainNavGraph(
         }
         composable<MainGraph.AddAccount> {
             AddAccountScreen(
+                onNavigate = onNavigate,
+                navigationUp = navigationUp,
+                snackbarHostState = snackbarHostState,
+            )
+        }
+        composable<MainGraph.OfficeWork> {
+            OfficeWorkScreen(
+                onNavigate = onNavigate,
+                navigationUp = navigationUp,
+                snackbarHostState = snackbarHostState,
+            )
+        }
+        composable<MainGraph.Notifications> {
+            NotificationScreen(
                 onNavigate = onNavigate,
                 navigationUp = navigationUp,
                 snackbarHostState = snackbarHostState,

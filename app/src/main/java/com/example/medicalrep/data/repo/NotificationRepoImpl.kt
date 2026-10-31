@@ -13,13 +13,9 @@ class NotificationRepoImpl @Inject constructor(private val dao: NotificationDao)
 
     override fun notificationsOf(repId: String): Flow<List<Notification>> = dao.ofRep(repId).map { list -> list.map { it.toDomain() } }
 
-    override fun unreadCount(repId: String): Flow<Int> = dao.unreadCount(repId)
+    override fun count(repId: String): Flow<Int> = dao.count(repId)
 
     override suspend fun save(notification: Notification) {
         dao.upsert(notification.toEntity())
-    }
-
-    override suspend fun markRead(id: String) {
-        dao.markRead(id)
     }
 }

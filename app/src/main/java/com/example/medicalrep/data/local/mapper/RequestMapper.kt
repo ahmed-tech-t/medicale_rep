@@ -11,8 +11,8 @@ fun RepRequestEntity.toDomain() = RepRequest(id, repId, dateMillis, category, su
 
 fun RepRequest.toEntity() = RepRequestEntity(id, repId, dateMillis, category, subType, shift, status, notes, createdAtMillis, decidedAtMillis)
 
-fun NotificationEntity.toDomain() = Notification(id, repId, title, message, type, isRead, createdAtMillis)
+fun NotificationEntity.toDomain() = Notification(id, repId, title, message, type, createdAtMillis)
 
-fun Notification.toEntity() = NotificationEntity(id, repId, title, message, type, isRead, createdAtMillis)
+fun Notification.toEntity() = NotificationEntity(id, repId, title, message, type, createdAtMillis)
 
 fun SystemSetting.toEntity() = SystemSettingEntity(key, value)

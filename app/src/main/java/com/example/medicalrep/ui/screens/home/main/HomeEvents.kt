@@ -11,7 +11,9 @@ sealed interface HomeEvents {
     data object OnAddVisitClick : HomeEvents
     data object OnPlanVisitsClick : HomeEvents
     data object OnAccountsClick : HomeEvents
+    data object OnOfficeWorkClick : HomeEvents
     data object OnPendingVisitConfirm : HomeEvents
     data object OnDiscardPendingConfirm : HomeEvents
+    data object OnNotificationsClick : HomeEvents
     data object OnOverlayDismiss : HomeEvents
 }

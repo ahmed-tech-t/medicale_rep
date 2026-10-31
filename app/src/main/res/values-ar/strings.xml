@@ -172,6 +172,7 @@
     <string name="unplanned_label_supervisor">المشرف المرافق</string>
     <string name="shift_am">صباحا</string>
     <string name="shift_pm">مسائي</string>
+    <string name="shift_full">اليوم كامل</string>
     <string name="unplanned_section_gifts">الهدايا</string>
     <string name="unplanned_section_products">المنتجات</string>
     <string name="unplanned_add_gift">اختيار هدية</string>
@@ -262,6 +263,7 @@
     <string name="home_plan_visits">تخطيط الزيارات</string>
     <string name="home_office_work">العمل المكتبي</string>
     <string name="cd_notifications">الإشعارات</string>
+    <string name="notifications_empty">لا توجد إشعارات حاليًا</string>
     <string name="home_accounts">الأطباء والحسابات</string>
     <string name="home_today_progress">تقدّم اليوم</string>
     <string name="home_completed_visits">زيارات مكتملة</string>
@@ -479,4 +481,16 @@
         <item quantity="many">تم اختيار %1$d يومًا</item>
         <item quantity="other">تم اختيار %1$d يوم</item>
     </plurals>
+    <string name="office_work_data_title">بيانات العمل المكتبي</string>
+    <string name="office_work_date_label">التاريخ</string>
+    <string name="office_work_type_label">نوع العمل المكتبي</string>
+    <string name="office_work_period_title">فترة العمل</string>
+    <string name="office_work_notes_title">ملاحظات</string>
+    <string name="office_work_notes_hint">اكتب ملاحظاتك هنا…</string>
+    <string name="office_work_submit">تسجيل</string>
+    <string name="office_work_type_meeting_supervisor">اجتماع مع المشرف</string>
+    <string name="office_work_type_training">تدريب</string>
+    <string name="office_work_type_reports">إعداد تقارير</string>
+    <string name="office_work_type_samples_gifts">استلام عينات وهدايا</string>
+    <string name="office_work_type_vacation">إجازة / مأمورية</string>
 </resources>

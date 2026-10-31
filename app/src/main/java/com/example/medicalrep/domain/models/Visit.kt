@@ -55,6 +55,7 @@ data class Visit(
 enum class Shift {
     Am,
     Pm,
+    Full,
 }
 
 

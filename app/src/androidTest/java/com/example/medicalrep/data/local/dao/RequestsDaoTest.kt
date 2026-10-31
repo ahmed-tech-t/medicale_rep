@@ -20,7 +20,7 @@ import org.junit.runner.RunWith
  *
  * Given requests of three categories, then a rep sees only their own, newest day first.
  * Given a pending request, when it is decided, then it is approved or rejected once; a second decision changes nothing.
- * Given notifications, when one is marked read, then the unread count drops; an unknown id changes nothing.
+ * Given notifications, then a rep sees them newest first and the count matches.
  * Given a rep is deleted, then their requests and notifications go.
  * Given an unknown setting key, then it reads null; setting it twice keeps the last value.
  */
@@ -55,13 +55,10 @@ class RequestsDaoTest : DaoTestBase() {
         assertEquals(50L, stored.decidedAtMillis)
     }
 
-    @Test fun markingReadDropsTheUnreadCount() = runBlocking {
+    @Test fun aRepSeesTheirNotificationsNewestFirstWithCount() = runBlocking {
         db.repDao().save(rep("r1"))
         db.notificationDao().insertAll(listOf(notification("n1", at = 1), notification("n2", at = 2)))
-        assertEquals(2, db.notificationDao().unreadCount("r1").first())
-        assertEquals(1, db.notificationDao().markRead("n1"))
-        assertEquals(0, db.notificationDao().markRead("none"))
-        assertEquals(1, db.notificationDao().unreadCount("r1").first())
+        assertEquals(2, db.notificationDao().count("r1").first())
         assertEquals(listOf("n2", "n1"), db.notificationDao().ofRep("r1").first().map { it.id })
     }
 

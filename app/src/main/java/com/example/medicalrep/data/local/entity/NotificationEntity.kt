@@ -16,6 +16,5 @@ data class NotificationEntity(
     val title: String,
     val message: String,
     val type: String,
-    val isRead: Boolean,
     val createdAtMillis: Long,
 )

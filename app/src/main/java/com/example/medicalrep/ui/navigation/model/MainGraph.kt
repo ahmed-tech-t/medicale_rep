@@ -46,6 +46,12 @@ open class MainGraph {
     data class MapRepTracking(val repId: String, val dayMillis: Long) : MainGraph()
 
     @Serializable
+    data object OfficeWork : MainGraph()
+
+    @Serializable
+    data object Notifications : MainGraph()
+
+    @Serializable
     data object Terms : MainGraph()
 
     @Serializable

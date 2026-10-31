@@ -29,6 +29,6 @@ val HomeQuickActions = listOf(
         Icons.Outlined.CalendarMonth,
         HomeEvents.OnPlanVisitsClick
     ),
-    HomeQuickAction(R.string.home_office_work, Icons.Outlined.BusinessCenter, null),
+    HomeQuickAction(R.string.home_office_work, Icons.Outlined.BusinessCenter, HomeEvents.OnOfficeWorkClick),
     HomeQuickAction(R.string.home_accounts, Icons.Outlined.MedicalServices, HomeEvents.OnAccountsClick),
 )

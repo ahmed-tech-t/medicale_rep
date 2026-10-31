@@ -172,6 +172,7 @@
     <string name="unplanned_label_supervisor">Accompanying supervisor</string>
     <string name="shift_am">Morning</string>
     <string name="shift_pm">Evening</string>
+    <string name="shift_full">Full Day</string>
     <string name="unplanned_section_gifts">Gifts</string>
     <string name="unplanned_section_products">Products</string>
     <string name="unplanned_add_gift">Choose gift</string>
@@ -262,6 +263,7 @@
     <string name="home_plan_visits">Plan visits</string>
     <string name="home_office_work">Office work</string>
     <string name="cd_notifications">Notifications</string>
+    <string name="notifications_empty">No notifications right now</string>
     <string name="home_accounts">Doctors and accounts</string>
     <string name="home_today_progress">Today\'s progress</string>
     <string name="home_completed_visits">Completed visits</string>
@@ -465,4 +467,16 @@
         <item quantity="one">1 day selected</item>
         <item quantity="other">%1$d days selected</item>
     </plurals>
+    <string name="office_work_data_title">Office Work Data</string>
+    <string name="office_work_date_label">Date</string>
+    <string name="office_work_type_label">Work Type</string>
+    <string name="office_work_period_title">Work Period</string>
+    <string name="office_work_notes_title">Notes</string>
+    <string name="office_work_notes_hint">Write your notes here…</string>
+    <string name="office_work_submit">Register</string>
+    <string name="office_work_type_meeting_supervisor">Meeting with Supervisor</string>
+    <string name="office_work_type_training">Training</string>
+    <string name="office_work_type_reports">Preparing Reports</string>
+    <string name="office_work_type_samples_gifts">Receiving Samples &amp; Gifts</string>
+    <string name="office_work_type_vacation">Leave / Mission</string>
 </resources>

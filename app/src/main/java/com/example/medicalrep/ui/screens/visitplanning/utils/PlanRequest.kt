@@ -18,4 +18,5 @@ fun Visit.asPlanRequest(newId: String, dateMillis: Long, nowMillis: Long) = Visi
     syncStatus = SyncStatus.NotSynced,
     status = VisitStatus.PendingApproval,
     requestedAtMillis = nowMillis,
+    doctors = doctors,
 )

@@ -108,7 +108,7 @@ class HomeViewModel @Inject constructor(
                 .map { it.id?.toString() }
                 .distinctUntilChanged()
                 .flatMapLatest { repId ->
-                    if (repId == null) flowOf(0) else notificationRepo.unreadCount(
+                    if (repId == null) flowOf(0) else notificationRepo.count(
                         repId
                     )
                 }
@@ -151,8 +151,10 @@ class HomeViewModel @Inject constructor(
                 _state.update { it.copy(overlay = HomeOverlay.None) }
             }
 
+            HomeEvents.OnNotificationsClick -> sendEvent(Navigate(MainGraph.Notifications))
             HomeEvents.OnPlanVisitsClick -> sendEvent(Navigate(MainGraph.VisitPlanning))
             HomeEvents.OnAccountsClick -> sendEvent(Navigate(MainGraph.Accounts))
+            HomeEvents.OnOfficeWorkClick -> sendEvent(Navigate(MainGraph.OfficeWork))
             HomeEvents.OnTodayMoreClick -> sendEvent(Navigate(MainGraph.VisitLog))
         }
     }
