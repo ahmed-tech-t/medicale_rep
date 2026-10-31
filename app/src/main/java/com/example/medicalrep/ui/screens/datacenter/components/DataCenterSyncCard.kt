@@ -45,6 +45,8 @@ import com.example.medicalrep.ui.ui.theme.Slate400
 import com.example.medicalrep.ui.ui.theme.Slate50
 import com.example.medicalrep.ui.ui.theme.Slate500
 import com.example.medicalrep.ui.ui.theme.Slate900
+import java.text.DateFormat
+import java.util.Date
 
 @Composable
 fun DataCenterSyncCard(
@@ -82,13 +84,27 @@ fun DataCenterSyncCard(
                 color = Slate500,
             )
             NexoraText(
-                text = stringResource(R.string.data_center_last_updated_minutes_format, item.lastUpdatedMinutesAgo),
+                text = lastUpdatedText(item),
                 style = MaterialTheme.typography.labelSmall,
                 color = Slate400,
                 modifier = Modifier.padding(top = spacing.spaceExtraExtraSmall),
             )
         }
         SyncButton(item = item, onSync = onSync)
+    }
+}
+
+@Composable
+private fun lastUpdatedText(item: DataCenterSyncItemUi): String {
+    val todayMillis = item.lastUpdatedTodayMillis
+    val minutesAgo = item.lastUpdatedMinutesAgo
+    return when {
+        todayMillis != null -> {
+            val time = remember(todayMillis) { DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(todayMillis)) }
+            stringResource(R.string.data_center_last_updated_today_format, time)
+        }
+        minutesAgo != null -> stringResource(R.string.data_center_last_updated_minutes_format, minutesAgo)
+        else -> ""
     }
 }
 

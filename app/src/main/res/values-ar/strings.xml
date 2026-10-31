@@ -111,22 +111,27 @@
 
     <!-- Data center -->
     <string name="data_center_title">مركز البيانات والمزامنة</string>
-    <string name="data_center_intro_title">تحديث قواعد البيانات (Offline Sync)</string>
-    <string name="data_center_intro_body">قم بمزامنة بيانات الأطباء والخطط لضمان عمل التطبيق بكفاءة وبدون انقطاع أثناء عدم توفر الإنترنت.</string>
-    <string name="data_center_section_server">بيانات السيرفر الرئيسية</string>
-    <string name="data_center_card_full_title">تحديث شامل للبيانات</string>
-    <string name="data_center_card_full_subtitle">تحميل وتحديث كافة السجلات والخطط دفعة واحدة</string>
+    <string name="data_center_intro_title">تحديث قواعد البيانات (مزامنة بدون إنترنت)</string>
+    <string name="data_center_intro_body">زامن بيانات الأطباء والخطط ليعمل التطبيق بسلاسة بدون إنترنت.</string>
+    <string name="data_center_section_server">بيانات الخادم الرئيسي</string>
+    <string name="data_center_card_full_title">تحديث كامل للبيانات</string>
+    <string name="data_center_card_full_subtitle">تحميل وتحديث كل السجلات والخطط مرة واحدة</string>
     <string name="data_center_card_doctors_title">الأطباء والحسابات</string>
     <string name="data_center_card_doctors_subtitle">المدن والمناطق، أنواع الحسابات، العيادات، المستشفيات، الأطباء والتخصصات</string>
     <string name="data_center_card_products_title">المنتجات</string>
     <string name="data_center_card_products_subtitle">كتالوج المنتجات مع الأسعار والخصومات</string>
     <string name="data_center_card_samples_title">العينات الطبية</string>
     <string name="data_center_card_samples_subtitle">العينات الطبية ورصيد عهدتك المتبقي</string>
+    <string name="data_center_card_gifts_title">الهدايا الدعائية</string>
+    <string name="data_center_card_gifts_subtitle">الهدايا الدعائية ورصيد عهدتك المتبقي</string>
+    <string name="data_center_card_settings_title">الإعدادات</string>
+    <string name="data_center_card_settings_subtitle">إعدادات التطبيق وقواعد الزيارات وتفضيلات الشركة</string>
+    <string name="data_center_last_updated_today_format">آخر تحديث: اليوم %1$s</string>
     <string name="data_center_last_updated_minutes_format">آخر تحديث: منذ %1$d دقيقة</string>
-    <string name="data_center_card_planned_title">الزيارات المخطط لها</string>
-    <string name="data_center_card_planned_subtitle">جداول الزيارات المجدولة للدورة الحالية والملاحظات</string>
-    <string name="data_center_card_unplanned_title">الزيارات الغير مخطط لها</string>
-    <string name="data_center_card_unplanned_subtitle">جداول الزيارات المجدولة للدورة الحالية والملاحظات</string>
+    <string name="data_center_card_planned_title">الزيارات المخططة</string>
+    <string name="data_center_card_planned_subtitle">الزيارات المجدولة للدورة الحالية والملاحظات</string>
+    <string name="data_center_card_unplanned_title">الزيارات غير المخططة</string>
+    <string name="data_center_card_unplanned_subtitle">الزيارات غير المجدولة للدورة الحالية والملاحظات</string>
 
     <!-- Statics -->
     <string name="statics_title">لوحة الإحصائيات والتقارير</string>

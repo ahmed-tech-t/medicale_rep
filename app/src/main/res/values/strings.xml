@@ -122,11 +122,16 @@
     <string name="data_center_card_products_subtitle">Product catalog with prices and discounts</string>
     <string name="data_center_card_samples_title">Medical Samples</string>
     <string name="data_center_card_samples_subtitle">Medical samples and your remaining custody balance</string>
+    <string name="data_center_card_gifts_title">Promotional Gifts</string>
+    <string name="data_center_card_gifts_subtitle">Promotional gifts and your remaining custody balance</string>
+    <string name="data_center_card_settings_title">Settings</string>
+    <string name="data_center_card_settings_subtitle">App settings, visit rules and company preferences</string>
+    <string name="data_center_last_updated_today_format">Last updated: Today %1$s</string>
     <string name="data_center_last_updated_minutes_format">Last updated: %1$d minutes ago</string>
     <string name="data_center_card_planned_title">Planned visits</string>
     <string name="data_center_card_planned_subtitle">Scheduled visit tables for the current cycle and notes</string>
     <string name="data_center_card_unplanned_title">Unplanned visits</string>
-    <string name="data_center_card_unplanned_subtitle">Scheduled visit tables for the current cycle and notes</string>
+    <string name="data_center_card_unplanned_subtitle">Unscheduled visits for the current cycle and notes</string>
 
     <!-- Statics -->
     <string name="statics_title">Statistics and reports</string>
